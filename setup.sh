@@ -11,4 +11,4 @@ path="`pwd`/`dirname $0`/"
 ln -s $path/bashrc $HOME/.bashrc
 ln -s $path/VScode_config ~/.config/Code\ -\ OSS/User
 
-cp $path/httpd.template.conf /etc/httpd/conf/httpd.template.conf
+cp $path/files/httpd.template.conf /etc/httpd/conf/httpd.template.conf
