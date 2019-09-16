@@ -1,0 +1,25 @@
+#!/bin/bash
+
+DEFAULT_SERVER='deetrip'
+
+if [ "$(id -u)" != "0" ]; then
+   echo "This script must be run as root" 1>&2
+   exit 1
+fi
+
+if [ "$1" ] && [ -d "/srv/$1" ]; then
+    serv="$1"
+else
+    echo "Default web server set to '$DEFAULT_SERVER'"
+    echo "Availables are: "$(ls /srv/)
+fi
+
+if [ ! "$serv" ];then
+    serv=$DEFAULT_SERVER
+fi
+
+cat /etc/httpd/conf/httpd.template.conf > /etc/httpd/conf/httpd.conf
+echo 'DocumentRoot "/srv/'$serv'"'>> /etc/httpd/conf/httpd.conf
+
+systemctl restart mariadb.service && echo "mariadb launch successful" || echo "mariadb failed to launch.."
+systemctl restart httpd && echo "apache launch successful" || echo "apache failed to launch.."
