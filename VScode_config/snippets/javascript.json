@@ -5,13 +5,11 @@
     // same ids are connected.
     // Example:
     "Read from file": {
-        "prefix": ["read_file", "snippet_read_file"],
+        "prefix": ["read_file"],
         "body": [
-            "var fs       = require('fs'),",
-            "    path     = require('path'),",
-            "    filePath = path.join(__dirname, '${1:fileName}');",
+            "var fs       = require('fs');",
             "",
-            "fs.readFile(filePath, {encoding: 'utf-8'}, function(err, ${2:fileContents}){",
+            "fs.readFile('${1:filePath}', {encoding: 'utf-8'}, function(err, ${2:fileContents}){",
             "    if (err) {",
             "        console.err(err);",
             "        return;",
@@ -20,6 +18,19 @@
             "});",
         ],
         "description": "Read data from a file"
+    },
+    "Write file": {
+        "prefix": ["write_file"],
+        "body": [
+            "const fs = require('fs')",
+            "",
+            "fs.writeFile('${1:file_path}', ${2:fileContent}, function(err) {",
+            "    if(err) {",
+            "        return console.log(err)",
+            "    }",
+            "    console.log('The file was saved!')",
+            "}); "
+        ]
     },
     "Log variable to console output": {
         "prefix": ["log"],

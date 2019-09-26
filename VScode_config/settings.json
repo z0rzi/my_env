@@ -199,4 +199,6 @@
     "editor.snippetSuggestions": "top",
     "prettier.endOfLine": "cr",
     "javascript.format.enable": false,
+    "phpformatter.composer": true,
+    "phpformatter.notifications": false,
 }
