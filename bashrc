@@ -102,7 +102,7 @@ PATH=$PATH:$HOME/.my_env/scripts/:
 
 
 alias vim="nvim -p"
-alias vi="vim"
+alias vi="nvim"
 
 alias bye='exit'
 alias byebye='shutdown now'
@@ -115,7 +115,7 @@ alias lls='clear;ls'
 
 alias color="grep -C 100000"
 
-alias git='git_alias.sh'
+alias git='git_wrapper.sh'
 
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f '/home/zorzi/Projects/my_app_engine/google-cloud-sdk/path.bash.inc' ]; then . '/home/zorzi/Projects/my_app_engine/google-cloud-sdk/path.bash.inc'; fi
