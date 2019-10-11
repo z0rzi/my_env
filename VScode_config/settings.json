@@ -85,6 +85,22 @@
             "after" : ["y", "$"]
         },
         {
+            "before": ["<LEADER>", "E"],
+            "after" : ["E", "a"]
+        },
+        {
+            "before": ["<LEADER>", "e"],
+            "after" : ["e", "a"]
+        },
+        {
+            "before": ["<LEADER>", "B"],
+            "after" : ["B", "i"]
+        },
+        {
+            "before": ["<LEADER>", "b"],
+            "after" : ["b", "i"]
+        },
+        {
             "before": ["<LEADER>", "i"],
             "after" : ["B", "i"]
         },
@@ -110,6 +126,14 @@
         {
             "before": ["z", "z"],
             "after" : ["z", "z", "3", "<C-e>"]
+        },
+        {
+            "before": ["u"],
+            "commands" : ["undo"]
+        },
+        {
+            "before": ["<C-r>"],
+            "commands" : ["redo"]
         },
     ],
     "vim.visualModeKeyBindingsNonRecursive": [
@@ -175,4 +199,6 @@
     "editor.snippetSuggestions": "top",
     "prettier.endOfLine": "cr",
     "javascript.format.enable": false,
+    "phpformatter.composer": true,
+    "phpformatter.notifications": false,
 }

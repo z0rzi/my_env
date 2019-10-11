@@ -59,11 +59,8 @@ if ${use_color} ; then
 		fi
 	fi
 
-	if [[ ${EUID} == 0 ]] ; then
-		PS1='\[\033[01;31m\][\h\[\033[01;36m\] \w\[\033[01;31m\]]\$\[\033[00m\] '
-	else
-		PS1='\[\033[01;32m\][\u@\h\[\033[01;37m\] \w\[\033[01;32m\]]\$\[\033[00m\] '
-	fi
+    # PS1='\[\033[01;31m\][\h\[\033[01;36m\] \w\[\033[01;31m\]]\$\[\033[00m\] '
+    PS1="\[\e[1m\e[92m\][ \[\e[0m\]\w \[\e[92m\]]\[\e[\[\$([ \$? -eq 0 ] && echo 92 || echo 31)m\] ❱ \[\e[0m\]"
 
 	alias ls='ls --color=auto'
 	alias grep='grep --colour=auto'
@@ -101,8 +98,8 @@ shopt -s histappend
 PATH=$PATH:$HOME/.my_env/scripts/:
 
 
-alias vim="nvim -p"
-alias vi="vim"
+alias vim="nvim"
+alias vi="nvim"
 
 alias bye='exit'
 alias byebye='shutdown now'
@@ -115,8 +112,14 @@ alias lls='clear;ls'
 
 alias color="grep -C 100000"
 
+alias git='git_wrapper.sh'
+
 # The next line updates PATH for the Google Cloud SDK.
 if [ -f '/home/zorzi/Projects/my_app_engine/google-cloud-sdk/path.bash.inc' ]; then . '/home/zorzi/Projects/my_app_engine/google-cloud-sdk/path.bash.inc'; fi
 
 # The next line enables shell command completion for gcloud.
 if [ -f '/home/zorzi/Projects/my_app_engine/google-cloud-sdk/completion.bash.inc' ]; then . '/home/zorzi/Projects/my_app_engine/google-cloud-sdk/completion.bash.inc'; fi
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
