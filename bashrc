@@ -60,7 +60,7 @@ if ${use_color} ; then
 	fi
 
     # PS1='\[\033[01;31m\][\h\[\033[01;36m\] \w\[\033[01;31m\]]\$\[\033[00m\] '
-    PS1="\[\e[1m\e[92m\][ \[\e[0m\w \e[92m\]]\[\e[\$([ \$? -eq 0 ] && echo 92 || echo 31)m\] ❱ \[\e[0m\]"
+    PS1="\[\e[1m\e[92m\][ \[\e[0m\]\w \[\e[92m\]]\[\e[\[\$([ \$? -eq 0 ] && echo 92 || echo 31)m\] ❱ \[\e[0m\]"
 
 	alias ls='ls --color=auto'
 	alias grep='grep --colour=auto'
@@ -98,7 +98,7 @@ shopt -s histappend
 PATH=$PATH:$HOME/.my_env/scripts/:
 
 
-alias vim="nvim -p"
+alias vim="nvim"
 alias vi="nvim"
 
 alias bye='exit'
