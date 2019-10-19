@@ -1,0 +1,649 @@
+"
+" GENERAL NATIVE VIM SETTINGS
+"
+    syn on
+    filetype on
+    set nu
+    set wrap
+    set ruler
+    set hidden
+
+    set hlsearch
+    set incsearch
+
+    set smartindent
+    set autoindent
+
+    set wildmenu
+    set showcmd
+    set scrolloff=5
+    " set relativenumber
+    set conceallevel=2
+
+    set nostartofline
+    set mouse=a
+
+    set formatoptions=cro
+    set clipboard=unnamedplus
+
+    set swapfile
+    set dir=/tmp
+    set modeline
+
+    set tabstop=4 shiftwidth=4 expandtab
+
+    " Considering '-' as part of a word
+    " set iskeyword+=-
+
+    " change the leader key to <space>
+        let g:mapleader = "\<Space>"
+    " Don't conceal markdown
+        let g:vim_markdown_conceal_code_blocks=0
+        let g:vim_markdown_conceal=0
+
+
+"
+" LOOKS AND FEEL
+"
+    " General
+        colorscheme gruvbox
+        set fillchars=stl:\ ,stlnc:=,vert:│,fold:\ ,diff:-
+        set listchars=tab:.\ , list
+
+    " Folding
+        let g:foldMode=1
+        set foldmethod=indent
+        set foldlevelstart=99
+        set foldmethod=expr
+        set foldexpr=FindFoldLevel(v:lnum)
+        set foldtext=NeatFoldText()
+
+    " GVim
+        set guioptions-=m  "remove menu bar
+        set guioptions-=T  "remove toolbar
+        set guioptions-=r  "remove right-hand scroll bar
+        set guioptions-=L  "remove left-hand scroll bar
+        set background=dark
+
+    " language specific
+        " python
+            " let g:python_highlight_all
+            let g:python_highlight_builtin_funcs=1
+            let g:python_highlight_builtin_objs=1
+            let g:python_highlight_builtins=1
+            let g:python_highlight_doctests=1
+            let g:python_highlight_exceptions=1
+            let g:python_highlight_file_headers_as_comments=1
+            let g:python_highlight_indent_errors=0
+            let g:python_highlight_space_errors=0
+            let g:python_highlight_string_format=1
+            let g:python_highlight_string_formatting=1
+            let g:python_highlight_string_templates=1
+            let g:python_print_as_function=1
+            let g:python_slow_sync=0
+            let g:python_version_2=0
+
+"
+" FUNCTIONS
+"
+    function! GetGroupName()
+        if !exists("*synstack" )
+            return
+        endif
+        echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name" )')
+    endfunction
+
+    function! FindFoldLevel(lnum)
+        if getline(a:lnum)=~'^$'
+            let i = 0
+            while 1
+                if ! (getline(a:lnum + i) =~ '^$')
+                    return indent(a:lnum + i)
+                endif
+                let i += 1
+                if i > 10
+                    return -1
+                endif
+            endwhile
+        endif
+        
+        let nextIndent = 0
+        let i = 0
+        while nextIndent == 0
+            let i += 1
+            if i > 10
+                break
+            endif
+            if ! (getline(a:lnum + i) =~ '^$')
+                let nextIndent = indent(a:lnum + i)
+            endif
+        endwhile
+
+        if indent(a:lnum) < nextIndent
+            if g:foldMode == 0
+                return '>' . nextIndent
+            elseif g:foldMode == 0
+                return indent(a:lnum)
+            endif
+        endif
+        
+        " next line is a fold start
+        if indent(a:lnum) > indent(a:lnum + 1) && FindFoldLevel(a:lnum + 1) =~ '^>'
+            return '<' . indent(a:lnum)
+        endif
+
+        return indent(a:lnum)
+    endfunction
+
+    function! FoldIfMakesSense()
+        let lnum = line('.')
+
+        let nextIndent = 0
+        let i = 0
+        while nextIndent == 0
+            let i += 1
+            if i > 10
+                break
+            endif
+            if ! (getline(lnum + i) =~ '^$')
+                let nextIndent = indent(lnum + i)
+            endif
+        endwhile
+
+        let condition = 0
+        if g:foldMode == 0
+            let condition = foldlevel(lnum) <= foldlevel(lnum+1) && indent(lnum) < nextIndent
+        elseif g:foldMode == 1
+            let condition = foldlevel(lnum-1) < foldlevel(lnum) && indent(lnum-1) < nextIndent
+        endif
+
+        if condition
+            foldclose
+        endif
+    endfunction
+
+    function! NeatFoldText()
+
+        let foldchar         = matchstr(&fillchars, 'fold:\zs.')
+        let line             = ' ' . substitute(getline(v:foldstart), '^\s*"\?\s*\|\s*"\?\s*{{' . '{\d*\s*', '', 'g') . ' '
+        let lines_count      = v:foldend - v:foldstart + 1
+        let lines_count_text = '» ' . printf("%10s", lines_count . ' lines') . repeat(foldchar, v:foldlevel*2)
+        " let foldtextstart    = strpart('+' . repeat(foldchar, v:foldlevel*2) . line, 0, (winwidth(0)*2)/3)
+        if g:foldMode == 0
+            let foldtextstart    = getline(v:foldstart) . " ••• " 
+        elseif g:foldMode == 1
+            let foldtextstart    = repeat(' ', indent(v:foldstart-1) + 4 ) . " ••• " 
+        endif
+        let foldtextend      = lines_count_text . repeat(foldchar, 8)
+        let foldtextlength   = strlen(substitute(foldtextstart . foldtextend, '.', 'x', 'g')) + &foldcolumn
+        return foldtextstart . repeat(foldchar, winwidth(0)-foldtextlength) . foldtextend
+    endfunction
+
+    function! CssMinify()
+        %s/\n//g
+        %s/\s\+\([:;{,><}]\)/\1/g
+        %s/\([:;{,><}]\)\s\+/\1/g
+        set filetype=css
+    endfunction
+
+    function! CssMaxify()
+        %s/\([^;}]\)}/\1;}/g
+        %s/}/\r}\r/g
+        %s/;/;\r/g
+        %s/{/\r{\r/g
+        %s/{/\r{\r/g
+        %s/^\s*\n//
+        %s/\t//g
+        %s/[><,]/ & /g
+        norm! gg<G
+        norm! gg<G
+        norm! gg<G
+        %g/{/norm!>i{
+        %s/^\(#.*\)\n\(\t\+\)/\2\1\r\2/
+        g/@keyframes/norm!J
+        %s/ \+/ /g
+        set filetype=css
+    endfunction
+
+    function! JsonMinify()
+        %s/\n//
+        %s/\s\+\([:{,\[\]}]\)/\1/g
+        %s/\([:{,\[\]}]\)\s\+/\1/g
+        set filetype=json
+    endfunction
+
+    function! GetOneChar()
+        let l:number = 1
+        let l:string = ""
+
+        while l:number > 0
+            let l:string .= nr2char(getchar())
+            let l:number -= 1
+        endwhile
+
+        return l:string
+    endfunction
+
+"
+" PLUGINS
+"
+    " including Vundle and initialize
+    set rtp+=~/.vim/bundle/Vundle.vim
+    call vundle#begin()
+
+        Plugin 'easymotion/vim-easymotion'
+        Plugin 'vim-indent-object'
+        Plugin 'ap/vim-css-color'
+        Plugin 'godlygeek/tabular'
+
+
+        " Highlighting
+        Plugin 'pangloss/vim-javascript'
+        Plugin 'mxw/vim-jsx'
+
+        Plugin 'junegunn/fzf'
+        Plugin 'junegunn/fzf.vim'
+        
+        " IDE
+        Plugin 'scrooloose/nerdtree'
+
+        Plugin 'Konfekt/FastFold'
+        Plugin 'Yggdroot/indentLine'
+        Plugin 'tpope/vim-commentary'
+        Plugin 'airblade/vim-gitgutter'
+        Plugin 'tpope/vim-fugitive'
+
+        Plugin 'mildred/vim-bufmru'
+        Plugin 'tpope/vim-surround'
+
+        Plugin 'vim-airline/vim-airline'
+
+
+        Plugin 'Shougo/deoplete.nvim'
+        if !has('nvim')
+            Plugin 'roxma/nvim-yarp'
+            Plugin 'roxma/vim-hug-neovim-rpc'
+        endif
+        Plugin 'sirver/UltiSnips'
+
+        Plugin 'ryanoasis/vim-devicons'
+
+    call vundle#end()
+
+
+"
+" PLUGINS CONFIG
+"
+    " ultisnips
+        let g:UltiSnipsSnippetDirectories  = [$HOME.'/.vim/UltiSnips']
+        let g:UltiSnipsExpandTrigger       = "<TAB>"
+        let g:UltiSnipsJumpForwardTrigger  = "<C-RIGHT>"
+        let g:UltiSnipsJumpBackwardTrigger = "<C-LEFT>"
+
+    " deoplete
+        let g:deoplete#enable_at_startup = 1
+
+    " easy-motion
+        autocmd StdinReadPre * let s:std_in=1
+        nmap s <plug>(easymotion-overwin-f2)
+    
+    " NerdTree
+        " autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
+        autocmd StdinReadPre * let s:std_in=1
+        autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
+        let g:NERDTreeDirArrowExpandable = '▸'
+        let g:NERDTreeDirArrowCollapsible = '▾'
+        autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | bn | exe 'NERDTree' | endif
+        nmap <LEADER>5 :NERDTreeClose<CR>:let @f="<C-r>%"<CR>:NERDTreeVCS<CR>:NERDTreeFind <C-r>f<CR>
+
+        " simple click
+        let NERDTreeMouseMode=3
+
+        " NERDTree File highlighting
+        function! NERDTreeHighlightFile(extension, fg, bg, guifg, guibg)
+            exec 'autocmd filetype nerdtree highlight ' . a:extension .' ctermbg='. a:bg .' ctermfg='. a:fg .' guibg='. a:guibg .' guifg='. a:guifg
+            exec 'autocmd filetype nerdtree syn match ' . a:extension .' #^\s\+.*'. a:extension .'$#'
+        endfunction
+        call NERDTreeHighlightFile('txt', 'green', 'none', 'green', '#151515')
+        call NERDTreeHighlightFile('ini', 'yellow', 'none', 'yellow', '#151515')
+        call NERDTreeHighlightFile('md', 'blue', 'none', '#3366FF', '#151515')
+        call NERDTreeHighlightFile('yaml', 'yellow', 'none', 'yellow', '#151515')
+        call NERDTreeHighlightFile('config', 'yellow', 'none', 'yellow', '#151515')
+        call NERDTreeHighlightFile('conf', 'yellow', 'none', 'yellow', '#151515')
+        call NERDTreeHighlightFile('json', 'yellow', 'none', 'yellow', '#151515')
+        call NERDTreeHighlightFile('html', 'yellow', 'none', 'yellow', '#151515')
+        call NERDTreeHighlightFile('py', 'cyan', 'none', 'cyan', '#151515')
+        call NERDTreeHighlightFile('css', 'cyan', 'none', 'cyan', '#151515')
+        call NERDTreeHighlightFile('coffee', 'Red', 'none', 'red', '#151515')
+        call NERDTreeHighlightFile('js', 'Red', 'none', '#ffa500', '#151515')
+        call NERDTreeHighlightFile('php', 'Magenta', 'none', '#ff00ff', '#151515')
+
+    " FZF
+        let g:fzf_history_dir = '~/.local/share/fzf-history'
+        let g:fzf_nvim_statusline = 0 " disable statusline overwriting
+        let g:fzf_layout = { 'down': '~40%' }
+        let g:ignoredFiles = [ '__pycache__/', '.git/', 'cache/' ]
+
+    " GitGutter
+        let g:gitgutter_max_signs = 2000
+
+    " Airline
+        " Enable the list of buffers
+        let g:airline#extensions#tabline#enabled = 1
+        let g:airline_extensions#tabline#show_buffers = 1
+        let airline#extensions#tabline#middle_click_preserves_windows = 1
+
+        if !exists('g:airline_symbols')
+            let g:airline_symbols = {}
+        endif
+
+        " bottom bar
+        let g:airline_symbols.crypt = '🔒'
+        let g:airline_symbols.linenr = '¶'
+        let g:airline_symbols.paste = 'ρ'
+        let g:airline_symbols.spell = 'Ꞩ'
+        let g:airline_symbols.notexists = 'Ɇ'
+        let g:airline_symbols.whitespace = 'Ξ'
+        let g:airline_left_sep = ''
+        let g:airline_right_sep = ''
+        let g:airline_left_alt_sep = ''
+        let g:airline_right_alt_sep = ''
+        let g:airline_symbols.branch = ''
+        let g:airline_symbols.readonly = ''
+        let g:airline_symbols.maxlinenr = ''
+
+        " top bar
+        let g:airline#extensions#tabline#left_sep      = ' '
+        let g:airline#extensions#tabline#left_alt_sep  = '▏'
+        let g:airline#extensions#tabline#right_sep     = ' '
+        let g:airline#extensions#tabline#right_alt_sep = '▏'
+        let g:airline#extensions#tabline#left_sep      = ' '
+        let g:airline#extensions#tabline#right_sep     = ' '
+        let g:airline#extensions#tabline#left_alt_sep  = ' '
+        let g:airline#extensions#tabline#right_alt_sep = ' '
+
+
+"
+" MAPS
+"
+    " Basic Vim Shortcuts
+        nnoremap Y y$
+        noremap <ENTER> %
+        nnoremap - 2<C-y><C-g>
+        nnoremap + 2<C-e><C-g>
+
+
+        nnoremap <F3> :set hlsearch!<CR>
+        nmap <F5> :redraw!<CR>:GitGutter<CR> " Plugin: GitGutter
+
+        " no yank delete
+            nnoremap <leader> "p
+
+        " no include newline
+            nnoremap 'd ^D
+            nnoremap 'c ^C
+            nnoremap 'y mm^y$`m
+            nnoremap 'v v$ho
+
+        " move lines
+            nnoremap <C-j> :m+1<CR>
+            nnoremap <C-down> :m+1<CR>
+            nnoremap <C-k> :m-2<CR>
+            nnoremap <C-up> :m-2<CR>
+
+            vnoremap <C-up> :m-2<CR>gv
+            vnoremap <C-down> <ESC>'>jdd'<Pgv
+            vnoremap <C-right> dpgvlolo
+            vnoremap <C-left> dhPgvhoho
+
+        " Easy access macro
+            nmap Z @
+            nmap ZZ @@
+
+        " Easy search n replace
+            nnoremap <C-c> *Ncgn
+
+        " Better ranges for XML
+            nmap >it vitVkoj>
+            nmap <it vitVkoj<
+
+        " Search selection
+            vnoremap * y/<C-r>0<CR>
+            vnoremap # y?<C-r>0<CR>
+
+        " Init folds
+            " nnoremap zff mm0"syw:%g/^<C-r>s[^[:blank:]#].*\ze\n/call FoldIfMakesSense()<CR>`m
+            nnoremap zff mm0"syw:%g/^<C-r>s[^[:blank:]#].*\n*<C-r>s\zs\s/+1call FoldIfMakesSense()<CR>`m
+
+    " Moving mapping
+        " fast exact search
+            nnoremap <leader>/ /\<\><LEFT><LEFT>
+
+        " go through position history
+            nnoremap <S-UP> <C-i>
+            nnoremap <S-DOWN> <C-o>
+
+        " go to end of paragraph
+            nnoremap { [(
+            nnoremap } ])
+
+        " Jumb to end/beggining of block
+            nnoremap ] ]}
+            nnoremap [ [{
+            vnoremap ] ]}
+            vnoremap [ [{
+
+
+        " Move between splits
+            nmap <A-LEFT> <C-w><LEFT>
+            nmap <A-UP> <C-w><UP>
+            nmap <A-RIGHT> <C-w><RIGHT>
+            nmap <A-DOWN> <C-w><DOWN>
+
+    " Plugin related maps
+        " Git stuff
+            " Plugin: GitGutter, fugitive
+            nnoremap <LEADER>gu :GitGutterUndoHunk<CR>
+            nnoremap <LEADER>gn :GitGutterNextHunk<CR>
+            nnoremap <LEADER>gp :GitGutterPrevHunk<CR>
+            nnoremap <LEADER>gP :GitGutterPreviewHunk<CR>
+            nnoremap <LEADER>gh :GitGutterLineHighlightsToggle<CR>
+            nnoremap <LEADER>gd :Gdiffsplit<CR>
+            nnoremap <LEADER>gb :Gblame<CR>
+
+        " Tabular indenting
+            nnoremap <leader>t= mm:Tabular /^[^=]*\zs=<CR>`m
+            nnoremap <leader>t: mm:Tabular /^[^:]*:\zs/l0<CR>`m
+            nnoremap <leader>t<SPACE> mm:Tabular / *\zs /l0<CR>`m
+            vnoremap <leader>t= :Tabular /^[^=]*\zs=<CR>
+            vnoremap <leader>t: :Tabular /:\zs<CR>
+            vnoremap <leader>t<SPACE> :Tabular / *\zs /l0<CR>
+
+            nmap <leader>t* mm?/\*\*<CR>kmn:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/@param\s\+\S\+\s\+\S\+\zs\s\+/ /<CR>`nO<ESC>0CTabular /^\s\+\*\s\+@\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@param\s\+\S\+\s\+\S\+\s*\zs\s/l0<ESC>:s/[^\\]\zs\|/\r/g<CR>^"tDddk^"rDddk^"eDdd`n:/\/\*\*/,/\*\//g/./<C-r>e<CR>`n:/\/\*\*/,/\*\//g/./<C-r>r<CR>`n:/\/\*\*/,/\*\//g/./<C-r>t<CR>`m
+
+            nnoremap <leader>t :Tabular /
+            vnoremap <leader>t :Tabular /
+
+        " NerdTree toggle
+            map <LEADER>f :NERDTreeToggle<CR>
+            map <F2> :NERDTreeToggle<CR>
+
+        " FZF
+            nmap <C-f> :Rg<CR>
+            function! FZFFindFile()
+                let cmd = 'find . -type f -printf "%TY-%Tm-%Td %TT %p\n" | sort -r | cut -d" " -f3 | grep -v -e "' . join(g:ignoredFiles, '" -e "') . '"'
+                silent! exe fzf#run({'source': cmd, 'sink': 'e', 'down':'40%', 'options': '--no-sort'})
+            endfunction
+            function! s:FZFOpenVimOutput(str)
+                let thefile = matchstr(a:str, '^.\{-\}\ze:')
+                let theline = matchstr(a:str, '^.\{-\}:\zs\d\+\ze:')
+                silent! exe 'edit ' . fnameescape(thefile)
+                echo cursor(theline,0)
+            endfunction
+            function! FZFFindWordUnderCursor()
+                set hlsearch
+                let @/ = expand("<cword>")
+                let cmd = 'grep -s --color -n "' . expand("<cword>") . '" $(find . -type f -printf "%TY-%Tm-%Td %TT %p\n" | sort -r | cut -d" " -f3 | grep -v -e "' . join(g:ignoredFiles, '" -e "') . '")'
+                silent! exe fzf#run({'source': cmd, 'sink': function('s:FZFOpenVimOutput'), 'down':'40%', 'options': '--no-sort --prompt "> " --no-height --ansi --multi --bind alt-a:select-all,alt-d:deselect-all --color "hl:4,hl+:12"'})
+            endfunction
+            nmap <C-p> :call FZFFindFile()<CR>
+            nmap <F12> :call FZFFindWordUnderCursor()<CR>
+
+        " Commentary
+            nnoremap  :Commentary<CR>
+            inoremap  <C-o>:Commentary<CR>
+            vnoremap  :Commentary<CR>gv
+
+    " Buffer related maps
+        " Buffers navigation
+            map <Tab> :BufMRUNext<CR>
+            map <S-Tab> :BufMRUPrev<CR>
+
+        " Buffer management
+            nnoremap <LEADER>bq :bd<CR>
+            nnoremap <LEADER>bd :bd<CR>
+            nnoremap <LEADER>q :bd<CR>
+
+    " Language specific  maps
+        " Easy HTML tag change
+            nnoremap ch vito<ESC>T<msvit<ESC>f/lmecwTMP<ESC>`scwTMP<ESC>F</TMP<CR>cgn
+
+    " New Ideas
+        " Double Tap shortcut
+            inoremap << <><LEFT>
+            inoremap >> <ESC>ya>Pf<a <ESC>wyiwvi>pT<i/<C-o>T>
+            inoremap (( ()<LEFT>
+            inoremap [[ []<LEFT>
+            inoremap {{ {}<LEFT>
+            inoremap '' ''<LEFT>
+            inoremap __ __<LEFT>
+            inoremap `` ``<LEFT>
+            inoremap "" ""<LEFT>
+            inoremap )) (<C-o>:echo search('[\.,;]\?$')<CR>)
+            inoremap ]] [<C-o>:echo search('[\.,;]\?$')<CR>]
+            inoremap }} {<C-o>:echo search('[\.,;]\?$')<CR>}
+
+        " Backspace selector
+            nnoremap d<BS> V^/{<CR>%d
+            nnoremap c<BS> V^/{<CR>%c
+            nnoremap y<BS> V^/{<CR>%y
+            nnoremap v<BS> V^/{<CR>%
+            nnoremap ><BS> V^/{<CR>%>
+            nnoremap <<BS> V^/{<CR>%<
+
+        " Paste selector
+            nnoremap >p mm`[v`]>`ml
+            nnoremap <p mm`[v`]<`mh
+            nnoremap dp '[d']<
+
+        " Easy delete until...
+            nnoremap c; ct;
+            nnoremap c) ct)
+            nnoremap c> ct>
+            nnoremap c] ct]
+            nnoremap c. ct.
+            nnoremap c" Ct"
+            nnoremap c' ct'
+            nnoremap c, ct,
+            nnoremap d; dt;
+            nnoremap d) dt)
+            nnoremap d> dt>
+            nnoremap d] dt]
+            nnoremap d. dt.
+            nnoremap d" Dt"
+            nnoremap d' dt'
+            nnoremap d, dt,
+
+        " semi-column things
+            inoremap ;; <C-o>:call setline('.', getline('.') . ';')<CR>
+            inoremap ;a <C-o>A
+            inoremap ;. <C-o>A.
+            inoremap ;, <C-o>A,
+
+        " select multiple lines in a VSCode Style
+            " nmap <CS-LEFT>
+            " nmap <CS-RIGHT>
+            nnoremap <CS-DOWN> <C-v>j
+            nnoremap <CS-UP> <C-v>k
+            vnoremap <CS-DOWN> j
+            vnoremap <CS-UP> k
+            vnoremap <LEADER>i I
+            vnoremap <LEADER>a A
+            vnoremap <LEADER>I ^I
+            vnoremap <LEADER>A $A
+
+        " Delete corresponding brace and similar
+            nmap d% v%<ESC>r@gvo<ESC>x:s/^\s*\n//<CR>gv:s/@//g<CR>:s/^\s*\n//<CR>gv<ESC>:noh<CR>
+
+        " Around selection, completes the vim-surround plugin
+            vmap m S
+            vnoremap m/ c//<ESC>P
+            vnoremap m_ c__<ESC>P
+            vnoremap m+ c++<ESC>P
+            vnoremap m. c..<ESC>P
+            vnoremap m<SPACE> c<SPACE><SPACE><ESC>P
+            vnoremap m<BS> dvhpgv
+
+        " Tab / CR shortcut to close 
+            inoremap {<TAB> {<ENTER>}<C-o>O
+            inoremap (<TAB> (<ENTER>)<C-o>O<TAB>
+            inoremap [<TAB> [<ENTER>]<C-o>O<TAB>
+            imap ><TAB> <ESC>yypa/<ESC>/<SPACE>\\|><CR>hvypdt>:noh<CR>O<TAB>
+            inoremap }<TAB> {<ESC>jviio<esc>o}<ESC>k$
+            inoremap {<CR> {<ENTER>}<C-o>O
+            inoremap (<CR> (<ENTER>)<C-o>O<TAB>
+            inoremap [<CR> [<ENTER>]<C-o>O<TAB>
+            inoremap ><CR> <ESC>yypa/<ESC>/<SPACE>\\|><CR>hvypdt>:noh<CR>O<TAB>
+            imap }<CR> {<ESC>jviio<esc>o}<ESC>k$
+        
+        " TAB shortcut to send to end of line
+            inoremap .<TAB> <C-o>h<C-o>:echo search('[\.,;]\?$')<CR>.
+            inoremap ,<TAB> <C-o>h<C-o>:echo search('[\.,;]\?$')<CR>,
+
+    " Miscalenous
+        " custom autocomplete
+            set dictionary+=/home/zorzi/.vim/scripts/dict.txt
+
+            inoremap <C-p> <C-x><C-k>
+
+            inoremap <C-j> <ESC>^diw:let @e=system('~/.vim/scripts/shortcuts <C-r>+')<CR>@e
+
+
+"
+" AUTOCMD
+"
+    " Correcting php bad commenting | Plugin: Commentary
+        autocmd! BufEnter *.php :let b:commentary_format="// %s"
+
+    " Correcting FZF buffer | Plugin: FZF
+        autocmd! FileType fzf
+        autocmd  FileType fzf set laststatus=0 noshowmode noruler
+          \| autocmd BufLeave <buffer> set laststatus=2 showmode ruler
+
+
+"
+" ABREVS
+"
+    " Comments shortcut
+        iab /// //<ENTER><C-o>O
+        iab /** /**<ENTER>/<UP>
+
+    " Mistypes
+        iab cnosole console
+        iab cnosoel console
+        iab cnsole console
+        iab loaction location
+        iab loaciton location 
+
+    " French Accents
+        iab etre être
+        iab occupee occupée
+        iab entete entête
+        iab entetes entêtes
+        iab requete requête
+        iab etudiant étudiant
+        iab etudiants étudiants
+        iab ecole école
+        iab ecoles écoles
+        iab etais étais
+        iab etait était

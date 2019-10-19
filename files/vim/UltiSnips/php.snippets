@@ -1,0 +1,7 @@
+priority -50
+
+snippet log "Logs a message and exits" b
+header("Content-type: application/json");
+echo json_encode($${1:var});
+exit;
+endsnippet
