@@ -12,11 +12,19 @@ ln -s $path/bashrc $HOME/.bashrc
 ln -s $path/VScode_config ~/.config/Code\ -\ OSS/User
 
 # Apache launchWeb script config
-cp $path/files/httpd.template.conf /etc/httpd/conf/httpd.template.conf
+ln -s $path/apache/files/httpd.template.conf /etc/httpd/conf/httpd.template.conf
 
+# Vim configuration
+mv $HOME/.vim $HOME/..vim
+ln -s $path/files/vim $HOME/.vim
 
 # DBeaver configuration
-cp $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/data-sources.json       $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/data-sources.json.backup
-cp $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json.backup
-cp $path/files/dbeaver/data-sources.json       $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/
-cp $path/files/dbeaver/credentials-config.json $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/
+mv $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/data-sources.json.backup       $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/.data-sources.json.backup
+mv $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json.backup $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/.credentials-config.json.backup
+mv $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/data-sources.json              $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/.data-sources.json
+mv $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json        $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/.credentials-config.json
+
+ln -s $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/data-sources.json       $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/data-sources.json.backup
+ln -s $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json.backup
+ln -s $path/files/dbeaver/data-sources.json                                              $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/data-sources.json
+ln -s $path/files/dbeaver/credentials-config.json                                        $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/credentials-config.json
