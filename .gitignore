@@ -1,3 +1,10 @@
 
 VScode_config/workspaceStorage/
 VScode_config/globalStorage/
+
+files/vim/after/
+files/vim/autoload/
+files/vim/bundle/
+files/vim/compiler/
+files/vim/doc/
+
