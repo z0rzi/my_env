@@ -472,7 +472,7 @@
             nmap <C-f> :Rg<CR>
             function! FZFFindFile()
                 let cmd = 'find . -type f -printf "%TY-%Tm-%Td %TT %p\n" | sort -r | cut -d" " -f3 | grep -v -e "' . join(g:ignoredFiles, '" -e "') . '"'
-                silent! exe fzf#run({'source': cmd, 'sink': 'e', 'down':'40%', 'options': '--no-sort'})
+                silent! exe fzf#run({'source': cmd, 'sink': 'e', 'down':'40%', 'options': '--history /home/zorzi/.local/share/fzf-history/FZF --multi --no-sort --preview="git diff {}" --sync'})
             endfunction
             function! s:FZFOpenVimOutput(str)
                 let thefile = matchstr(a:str, '^.\{-\}\ze:')
@@ -483,8 +483,8 @@
             function! FZFFindWordUnderCursor()
                 set hlsearch
                 let @/ = expand("<cword>")
-                let cmd = 'grep -s --color -n "' . expand("<cword>") . '" $(find . -type f -printf "%TY-%Tm-%Td %TT %p\n" | sort -r | cut -d" " -f3 | grep -v -e "' . join(g:ignoredFiles, '" -e "') . '")'
-                silent! exe fzf#run({'source': cmd, 'sink': function('s:FZFOpenVimOutput'), 'down':'40%', 'options': '--no-sort --prompt "> " --no-height --ansi --multi --bind alt-a:select-all,alt-d:deselect-all --color "hl:4,hl+:12"'})
+                let cmd = 'grep -Isnr --color -n "' . expand("<cword>") . '" $(find . -type f -printf "%TY-%Tm-%Td %TT %p\n" | sort -r | cut -d" " -f3 | grep -v -e "' . join(g:ignoredFiles, '" -e "') . '")'
+                silent! exe fzf#run({'source': cmd, 'sink': function('s:FZFOpenVimOutput'), 'down':'40%', 'options': '--no-sort --ansi --multi --sync --preview="\$(awk -F: \"{printf(\\\"sed -n %d,%dp %s\\\",\\\$2-7, \\\$2+7, \\\$1)}\" <<< {})"'})
             endfunction
             nmap <C-p> :call FZFFindFile()<CR>
             nmap <F12> :call FZFFindWordUnderCursor()<CR>
