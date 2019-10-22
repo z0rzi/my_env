@@ -4,7 +4,12 @@ trap 'killall grep 2> /dev/null' SIGINT
 
 gitPath=`git rev-parse --show-toplevel`
 
-if [ "$1" = "push" ]; then
+if [ "$1" = "" ]; then
+
+    git status
+
+elif [ "$1" = "push" ]; then
+
     git $@   
 
     [ -f "$gitPath/.git/hooks/post-push" ] && $gitPath/.git/hooks/post-push
@@ -58,6 +63,9 @@ elif [ "$1" = "commit" ]; then
 elif [ "$1" = "log" ]; then
 
     git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+
+elif [ "$1" = "merge" ]; then
+    git $@ --no-ff
 
 else
     git $@

@@ -100,8 +100,8 @@ PATH=$PATH:$HOME/.my_env/scripts/:
 
 alias vim="nvim"
 alias vi="nvim"
-alias minivim="nvim -u NONE"
-alias tinyvim="nvim -u NONE"
+alias minivim=".vim -u NONE"
+alias tinyvim=".vim -u NONE"
 alias vimtiny="nvim -u NONE"
 
 alias bye='exit'

@@ -224,6 +224,37 @@
         return l:string
     endfunction
 
+    function! SelectSmallestRangePossible(external)
+        let lineCopy = getline('.')
+        let curPos = col('.')
+        
+        let lineCopy = lineCopy[:curPos-2] . '@' . lineCopy[curPos-1] . '@' . lineCopy[curPos:]
+
+        " echo lineCopy
+        let lineCopy = substitute(lineCopy, '[^"[\](){}@<>`'."'".']', '', 'g')
+
+        let i=0
+        while lineCopy =~ '{}\|\[\]\|()\|""\|<>\|``\|'."''"
+            let lineCopy = substitute(lineCopy, '{}\|\[\]\|()\|""\|``\|<>\|'."''", '', 'g')
+            if i>10
+                break
+            endif
+        endwhile
+        let lineCopy = substitute(lineCopy, '@@', '@', 'g')
+
+        let cara = matchstr(lineCopy, '.\ze@[^@]*$')
+
+        if cara == ''
+            return
+        endif
+        
+        let cmd = "normal! vi" . cara
+        if a:external
+            let cmd = cmd . 'loho'
+        endif
+        execute cmd
+    endfunction
+
 "
 " PLUGINS
 "
@@ -472,7 +503,7 @@
             nmap <C-f> :Rg<CR>
             function! FZFFindFile()
                 let cmd = 'find . -type f -printf "%TY-%Tm-%Td %TT %p\n" | sort -r | cut -d" " -f3 | grep -v -e "' . join(g:ignoredFiles, '" -e "') . '"'
-                silent! exe fzf#run({'source': cmd, 'sink': 'e', 'down':'40%', 'options': '--history /home/zorzi/.local/share/fzf-history/FZF --multi --no-sort --preview="git diff {}" --sync'})
+                silent! exe fzf#run({'source': cmd, 'sink': 'e', 'down':'40%', 'options': '-d/ -n-1 --history /home/zorzi/.local/share/fzf-history/FZF --multi --no-sort --preview="git diff {}" --sync'})
             endfunction
             function! s:FZFOpenVimOutput(str)
                 let thefile = matchstr(a:str, '^.\{-\}\ze:')
@@ -484,7 +515,7 @@
                 set hlsearch
                 let @/ = expand("<cword>")
                 let cmd = 'grep -Isnr --color -n "' . expand("<cword>") . '" $(find . -type f -printf "%TY-%Tm-%Td %TT %p\n" | sort -r | cut -d" " -f3 | grep -v -e "' . join(g:ignoredFiles, '" -e "') . '")'
-                silent! exe fzf#run({'source': cmd, 'sink': function('s:FZFOpenVimOutput'), 'down':'40%', 'options': '--no-sort --ansi --multi --sync --preview="\$(awk -F: \"{printf(\\\"sed -n %d,%dp %s\\\",\\\$2-7, \\\$2+7, \\\$1)}\" <<< {})"'})
+                silent! exe fzf#run({'source': cmd, 'sink': function('s:FZFOpenVimOutput'), 'down':'40%', 'options': '--algo=v1 --no-sort --ansi --multi --sync --preview="\$(awk -F: \"{printf(\\\"sed -n %d,%dp %s\\\",\\\$2-7, \\\$2+7, \\\$1)}\" <<< {})"'})
             endfunction
             nmap <C-p> :call FZFFindFile()<CR>
             nmap <F12> :call FZFFindWordUnderCursor()<CR>
@@ -599,6 +630,12 @@
         " TAB shortcut to send to end of line
             inoremap .<TAB> <C-o>h<C-o>:echo search('[\.,;]\?$')<CR>.
             inoremap ,<TAB> <C-o>h<C-o>:echo search('[\.,;]\?$')<CR>,
+
+        " Smallest range possible
+            onoremap io :call SelectSmallestRangePossible(0)<CR>
+            onoremap ao :call SelectSmallestRangePossible(1)<CR>
+            vnoremap io <ESC>:call SelectSmallestRangePossible(0)<CR>
+            vnoremap ao <ESC>:call SelectSmallestRangePossible(1)<CR>
 
     " Miscalenous
         " custom autocomplete
