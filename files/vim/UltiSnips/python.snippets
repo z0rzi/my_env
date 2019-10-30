@@ -3,3 +3,20 @@ priority -50
 snippet log "Logs a message" b
 print(${1:var})
 endsnippet
+
+snippet file_write "Write inside a file" b
+file = open("${1:./my_file.txt}","w") 
+file.write(${2:"Hi there!"}) 
+file.close() 
+endsnippet
+
+snippet file_read_lbl "Reads a file line by line" b
+file = open("${1:./my_file.txt}", "r") 
+for line in file: 
+    ${2:print line}
+endsnippet
+
+snippet file_read "Reads a whole file content" b
+file = open("${1:./my_file.txt}", "r") 
+content = file.readlines()
+endsnippet
