@@ -186,6 +186,10 @@ else
   syn match   pythonStatement   "\<async\s\+for\>" display
 endif
 
+syn match   pythonFunctionCall   "\w\+\ze(" display nextgroup=pythonFunctionArgs
+syn match   pythonFunctionArgs   "([^)]*)" display contained contains=pythonFunctionNamedArgs,pythonString,pythonFunctionCall
+syn match   pythonFunctionNamedArgs   "\w\+\ze\s*=" display contained
+
 "
 " Decorators (new in Python 2.4)
 "
@@ -495,13 +499,15 @@ if version >= 508 || !exists("did_python_syn_inits")
     command -nargs=+ HiLink hi def link <args>
   endif
 
-  HiLink pythonStatement        Statement
-  HiLink pythonImport           Include
-  HiLink pythonFunction         Function
-  HiLink pythonConditional      Conditional
-  HiLink pythonRepeat           Repeat
-  HiLink pythonException        Exception
-  HiLink pythonOperator         Operator
+  HiLink pythonStatement         Statement
+  HiLink pythonImport            Include
+  HiLink pythonFunction          Function
+  HiLink pythonFunctionCall      Identifier
+  HiLink pythonFunctionNamedArgs pythonBuiltinFunc
+  HiLink pythonConditional       Conditional
+  HiLink pythonRepeat            Repeat
+  HiLink pythonException         Exception
+  HiLink pythonOperator          Operator
 
   HiLink pythonDecorator        Define
   HiLink pythonDottedName       Function
