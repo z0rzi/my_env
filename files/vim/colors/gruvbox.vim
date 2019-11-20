@@ -593,7 +593,8 @@ hi! link Exception GruvboxRed
 " sizeof, "+", "*", etc.
 hi! link Operator Normal
 " Any other keyword
-hi! link Keyword GruvboxRed
+" hi! link Keyword GruvboxRed
+call s:HL('Keyword', s:red, s:vim_bg, s:italic)
 
 " Variable name
 hi! link Identifier GruvboxBlue

@@ -63,6 +63,14 @@
         set foldexpr=FindFoldLevel(v:lnum)
         set foldtext=NeatFoldText()
 
+    " GruvBox config
+        let g:gruvbox_italic = 1
+        let g:gruvbox_termcolors = 256
+        let g:gruvbox_contrast_dark = "medium"
+        let g:gruvbox_invert_selection = 1
+        let g:gruvbox_invert_signs = 0  " for GitGutter signs
+        let g:gruvbox_guisp_fallback = 'bg'
+
     " GVim
         set guioptions-=m  "remove menu bar
         set guioptions-=T  "remove toolbar
@@ -355,7 +363,9 @@
         Plugin 'jiangmiao/auto-pairs'
 
 
+        "
         " Highlighting
+        "
         Plugin 'pangloss/vim-javascript'
         Plugin 'mxw/vim-jsx'
 
@@ -385,6 +395,7 @@
         Plugin 'ryanoasis/vim-devicons'
 
         Plugin 'z0rzi/vim-adaptive-indent'
+        Plugin 'z0rzi/vim-any-match'
         Plugin 'z0rzi/vim-super-macro'
 
     call vundle#end()
@@ -420,10 +431,7 @@
         let g:NERDTreeDirArrowExpandable = '▸'
         let g:NERDTreeDirArrowCollapsible = '▾'
         let g:NERDTreeMapQuit = '<ESC>'
-        let g:NERDTreeIgnore = g:ignoredFiles
         let g:NERDTreeQuitOnOpen = 1
-        let g:NERDTreeAutoDeleteBuffer = 1
-        let g:NERDTreeNodeDelimiter = '-'
         autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | bn | exe 'NERDTree' | endif
         nmap <LEADER>5 :NERDTreeClose<CR>:let @f="<C-r>%"<CR>:NERDTreeVCS<CR>:NERDTreeFind <C-r>f<CR>
 
@@ -627,8 +635,6 @@
             map <S-Tab> :BufMRUPrev<CR>
 
         " Buffer management
-            nnoremap <LEADER>bq :bd<CR>
-            nnoremap <LEADER>bd :bd<CR>
             nnoremap <LEADER>q :bd<CR>
 
     " Language specific  maps
@@ -636,6 +642,16 @@
             nnoremap ch vito<ESC>T<msvit<ESC>f/lmecwTMP<ESC>`scwTMP<ESC>F</TMP<CR>cgn
 
     " New Ideas
+        " Fast insert mode
+            nnoremap <LEADER>b bi
+            nnoremap <LEADER>i bi
+            nnoremap <LEADER>B Bi
+            nnoremap <LEADER>e ea
+            nnoremap <LEADER>a ea
+            nnoremap <LEADER>E Ea
+            nnoremap <LEADER>= f=a
+            nnoremap <LEADER>. f.a
+
         " Double Tap shortcut
             " inoremap << <><LEFT>
             " inoremap >> <ESC>ya>Pf<a <ESC>wyiwvi>pT<i/<C-o>T>
@@ -748,6 +764,9 @@
         autocmd FocusGained * checktime
         autocmd InsertLeave * GitGutter
         autocmd TextChanged * GitGutter
+    
+    " Unsupported files formats
+        autocmd BufEnter *.abnf set filetype=abnf
 
 
 "
@@ -757,7 +776,9 @@
         iab /// //<ENTER><C-o>O
         iab /** /**<ENTER>/<UP>
 
+    "
     " Mistypes
+    "
         iab cnosole console
         iab cnosoel console
         iab cnsole console
