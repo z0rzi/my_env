@@ -385,6 +385,7 @@
         Plugin 'ryanoasis/vim-devicons'
 
         Plugin 'z0rzi/vim-adaptive-indent'
+        Plugin 'z0rzi/vim-super-macro'
 
     call vundle#end()
 
@@ -501,6 +502,7 @@
         noremap <ENTER> %
         nnoremap - 2<C-y><C-g>
         nnoremap + 2<C-e><C-g>
+        inoremap \'e é
 
 
         " nnoremap <F3> :set hlsearch!<CR>
@@ -776,3 +778,6 @@
         iab etait était
         iab implemente implémente
         iab implementation implémentation
+
+    " Unicode
+        iab \> ⤷
