@@ -512,6 +512,7 @@
         noremap <ENTER> %
         nnoremap - 2<C-y><C-g>
         nnoremap + 2<C-e><C-g>
+        inoremap \'e é
 
 
         " nnoremap <F3> :set hlsearch!<CR>
@@ -808,5 +809,5 @@
         iab implemente implémente
         iab implementation implémentation
 
-
+    " Unicode
         iab \> ⤷

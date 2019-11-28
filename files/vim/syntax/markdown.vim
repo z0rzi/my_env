@@ -157,6 +157,11 @@ endif
 
 syn cluster mkdNonListItem contains=@htmlTop,htmlItalic,htmlBold,htmlBoldItalic,mkdFootnotes,mkdInlineURL,mkdLink,mkdLinkDef,mkdLineBreak,mkdBlockquote,mkdCode,mkdRule,htmlH1,htmlH2,htmlH3,htmlH4,htmlH5,htmlH6,mkdMath,htmlStrike
 
+
+hi htmlItalic     cterm=italic
+hi htmlBold       cterm=bold
+hi htmlBoldItalic cterm=italic,bold
+
 "highlighting for Markdown groups
 HtmlHiLink mkdString        String
 HtmlHiLink mkdCode          String
