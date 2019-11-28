@@ -118,6 +118,8 @@ alias lls='clear;ls'
 
 alias color="grep -C 100000"
 
+alias javac="javac -encoding ISO-8859-1 "
+
 alias git='git_wrapper.sh'
 
 # The next line updates PATH for the Google Cloud SDK.

@@ -44,7 +44,7 @@
         let g:vim_markdown_conceal=0
     " Ignored files ( formated in bash style, like in the `ls` command )
         let g:ignoredDirs = [ '__pycache__', '.git', 'cache' ]
-        let g:ignoredFiles = [ '*.log' ]
+        let g:ignoredFiles = [ '*.log', '*.class' ]
 
 
 "
@@ -397,6 +397,7 @@
         Plugin 'z0rzi/vim-adaptive-indent'
         Plugin 'z0rzi/vim-any-match'
         Plugin 'z0rzi/vim-super-macro'
+        Plugin 'z0rzi/vim-zorzi-smoothie'
 
     call vundle#end()
 
@@ -425,6 +426,7 @@
         nmap s <plug>(easymotion-overwin-f2)
     
     " NerdTree
+        let g:NERDTreeIgnore = ['\.class$', '\.log']
         " autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
         autocmd StdinReadPre * let s:std_in=1
         autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
@@ -545,7 +547,7 @@
             nmap ZZ @@
 
         " Easy search n replace
-            nnoremap <C-c> *Ncgn
+            nnoremap <C-c> :let @/="\\<".expand("<cword>")."\\>"<CR>lNcgn
 
         " Better ranges for XML
             nmap >it vitVkoj>
@@ -602,10 +604,12 @@
         " Tabular indenting
             nnoremap <leader>t= mm:Tabular /^[^=]*\zs=<CR>`m
             nnoremap <leader>t: mm:Tabular /^[^:]*:\zs/l0r1<CR>`m
+            nnoremap <leader>t> mm:Tabular /^[^=]*\zs=>/<CR>`m
             nnoremap <leader>t<SPACE> mm:Tabular / *\zs /l0<CR>`m
             vnoremap <leader>t= :Tabular /^[^=]*\zs=<CR>
             vnoremap <leader>t: :Tabular /:\zs<CR>
             vnoremap <leader>t<SPACE> :Tabular / *\zs /l0<CR>
+            nnoremap <leader>t> mm:Tabular /^[^=]*\zs=>/<CR>`m
 
             nmap <leader>t* mm?/\*\*<CR>kmn:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/@param\s\+\S\+\s\+\S\+\zs\s\+/ /<CR>`nO<ESC>0CTabular /^\s\+\*\s\+@\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@param\s\+\S\+\s\+\S\+\s*\zs\s/l0<ESC>:s/[^\\]\zs\|/\r/g<CR>^"tDddk^"rDddk^"eDdd`n:/\/\*\*/,/\*\//g/./<C-r>e<CR>`n:/\/\*\*/,/\*\//g/./<C-r>r<CR>`n:/\/\*\*/,/\*\//g/./<C-r>t<CR>`m
 
@@ -653,7 +657,6 @@
 
         " Double Tap shortcut
             " inoremap << <><LEFT>
-            " inoremap >> <ESC>ya>Pf<a <ESC>wyiwvi>pT<i/<C-o>T>
             " inoremap (( ()<LEFT>
             " inoremap [[ []<LEFT>
             " inoremap {{ {}<LEFT>
@@ -661,6 +664,7 @@
             " inoremap __ __<LEFT>
             " inoremap `` ``<LEFT>
             " inoremap "" ""<LEFT>
+            inoremap >> <ESC>ya>Pf<a <ESC>wyiwvi>pT<i/<C-o>T>
             inoremap )) (<C-o>:echo search('[\.,;]\?$')<CR>)
             inoremap ]] [<C-o>:echo search('[\.,;]\?$')<CR>]
             inoremap }} {<C-o>:echo search('[\.,;]\?$')<CR>}
@@ -682,13 +686,17 @@
             onoremap ; t;
             onoremap : t:
             onoremap ) t)
-            onoremap ) t}
+            onoremap } t}
             onoremap > t>
             onoremap ] t]
             onoremap . t.
             onoremap " t"
             onoremap ' t'
             onoremap , t,
+            nnoremap c= ^:call search('= \?\zs\\|$')<CR>mm:call search('[;,]\?$')<CR>mn`mc`n
+            nnoremap d= ^:call search('= \?\zs\\|$')<CR>mm:call search('[;,]\?$')<CR>mn`md`n
+            nnoremap dq mm:call search('\u\\|\>\\|_')<CR>d`m
+            nnoremap cq mm:call search('\u\\|\>\\|_')<CR>c`m
 
         " semi-column things
             inoremap ;; <C-o>:call setline('.', getline('.') . ';')<CR>
@@ -711,7 +719,8 @@
             vnoremap <LEADER>A $A
 
         " Delete corresponding brace and similar
-            nmap d% v%<ESC>r@gvo<ESC>x:s/^\s*\n//<CR>gv:s/@//g<CR>:s/^\s*\n//<CR>gv<ESC>:noh<CR>
+            " To Fix!
+            " nmap d% v%<ESC>r@gvo<ESC>x:s/^\s*\n//<CR>gv:s/@//g<CR>:s/^\s*\n//<CR>gv<ESC>:noh<CR>
 
         " Around selection, completes the vim-surround plugin
             vmap m S
@@ -798,3 +807,6 @@
         iab etait était
         iab implemente implémente
         iab implementation implémentation
+
+
+        iab \> ⤷
