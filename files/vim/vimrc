@@ -409,8 +409,9 @@
         let g:AutoPairs={'(':')', '[':']', '{':'}',"'":"'",'"':'"', "`":"`", '```':'```', '"""':'"""', "'''":"'''", "<":">"}
         let g:AutoPairsShortcutFastWrap = '<C-]>'
         let g:AutoPairsFlyMode = 0
+        let g:AutoPairsMultilineClose=0
 
-        au FileType php      let b:AutoPairs = AutoPairsDefine({'<?' : '?>', '<?php': '?>'})
+        au FileType php let b:AutoPairs = AutoPairsDefine({'<?' : '?>', '<?php': '?>'})
 
     " ultisnips
         let g:UltiSnipsSnippetDirectories  = [$HOME.'/.vim/UltiSnips']
@@ -512,12 +513,14 @@
         noremap <ENTER> %
         nnoremap - 2<C-y><C-g>
         nnoremap + 2<C-e><C-g>
+        vnoremap g= c<C-r>=<C-r>+<CR><ESC>
+        nnoremap g= Vc<C-r>=<C-r>+<CR><ESC>
         inoremap \'e é
 
 
         " nnoremap <F3> :set hlsearch!<CR>
         nnoremap <F3> :noh<CR>
-        nmap <F5> :redraw!<CR>:GitGutter<CR> " Plugin: GitGutter
+        nmap <F5> :redraw!<CR>:GitGutter<CR>:set foldmethod=expr<CR> " Plugin: GitGutter
 
         " no yank delete
             nnoremap <leader> "p
@@ -671,17 +674,18 @@
             inoremap }} {<C-o>:echo search('[\.,;]\?$')<CR>}
 
         " Backspace selector
-            nnoremap d<BS> V^/{<CR>%d
-            nnoremap c<BS> V^/{<CR>%c
-            nnoremap y<BS> V^/{<CR>%y
-            nnoremap v<BS> V^/{<CR>%
-            nnoremap ><BS> V^/{<CR>%>
-            nnoremap <<BS> V^/{<CR>%<
+            nnoremap d<BS> mm:call search('{')<CR>d%d'm
+            nnoremap c<BS> mm:call search('{')<CR>d%c'm
+            nnoremap y<BS> mm:call search('{')<CR>%y'm
+            nnoremap v<BS> mm:call search('{')<CR>V%o'm
+            nnoremap <<BS> mm:call search('{')<CR><%k<'m
+            nnoremap ><BS> mm:call search('{')<CR>>%k>'m
 
         " Paste selector
-            nnoremap >p mm`[v`]>`ml
-            nnoremap <p mm`[v`]<`mh
-            nnoremap dp '[d']<
+            nnoremap >p mm`[>`]`m
+            nnoremap <p mm`[<`]`m
+            nnoremap dp '[d']
+            nnoremap =p mm`[=`]`m
 
         " Easy delete until...
             onoremap ; t;
@@ -696,6 +700,8 @@
             onoremap , t,
             nnoremap c= ^:call search('= \?\zs\\|$')<CR>mm:call search('[;,]\?$')<CR>mn`mc`n
             nnoremap d= ^:call search('= \?\zs\\|$')<CR>mm:call search('[;,]\?$')<CR>mn`md`n
+            nnoremap cb ^:call search('(')<CR>cib
+            nnoremap db ^:call search('(')<CR>dib
             nnoremap dq mm:call search('\u\\|\>\\|_')<CR>d`m
             nnoremap cq mm:call search('\u\\|\>\\|_')<CR>c`m
 
