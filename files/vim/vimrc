@@ -43,7 +43,7 @@
         let g:vim_markdown_conceal_code_blocks=0
         let g:vim_markdown_conceal=0
     " Ignored files ( formated in bash style, like in the `ls` command )
-        let g:ignoredDirs = [ '__pycache__', '.git', 'cache' ]
+        let g:ignoredDirs = [ '__pycache__', '.git', 'cache', 'node_modules' ]
         let g:ignoredFiles = [ '*.log' ]
 
 
