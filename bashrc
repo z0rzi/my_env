@@ -59,8 +59,40 @@ if ${use_color} ; then
 		fi
 	fi
 
-    # PS1='\[\033[01;31m\][\h\[\033[01;36m\] \w\[\033[01;31m\]]\$\[\033[00m\] '
-    PS1="\[\e[1m\e[92m\][ \[\e[0m\]\w \[\e[92m\]]\[\e[\$([ \$? -eq 0 ] && echo 92 || echo 31)m\] ❱ \[\e[0m\]"
+    GREEN='\033[1;32m'
+    RED='\033[1;31m'
+    BACK='\033[1;30m'
+    SHADOW='\033[0;37m'
+    NC='\033[0m'
+
+    ARROW='❱'  
+    HAND='☛ '
+    THUNDER='⚡'
+    SEP='┇'
+
+    function getStatusColor() {
+        [ $? -eq 0 ] && status_color=$GREEN || status_color=$RED
+        echo -en $status_color
+    }
+
+    function generateGitContent() {
+        STATUS=$?
+
+        branch=`git rev-parse --abbrev-ref HEAD 2> /dev/null`
+        [ "$branch" ] || return $STATUS
+
+        changes=`git diff 2> /dev/null`
+        [ "$changes" ] && branch="$branch~"
+
+        echo -en "$BACK $SEP $SHADOW$branch"
+
+        return $STATUS
+    }
+
+    # PS1="\[\e[1m\e[92m\][ \[\e[0m\]\w \[\e[92m\]]\[\e[\$([ \$? -eq 0 ] && echo 92 || echo 31)m\] ❱ \[\e[0m\]"
+    PS1="\n\[${BACK}╭─┥ ${SHADOW}\w\$(generateGitContent) ${BACK}┝─┈${NC}\]\n\[${BACK}\]╰─╼┥\[\$(getStatusColor)\]${HAND}\[${NC}\] "
+
+
 
 	alias ls='ls --color=auto'
 	alias grep='grep --colour=auto'
@@ -68,6 +100,8 @@ if ${use_color} ; then
 	alias fgrep='fgrep --colour=auto'
     alias copy='xclip -sel clip'
     alias ccat='pygmentize -g -O style=colorful,linenos=1'
+
+    alias tandem='$HOME/.applications/Tandemx86_641.2.1_73b32bb1cd4788894744220a4830ac9b.AppImage --no-sandbox'
 
 else
 	if [[ ${EUID} == 0 ]] ; then
@@ -116,7 +150,14 @@ alias la='ls -a'
 alias lla='ls -la'
 alias lls='clear;ls'
 
+alias :xa='exit'
+alias :x='exit'
+alias :q='exit'
+alias :qa='exit'
+
 alias color="grep -C 100000"
+
+alias javac="javac -encoding ISO-8859-1 "
 
 alias git='git_wrapper.sh'
 
@@ -131,3 +172,5 @@ if [ -f '/home/zorzi/Projects/my_app_engine/google-cloud-sdk/completion.bash.inc
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"

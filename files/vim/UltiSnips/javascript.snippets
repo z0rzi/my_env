@@ -1,0 +1,30 @@
+priority -50
+
+snippet log "Logs a message" b
+console.log($1);
+endsnippet
+
+snippet file_write "Write inside a file" b
+file = open("${1:./my_file.txt}","w") 
+file.write(${2:"Hi there!"}) 
+file.close() 
+endsnippet
+
+snippet file_read "Reads a whole file content" b
+const fs = require('fs');
+
+fs.readFile('${1:./my_file.txt}', {encoding: 'utf-8'}, (err, data) => {
+    if (err) throw err;
+    ${2:console.log('received data: ' + data)};
+    $0
+});
+endsnippet
+
+
+
+snippet loop_object "Loops through an object" b
+for( let key of Object.keys(${1:obj}) ) {
+    console.log( $1[key] );
+    $0
+}
+endsnippet

@@ -43,8 +43,8 @@
         let g:vim_markdown_conceal_code_blocks=0
         let g:vim_markdown_conceal=0
     " Ignored files ( formated in bash style, like in the `ls` command )
-        let g:ignoredDirs = [ '__pycache__', '.git', 'cache', 'node_modules' ]
-        let g:ignoredFiles = [ '*.log' ]
+        let g:ignoredDirs = [ '__pycache__', '.git', 'cache', 'node_modules', 'coverage' ]
+        let g:ignoredFiles = [ '*.log', '*.class' ]
 
 
 "
@@ -355,48 +355,85 @@
     set rtp+=~/.vim/bundle/Vundle.vim
     call vundle#begin()
 
-        Plugin 'easymotion/vim-easymotion'
-        Plugin 'vim-indent-object'
-        Plugin 'ap/vim-css-color'
-        Plugin 'godlygeek/tabular'
+        " 
+        " Gotta go fast!
+        "
+            " move lightning fast
+            Plugin 'easymotion/vim-easymotion'
 
-        Plugin 'jiangmiao/auto-pairs'
+            " indent range
+            Plugin 'vim-indent-object'
 
+            " fast close pairs
+            Plugin 'jiangmiao/auto-pairs'
+
+            " Fast surround shortcuts
+            Plugin 'tpope/vim-surround'
+
+            " fast comment
+            Plugin 'tpope/vim-commentary'
+
+            " Autocomplete
+            Plugin 'Shougo/deoplete.nvim'
+
+            " Snippets
+            Plugin 'sirver/UltiSnips'
 
         "
-        " Highlighting
+        " Pretty editor
         "
-        Plugin 'pangloss/vim-javascript'
-        Plugin 'mxw/vim-jsx'
+            " Pretty CSV files
+            Plugin 'mechatroner/rainbow_csv'
 
-        Plugin 'junegunn/fzf'
-        Plugin 'junegunn/fzf.vim'
+            " visual indents
+            Plugin 'Yggdroot/indentLine'
 
-        Plugin 'mechatroner/rainbow_csv'
-        
-        " IDE
-        Plugin 'scrooloose/nerdtree'
+            " Pretty icons
+            Plugin 'ryanoasis/vim-devicons'
 
-        Plugin 'Konfekt/FastFold'
-        Plugin 'Yggdroot/indentLine'
-        Plugin 'tpope/vim-commentary'
-        Plugin 'airblade/vim-gitgutter'
-        Plugin 'tpope/vim-fugitive'
+            " Line on top of screen
+            Plugin 'vim-airline/vim-airline'
 
-        Plugin 'mildred/vim-bufmru'
-        Plugin 'tpope/vim-surround'
+        "
+        " Language specific
+        "
+            " TypeScript / Vue
+            " Plugin 'sandersn/vue-ts-plugin'
+            " Plugin 'posva/vim-vue'
+            " Plugin 'Quramy/tsuquyomi'
+            " Plugin 'Quramy/tsuquyomi-vue'
 
-        Plugin 'vim-airline/vim-airline'
+        "
+        " Others
+        "
+            " Vim Blames
+            Plugin 'zivyangll/git-blame.vim'
 
+            " visual GIT modifs
+            Plugin 'airblade/vim-gitgutter'
 
-        Plugin 'Shougo/deoplete.nvim'
-        Plugin 'sirver/UltiSnips'
+            " align everything!
+            Plugin 'godlygeek/tabular'
 
-        Plugin 'ryanoasis/vim-devicons'
+            " Fuzzy search
+            Plugin 'junegunn/fzf'
+            Plugin 'junegunn/fzf.vim'
 
-        Plugin 'z0rzi/vim-adaptive-indent'
-        Plugin 'z0rzi/vim-any-match'
-        Plugin 'z0rzi/vim-super-macro'
+            " tree file explorer
+            Plugin 'scrooloose/nerdtree'
+
+            " Buffer stuff
+            Plugin 'mildred/vim-bufmru'
+
+            " Linting
+            Plugin 'dense-analysis/ale'
+
+        "
+        " My plugins!
+        "
+            Plugin 'z0rzi/vim-adaptive-indent'
+            Plugin 'z0rzi/vim-super-macro'
+            Plugin 'z0rzi/vim-zorzi-smoothie'
 
     call vundle#end()
 
@@ -404,12 +441,16 @@
 "
 " PLUGINS CONFIG
 "
+    " easy-motion
+        let g:EasyMotion_enter_jump_first=1
     " auto-pairs
         let g:AutoPairs={'(':')', '[':']', '{':'}',"'":"'",'"':'"', "`":"`", '```':'```', '"""':'"""', "'''":"'''", "<":">"}
         let g:AutoPairsShortcutFastWrap = '<C-]>'
         let g:AutoPairsFlyMode = 0
+        let g:AutoPairsMultilineClose = 0
+        let g:AutoPairsShortcutToggle = "<M-l>"
 
-        au FileType php      let b:AutoPairs = AutoPairsDefine({'<?' : '?>', '<?php': '?>'})
+        au FileType php let b:AutoPairs = AutoPairsDefine({'<?' : '?>', '<?php': '?>'})
 
     " ultisnips
         let g:UltiSnipsSnippetDirectories  = [$HOME.'/.vim/UltiSnips']
@@ -419,12 +460,14 @@
 
     " deoplete
         let g:deoplete#enable_at_startup = 1
+        autocmd CompleteDone * silent! pclose!
 
     " easy-motion
         autocmd StdinReadPre * let s:std_in=1
         nmap s <plug>(easymotion-overwin-f2)
     
     " NerdTree
+        let g:NERDTreeIgnore = ['\.class$', '\.log']
         " autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
         autocmd StdinReadPre * let s:std_in=1
         autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
@@ -467,8 +510,8 @@
 
     " Airline
         " Enable the list of buffers
-        let g:airline#extensions#tabline#enabled = 1
         let g:airline_extensions#tabline#show_buffers = 1
+        let g:airline#extensions#tabline#enabled = 1
         let airline#extensions#tabline#middle_click_preserves_windows = 1
 
         if !exists('g:airline_symbols')
@@ -510,12 +553,16 @@
         noremap <ENTER> %
         nnoremap - 2<C-y><C-g>
         nnoremap + 2<C-e><C-g>
+        vnoremap g= c<C-r>=<C-r>+<CR><ESC>
+        nnoremap g= Vc<C-r>=<C-r>+<CR><ESC>
         inoremap \'e é
+        nnoremap cb xmj:call search('\<', 'b')<CR>c`j
+        nnoremap db xmj:call search('\<', 'b')<CR>d`j
 
 
         " nnoremap <F3> :set hlsearch!<CR>
         nnoremap <F3> :noh<CR>
-        nmap <F5> :redraw!<CR>:GitGutter<CR> " Plugin: GitGutter
+        nmap <F5> :redraw!<CR>:GitGutter<CR>:set foldmethod=expr<CR> " Plugin: GitGutter
 
         " no yank delete
             nnoremap <leader> "p
@@ -546,7 +593,7 @@
             nmap ZZ @@
 
         " Easy search n replace
-            nnoremap <C-c> *Ncgn
+            nnoremap <C-c> :let @/="\\<".expand("<cword>")."\\>"<CR>lNcgn
 
         " Better ranges for XML
             nmap >it vitVkoj>
@@ -563,6 +610,14 @@
     " Moving mapping
         " fast exact search
             nnoremap <leader>/ /\<\><LEFT><LEFT>
+
+        " go to next/previous match under cursor
+            nnoremap <S-LEFT> #
+            nnoremap <S-RIGHT> *
+
+        " Skip word by word with CTRL + direction
+            nnoremap <C-RIGHT> w
+            nnoremap <C-LEFT> b
 
         " go through position history
             nnoremap <S-UP> <C-i>
@@ -598,15 +653,17 @@
             nnoremap <LEADER>gP :GitGutterPreviewHunk<CR>
             nnoremap <LEADER>gh :GitGutterLineHighlightsToggle<CR>
             nnoremap <LEADER>gd :Gdiffsplit<CR>
-            nnoremap <LEADER>gb :Gblame<CR>
+            nnoremap <LEADER>gb :GitBlame<CR>
 
         " Tabular indenting
             nnoremap <leader>t= mm:Tabular /^[^=]*\zs=<CR>`m
             nnoremap <leader>t: mm:Tabular /^[^:]*:\zs/l0r1<CR>`m
+            nnoremap <leader>t> mm:Tabular /^[^=]*\zs=>/<CR>`m
             nnoremap <leader>t<SPACE> mm:Tabular / *\zs /l0<CR>`m
             vnoremap <leader>t= :Tabular /^[^=]*\zs=<CR>
             vnoremap <leader>t: :Tabular /:\zs<CR>
             vnoremap <leader>t<SPACE> :Tabular / *\zs /l0<CR>
+            nnoremap <leader>t> mm:Tabular /^[^=]*\zs=>/<CR>`m
 
             nmap <leader>t* mm?/\*\*<CR>kmn:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/@param\s\+\S\+\s\+\S\+\zs\s\+/ /<CR>`nO<ESC>0CTabular /^\s\+\*\s\+@\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@param\s\+\S\+\s\+\S\+\s*\zs\s/l0<ESC>:s/[^\\]\zs\|/\r/g<CR>^"tDddk^"rDddk^"eDdd`n:/\/\*\*/,/\*\//g/./<C-r>e<CR>`n:/\/\*\*/,/\*\//g/./<C-r>r<CR>`n:/\/\*\*/,/\*\//g/./<C-r>t<CR>`m
 
@@ -630,7 +687,7 @@
             vnoremap  :Commentary<CR>gv
 
     " Buffer related maps
-        " Buffers navigation
+        " Buffers navigation 
             map <Tab> :BufMRUNext<CR>
             map <S-Tab> :BufMRUPrev<CR>
 
@@ -646,15 +703,16 @@
             nnoremap <LEADER>b bi
             nnoremap <LEADER>i bi
             nnoremap <LEADER>B Bi
+            nnoremap <LEADER>I Bi
             nnoremap <LEADER>e ea
             nnoremap <LEADER>a ea
             nnoremap <LEADER>E Ea
+            nnoremap <LEADER>A Ea
             nnoremap <LEADER>= f=a
             nnoremap <LEADER>. f.a
 
         " Double Tap shortcut
             " inoremap << <><LEFT>
-            " inoremap >> <ESC>ya>Pf<a <ESC>wyiwvi>pT<i/<C-o>T>
             " inoremap (( ()<LEFT>
             " inoremap [[ []<LEFT>
             " inoremap {{ {}<LEFT>
@@ -662,34 +720,40 @@
             " inoremap __ __<LEFT>
             " inoremap `` ``<LEFT>
             " inoremap "" ""<LEFT>
+            inoremap >> <ESC>ya>Pf<a <ESC>wyiwvi>pT<i/<C-o>T>
             inoremap )) (<C-o>:echo search('[\.,;]\?$')<CR>)
             inoremap ]] [<C-o>:echo search('[\.,;]\?$')<CR>]
             inoremap }} {<C-o>:echo search('[\.,;]\?$')<CR>}
 
         " Backspace selector
-            nnoremap d<BS> V^/{<CR>%d
-            nnoremap c<BS> V^/{<CR>%c
-            nnoremap y<BS> V^/{<CR>%y
-            nnoremap v<BS> V^/{<CR>%
-            nnoremap ><BS> V^/{<CR>%>
-            nnoremap <<BS> V^/{<CR>%<
+            nnoremap d<BS> mm:call search('{')<CR>d%d'm
+            nnoremap c<BS> mm:call search('{')<CR>d%c'm
+            nnoremap y<BS> mm:call search('{')<CR>%y'm
+            nnoremap v<BS> mm:call search('{')<CR>V%o'm
+            nnoremap <<BS> mm:call search('{')<CR><%k<'m
+            nnoremap ><BS> mm:call search('{')<CR>>%k>'m
 
         " Paste selector
-            nnoremap >p mm`[v`]>`ml
-            nnoremap <p mm`[v`]<`mh
-            nnoremap dp '[d']<
+            nnoremap >p mm`[>`]`m
+            nnoremap <p mm`[<`]`m
+            nnoremap dp '[d']
+            nnoremap =p mm`[=`]`m
 
         " Easy delete until...
             onoremap ; t;
             onoremap : t:
             onoremap ) t)
-            onoremap ) t}
+            onoremap } t}
             onoremap > t>
             onoremap ] t]
             onoremap . t.
             onoremap " t"
             onoremap ' t'
             onoremap , t,
+            nnoremap c= ^:call search('= \?\zs\\|$')<CR>mm:call search('[;,]\?$')<CR>mn`mc`n
+            nnoremap d= ^:call search('= \?\zs\\|$')<CR>mm:call search('[;,]\?$')<CR>mn`md`n
+            nnoremap dq mm:call search('\u\\|\>\\|_')<CR>d`m
+            nnoremap cq mm:call search('\u\\|\>\\|_')<CR>c`m
 
         " semi-column things
             inoremap ;; <C-o>:call setline('.', getline('.') . ';')<CR>
@@ -712,7 +776,8 @@
             vnoremap <LEADER>A $A
 
         " Delete corresponding brace and similar
-            nmap d% v%<ESC>r@gvo<ESC>x:s/^\s*\n//<CR>gv:s/@//g<CR>:s/^\s*\n//<CR>gv<ESC>:noh<CR>
+            " To Fix!
+            " nmap d% v%<ESC>r@gvo<ESC>x:s/^\s*\n//<CR>gv:s/@//g<CR>:s/^\s*\n//<CR>gv<ESC>:noh<CR>
 
         " Around selection, completes the vim-surround plugin
             vmap m S
@@ -751,8 +816,9 @@
 "
     " taking back position at buffer open
         autocmd BufReadPost * silent!norm!g;
-    " Correcting php bad commenting | Plugin: Commentary
+    " Correcting bad commenting for specific languages | Plugin: Commentary
         autocmd! BufEnter *.php :let b:commentary_format="// %s"
+        autocmd! BufEnter *.vue :let b:commentary_format="// %s"
 
     " Correcting FZF buffer | Plugin: FZF
         autocmd! FileType fzf
@@ -767,6 +833,7 @@
     
     " Unsupported files formats
         autocmd BufEnter *.abnf set filetype=abnf
+        autocmd BufNewFile,BufRead *.vue set filetype=vue
 
 
 "
@@ -801,4 +868,6 @@
         iab implementation implémentation
 
     " Unicode
-        iab \> ⤷
+        iab \> ➤
+        iab \\> ⤷
+
