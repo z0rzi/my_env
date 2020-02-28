@@ -23,7 +23,7 @@ endsnippet
 
 
 snippet loop_object "Loops through an object" b
-for( let key of Object.keys(${1:obj}) ) {
+for( const key of Object.keys(${1:obj}) ) {
     console.log( $1[key] );
     $0
 }

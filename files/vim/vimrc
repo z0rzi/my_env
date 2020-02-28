@@ -7,7 +7,10 @@
     set wrap
     set ruler
     set hidden
+    set showtabline=2  " always show tabline
+    set noshowmode
 
+    set ve=block
     set hlsearch
     set incsearch
 
@@ -43,7 +46,7 @@
         let g:vim_markdown_conceal_code_blocks=0
         let g:vim_markdown_conceal=0
     " Ignored files ( formated in bash style, like in the `ls` command )
-        let g:ignoredDirs = [ '__pycache__', '.git', 'cache', 'node_modules', 'coverage' ]
+        let g:ignoredDirs = [ '__pycache__', '.git', 'cache', 'node_modules', 'coverage', 'dist' ]
         let g:ignoredFiles = [ '*.log', '*.class' ]
 
 
@@ -348,101 +351,127 @@
         call fzf#run({'source': cmd, 'sink': function('s:FZFPrintUnicode'), 'options': '--no-sort --ansi', 'down':'40%' })
     endfunction
 
-"
-" PLUGINS
-"
-    " including Vundle and initialize
-    set rtp+=~/.vim/bundle/Vundle.vim
-    call vundle#begin()
-
-        " 
-        " Gotta go fast!
-        "
-            " move lightning fast
-            Plugin 'easymotion/vim-easymotion'
-
-            " indent range
-            Plugin 'vim-indent-object'
-
-            " fast close pairs
-            Plugin 'jiangmiao/auto-pairs'
-
-            " Fast surround shortcuts
-            Plugin 'tpope/vim-surround'
-
-            " fast comment
-            Plugin 'tpope/vim-commentary'
-
-            " Autocomplete
-            Plugin 'Shougo/deoplete.nvim'
-
-            " Snippets
-            Plugin 'sirver/UltiSnips'
-
-        "
-        " Pretty editor
-        "
-            " Pretty CSV files
-            Plugin 'mechatroner/rainbow_csv'
-
-            " visual indents
-            Plugin 'Yggdroot/indentLine'
-
-            " Pretty icons
-            Plugin 'ryanoasis/vim-devicons'
-
-            " Line on top of screen
-            Plugin 'vim-airline/vim-airline'
-
-        "
-        " Language specific
-        "
-            " TypeScript / Vue
-            " Plugin 'sandersn/vue-ts-plugin'
-            " Plugin 'posva/vim-vue'
-            " Plugin 'Quramy/tsuquyomi'
-            " Plugin 'Quramy/tsuquyomi-vue'
-
-        "
-        " Others
-        "
-            " Vim Blames
-            Plugin 'zivyangll/git-blame.vim'
-
-            " visual GIT modifs
-            Plugin 'airblade/vim-gitgutter'
-
-            " align everything!
-            Plugin 'godlygeek/tabular'
-
-            " Fuzzy search
-            Plugin 'junegunn/fzf'
-            Plugin 'junegunn/fzf.vim'
-
-            " tree file explorer
-            Plugin 'scrooloose/nerdtree'
-
-            " Buffer stuff
-            Plugin 'mildred/vim-bufmru'
-
-            " Linting
-            Plugin 'dense-analysis/ale'
-
-        "
-        " My plugins!
-        "
-            Plugin 'z0rzi/vim-adaptive-indent'
-            Plugin 'z0rzi/vim-super-macro'
-            Plugin 'z0rzi/vim-zorzi-smoothie'
-
-    call vundle#end()
+    " Save current view settings on a per-window, per-buffer basis.
+    function! AutoSaveWinView()
+        if !exists("w:SavedBufView")
+            let w:SavedBufView = {}
+        endif
+        let w:SavedBufView[bufnr("%")] = winsaveview()
+    endfunction
+    " Restore current view settings.
+    function! AutoRestoreWinView()
+        let buf = bufnr("%")
+        if exists("w:SavedBufView") && has_key(w:SavedBufView, buf)
+            let v = winsaveview()
+            let atStartOfFile = v.lnum == 1 && v.col == 0
+            if atStartOfFile && !&diff
+                call winrestview(w:SavedBufView[buf])
+            endif
+            unlet w:SavedBufView[buf]
+        endif
+    endfunction
 
 
 "
 " PLUGINS CONFIG
 "
+    " Ale Linting
+        let b:ale_fixers = ['eslint']
+        let b:ale_linters = ['eslint']
+        let g:ale_enabled = 1
+        let g:ale_sign_error = '✘'
+        let g:ale_sign_warning = '⚠️'
+
+    " Vim LightLine
+
+        " use lightline-buffer in lightline
+        let g:lightline = {
+            \ 'colorscheme': 'powerline',
+            \ 'active': {
+            \   'left':[ [ 'mode', 'paste' ],
+            \            [ 'gitbranch', 'readonly', 'filename', 'modified' ]
+            \   ]
+            \ },
+            \ 'tabline': {
+            \   'left': [ [ 'bufferinfo' ],
+            \             [ 'separator' ],
+            \             [ 'bufferbefore', 'buffercurrent', 'bufferafter' ], ],
+            \   'right': [ [ 'close' ], ],
+            \ },
+            \ 'component_expand': {
+            \   'buffercurrent': 'lightline#buffer#buffercurrent',
+            \   'bufferbefore': 'lightline#buffer#bufferbefore',
+            \   'bufferafter': 'lightline#buffer#bufferafter',
+            \ },
+            \ 'component_type': {
+            \   'buffercurrent': 'tabsel',
+            \   'bufferbefore': 'raw',
+            \   'bufferafter': 'raw',
+            \ },
+            \ 'component_function': {
+            \   'bufferinfo': 'lightline#buffer#bufferinfo',
+            \   'gitbranch': 'fugitive#head',
+            \ },
+            \ 'component': {
+            \   'separator': '',
+            \   'lineinfo': ' %3l:%-2v',
+            \ },
+        \ }
+
+        " lightline-buffer ui settings
+        " replace these symbols with ascii characters if your environment does not support unicode
+        let g:lightline_buffer_logo = ' '
+        let g:lightline_buffer_readonly_icon = ''
+        let g:lightline_buffer_modified_icon = '~'
+        let g:lightline_buffer_git_icon = ' '
+        let g:lightline_buffer_ellipsis_icon = '..'
+        let g:lightline_buffer_expand_left_icon = '◀ '
+        let g:lightline_buffer_expand_right_icon = ' ▶'
+        let g:lightline_buffer_active_buffer_left_icon = ''
+        let g:lightline_buffer_active_buffer_right_icon = ''
+        " let g:lightline_buffer_separator_icon = '  '
+        " let g:lightline_buffer_separator_right_icon = ' '
+        " let g:lightline_buffer_separator_left_icon = ' '
+
+        " enable devicons, only support utf-8
+        " require <https://github.com/ryanoasis/vim-devicons>
+        let g:lightline_buffer_enable_devicons = 1
+
+        " lightline-buffer function settings
+        let g:lightline_buffer_show_bufnr = 0
+
+        " :help filename-modifiers
+        let g:lightline_buffer_fname_mod = ':t'
+
+        " hide buffer list
+        let g:lightline_buffer_excludes = ['vimfiler']
+
+        " max file name length
+        let g:lightline_buffer_maxflen = 30
+
+        " max file extension length
+        let g:lightline_buffer_maxfextlen = 3
+
+        " min file name length
+        let g:lightline_buffer_minflen = 16
+
+        " min file extension length
+        let g:lightline_buffer_minfextlen = 3
+
+        " reserve length for other component (e.g. info, close)
+        let g:lightline_buffer_reservelen = 20
+
+        let g:lightline.separator = {
+            \   'left': '', 'right': ''
+          \}
+        let g:lightline.subseparator = {
+            \   'left': '', 'right': '' 
+          \}
+    " YouCompleteMe
+        set completeopt-=preview
     " easy-motion
         let g:EasyMotion_enter_jump_first=1
+
     " auto-pairs
         let g:AutoPairs={'(':')', '[':']', '{':'}',"'":"'",'"':'"', "`":"`", '```':'```', '"""':'"""', "'''":"'''", "<":">"}
         let g:AutoPairsShortcutFastWrap = '<C-]>'
@@ -454,9 +483,9 @@
 
     " ultisnips
         let g:UltiSnipsSnippetDirectories  = [$HOME.'/.vim/UltiSnips']
-        let g:UltiSnipsExpandTrigger       = "<TAB>"
-        let g:UltiSnipsJumpForwardTrigger  = "<C-RIGHT>"
-        let g:UltiSnipsJumpBackwardTrigger = "<C-LEFT>"
+        let g:UltiSnipsExpandTrigger       = "<C-l>"
+        let g:UltiSnipsJumpForwardTrigger  = "<C-x>"
+        let g:UltiSnipsJumpBackwardTrigger = "<C-z>"
 
     " deoplete
         let g:deoplete#enable_at_startup = 1
@@ -508,41 +537,98 @@
     " GitGutter
         let g:gitgutter_max_signs = 2000
 
-    " Airline
-        " Enable the list of buffers
-        let g:airline_extensions#tabline#show_buffers = 1
-        let g:airline#extensions#tabline#enabled = 1
-        let airline#extensions#tabline#middle_click_preserves_windows = 1
+"
+" PLUGINS
+"
+    " including Vundle and initialize
+    set rtp+=~/.vim/bundle/Vundle.vim
+    call vundle#begin()
 
-        if !exists('g:airline_symbols')
-            let g:airline_symbols = {}
-        endif
+        " 
+        " Gotta go fast!
+        "
+            " move lightning fast
+            Plugin 'easymotion/vim-easymotion'
 
-        " bottom bar
-        let g:airline_symbols.crypt = '🔒'
-        let g:airline_symbols.linenr = '¶'
-        let g:airline_symbols.paste = 'ρ'
-        let g:airline_symbols.spell = 'Ꞩ'
-        let g:airline_symbols.notexists = 'Ɇ'
-        let g:airline_symbols.whitespace = 'Ξ'
-        let g:airline_left_sep = ''
-        let g:airline_right_sep = ''
-        let g:airline_left_alt_sep = ''
-        let g:airline_right_alt_sep = ''
-        let g:airline_symbols.branch = ''
-        let g:airline_symbols.readonly = ''
-        let g:airline_symbols.maxlinenr = ''
+            " indent range
+            Plugin 'vim-indent-object'
 
-        " top bar
-        let g:airline#extensions#tabline#left_sep      = ' '
-        let g:airline#extensions#tabline#left_alt_sep  = '▏'
-        let g:airline#extensions#tabline#right_sep     = ' '
-        let g:airline#extensions#tabline#right_alt_sep = '▏'
-        let g:airline#extensions#tabline#left_sep      = ' '
-        let g:airline#extensions#tabline#right_sep     = ' '
-        let g:airline#extensions#tabline#left_alt_sep  = ' '
-        let g:airline#extensions#tabline#right_alt_sep = ' '
+            " fast close pairs
+            Plugin 'jiangmiao/auto-pairs'
 
+            " Fast surround shortcuts
+            Plugin 'tpope/vim-surround'
+
+            " fast comment
+            Plugin 'tpope/vim-commentary'
+
+            " Autocomplete
+            " Plugin 'Shougo/deoplete.nvim'
+            Plugin 'ycm-core/YouCompleteMe'
+
+            " Snippets
+            Plugin 'sirver/UltiSnips'
+
+        "
+        " Pretty editor
+        "
+            " Pretty CSV files
+            Plugin 'mechatroner/rainbow_csv'
+
+            " visual indents
+            Plugin 'Yggdroot/indentLine'
+
+            " Pretty icons
+            Plugin 'ryanoasis/vim-devicons'
+
+            " " Line on top of screen
+            " Plugin 'vim-airline/vim-airline'
+
+            " Line on the bottom of the screen
+            Plugin 'itchyny/lightline.vim'
+
+        "
+        " Language specific
+        "
+            " NodeJS
+            Plugin 'viruschidai/vim-as-nodejs-ide'
+            Plugin 'myhere/vim-nodejs-complete'
+
+        "
+        " Others
+        "
+            " Vim Blames
+            Plugin 'zivyangll/git-blame.vim'
+
+            " visual GIT modifs
+            Plugin 'airblade/vim-gitgutter'
+
+            " align everything!
+            Plugin 'godlygeek/tabular'
+
+            " Fuzzy search
+            Plugin 'junegunn/fzf'
+            Plugin 'junegunn/fzf.vim'
+
+            " tree file explorer
+            Plugin 'scrooloose/nerdtree'
+
+            " Buffer stuff
+            " Plugin 'mildred/vim-bufmru'
+            Plugin 'taohexxx/lightline-buffer'
+
+            " Linting
+            Plugin 'dense-analysis/ale' " Requires eslint to work (pacman -S eslint)
+
+        "
+        " My plugins!
+        "
+            Plugin 'z0rzi/vim-adaptive-indent'
+            Plugin 'z0rzi/vim-super-macro'
+            Plugin 'z0rzi/vim-zorzi-smoothie'
+            Plugin 'z0rzi/vim-glorious-commentary'
+
+    call vundle#end()
 
 "
 " MAPS
@@ -623,6 +709,12 @@
             nnoremap <S-UP> <C-i>
             nnoremap <S-DOWN> <C-o>
 
+        " Move seletion area
+            vnoremap <S-UP> V<C-v>koko
+            vnoremap <S-DOWN> V<C-v>jojo
+            vnoremap <S-RIGHT> V<C-v>lolo
+            vnoremap <S-LEFT> V<C-v>hoho
+
         " go to end of paragraph
             nnoremap { [(
             nnoremap } ])
@@ -645,6 +737,10 @@
             nmap <A-DOWN> <C-w><DOWN>
 
     " Plugin related maps
+        " Ale
+            nnoremap <LEADER>hn :ALENext<CR>
+            nnoremap <LEADER>hp :ALEPrevious<CR>
+
         " Git stuff
             " Plugin: GitGutter, fugitive
             nnoremap <LEADER>gu :GitGutterUndoHunk<CR>
@@ -688,8 +784,8 @@
 
     " Buffer related maps
         " Buffers navigation 
-            map <Tab> :BufMRUNext<CR>
-            map <S-Tab> :BufMRUPrev<CR>
+            nnoremap <Tab> :bnext<CR>
+            nnoremap <S-Tab> :bprev<CR>
 
         " Buffer management
             nnoremap <LEADER>q :bd<CR>
@@ -787,18 +883,6 @@
             vnoremap m. c..<ESC>P
             vnoremap m<SPACE> c<SPACE><SPACE><ESC>P
             vnoremap m<BS> dvhpgv
-
-        " Tab / CR shortcut to close 
-            " inoremap {<TAB> {<ENTER>}<C-o>O
-            " inoremap (<TAB> (<ENTER>)<C-o>O<TAB>
-            " inoremap [<TAB> [<ENTER>]<C-o>O<TAB>
-            " imap ><TAB> <ESC>yypa/<ESC>/<SPACE>\\|><CR>hvypdt>:noh<CR>O<TAB>
-            " inoremap }<TAB> {<ESC>jviio<esc>o}<ESC>k$
-            " inoremap {<CR> {<ENTER>}<C-o>O
-            " inoremap (<CR> (<ENTER>)<C-o>O<TAB>
-            " inoremap [<CR> [<ENTER>]<C-o>O<TAB>
-            " inoremap ><CR> <ESC>yypa/<ESC>/<SPACE>\\|><CR>hvypdt>:noh<CR>O<TAB>
-            " imap }<CR> {<ESC>jviio<esc>o}<ESC>k$
         
         " TAB shortcut to send to end of line
             inoremap .<TAB> <C-o>h<C-o>:echo search('[\.,;]\?$')<CR>.
@@ -816,9 +900,17 @@
 "
     " taking back position at buffer open
         autocmd BufReadPost * silent!norm!g;
+        autocmd BufLeave * call AutoSaveWinView()
+        autocmd BufEnter * call AutoRestoreWinView()
     " Correcting bad commenting for specific languages | Plugin: Commentary
         autocmd! BufEnter *.php :let b:commentary_format="// %s"
         autocmd! BufEnter *.vue :let b:commentary_format="// %s"
+        autocmd! BufEnter *.ts :let b:commentary_format="// %s"
+        autocmd! BufEnter *.coffee :let b:commentary_format="# %s"
+
+    " Faaast language specific iab
+        autocmd FileType typescript iab <buffer> c const<SPACE><C-o>ge<RIGHT><C-o>dw
+        autocmd FileType typescript iab <buffer> l let<SPACE><C-o>ge<RIGHT><C-o>dw
 
     " Correcting FZF buffer | Plugin: FZF
         autocmd! FileType fzf
@@ -828,12 +920,14 @@
     " refreshing file when modified outside of vim
         autocmd BufEnter * checktime
         autocmd FocusGained * checktime
-        autocmd InsertLeave * GitGutter
-        autocmd TextChanged * GitGutter
+        " autocmd InsertLeave * GitGutter
+        " autocmd TextChanged * GitGutter
+        autocmd BufWritePost * GitGutter
     
     " Unsupported files formats
         autocmd BufEnter *.abnf set filetype=abnf
         autocmd BufNewFile,BufRead *.vue set filetype=vue
+        autocmd BufNewFile,BufRead *.coffee set filetype=coffee
 
 
 "
@@ -841,7 +935,7 @@
 "
     " Comments shortcut
         iab /// //<ENTER><C-o>O
-        iab /** /**<ENTER>/<UP>
+        iab /** /**<CR><CR>/<UP>
 
     "
     " Mistypes
@@ -870,4 +964,4 @@
     " Unicode
         iab \> ➤
         iab \\> ⤷
-
+        iab \! ⚠

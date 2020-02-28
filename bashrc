@@ -90,7 +90,7 @@ if ${use_color} ; then
     }
 
     # PS1="\[\e[1m\e[92m\][ \[\e[0m\]\w \[\e[92m\]]\[\e[\$([ \$? -eq 0 ] && echo 92 || echo 31)m\] ❱ \[\e[0m\]"
-    PS1="\n\[${BACK}╭─┥ ${SHADOW}\w\$(generateGitContent) ${BACK}┝─┈${NC}\]\n\[${BACK}\]╰─╼┥\[\$(getStatusColor)\]${HAND}\[${NC}\] "
+    PS1="\n\[${BACK} ╭─┥ ${SHADOW}\w\$(generateGitContent) ${BACK}┝─┈${NC}\]\n\[${BACK}\] ╰─╼┥\[\$(getStatusColor)\]${HAND}\[${NC}\] "
 
 
 
@@ -102,6 +102,8 @@ if ${use_color} ; then
     alias ccat='pygmentize -g -O style=colorful,linenos=1'
 
     alias tandem='$HOME/.applications/Tandemx86_641.2.1_73b32bb1cd4788894744220a4830ac9b.AppImage --no-sandbox'
+
+    alias mouse='kwriteconfig5 --file kcminputrc --group Mouse --key XLbInptMiddleEmulation --type bool true && kcminit mouse'
 
 else
 	if [[ ${EUID} == 0 ]] ; then
@@ -130,6 +132,7 @@ shopt -s expand_aliases
 
 # Enable history appending instead of overwriting.  #139609
 shopt -s histappend
+export HISTCONTROL=ignoreboth:erasedups
 
 
 PATH=$PATH:$HOME/.my_env/scripts/:
@@ -174,3 +177,5 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
