@@ -38,6 +38,9 @@ endif
 if !exists('g:gruvbox_undercurl')
   let g:gruvbox_undercurl=1
 endif
+if !exists('g:gruvbox_strikethrough')
+  let g:gruvbox_strikethrough=1
+endif
 if !exists('g:gruvbox_underline')
   let g:gruvbox_underline=1
 endif
@@ -147,6 +150,11 @@ endif
 let s:underline = 'underline,'
 if g:gruvbox_underline == 0
   let s:underline = ''
+endif
+
+let s:strikethrough = 'strikethrough,'
+if g:gruvbox_strikethrough == 0
+  let s:strikethrough = ''
 endif
 
 let s:undercurl = 'undercurl,'
@@ -435,18 +443,32 @@ call s:HL('GruvboxBg4', s:bg4)
 
 call s:HL('GruvboxRed', s:red)
 call s:HL('GruvboxRedBold', s:red, s:none, s:bold)
+call s:HL('GruvboxRedItalic', s:red, s:none, s:italic)
+call s:HL('GruvboxRedUnderline', s:red, s:none, s:underline)
 call s:HL('GruvboxGreen', s:green)
 call s:HL('GruvboxGreenBold', s:green, s:none, s:bold)
+call s:HL('GruvboxGreenItalic', s:green, s:none, s:italic)
+call s:HL('GruvboxGreenUnderline', s:green, s:none, s:underline)
 call s:HL('GruvboxYellow', s:yellow)
 call s:HL('GruvboxYellowBold', s:yellow, s:none, s:bold)
+call s:HL('GruvboxYellowItalic', s:yellow, s:none, s:italic)
+call s:HL('GruvboxYellowUnderline', s:yellow, s:none, s:underline)
 call s:HL('GruvboxBlue', s:blue)
 call s:HL('GruvboxBlueBold', s:blue, s:none, s:bold)
+call s:HL('GruvboxBlueItalic', s:blue, s:none, s:italic)
+call s:HL('GruvboxBlueUnderline', s:blue, s:none, s:underline)
 call s:HL('GruvboxPurple', s:purple)
 call s:HL('GruvboxPurpleBold', s:purple, s:none, s:bold)
+call s:HL('GruvboxPurpleItalic', s:purple, s:none, s:italic)
+call s:HL('GruvboxPurpleUnderline', s:purple, s:none, s:underline)
 call s:HL('GruvboxAqua', s:aqua)
 call s:HL('GruvboxAquaBold', s:aqua, s:none, s:bold)
+call s:HL('GruvboxAquaItalic', s:aqua, s:none, s:italic)
+call s:HL('GruvboxAquaUnderline', s:aqua, s:none, s:underline)
 call s:HL('GruvboxOrange', s:orange)
 call s:HL('GruvboxOrangeBold', s:orange, s:none, s:bold)
+call s:HL('GruvboxOrangeItalic', s:orange, s:none, s:italic)
+call s:HL('GruvboxOrangeUnderline', s:orange, s:none, s:underline)
 
 call s:HL('GruvboxRedSign', s:red, s:sign_column, s:invert_signs)
 call s:HL('GruvboxGreenSign', s:green, s:sign_column, s:invert_signs)
@@ -508,8 +530,8 @@ hi! link VisualNOS Visual
 
 " call s:HL('Search',    s:yellow, s:bg0, s:inverse)
 " call s:HL('IncSearch', s:hls_cursor, s:bg0, s:inverse)
-hi Search cterm=bold ctermbg=black ctermfg=lightblue
-hi IncSearch cterm=bold ctermbg=black ctermfg=lightblue
+hi Search gui=bold guibg=black guifg=lightblue cterm=bold ctermbg=black ctermfg=lightblue
+hi IncSearch gui=bold guibg=black guifg=lightblue cterm=bold ctermbg=black ctermfg=lightblue
 
 call s:HL('Underlined', s:blue, s:none, s:underline)
 
@@ -591,7 +613,8 @@ hi! link Label GruvboxRed
 " try, catch, throw
 hi! link Exception GruvboxRed
 " sizeof, "+", "*", etc.
-hi! link Operator Normal
+" hi! link Operator Normal
+hi! link Operator GruvboxRed
 " Any other keyword
 " hi! link Keyword GruvboxRed
 call s:HL('Keyword', s:red, s:vim_bg, s:italic)
@@ -840,8 +863,8 @@ call s:HL('BufTabLineFill', s:bg0, s:bg0)
 " }}}
 " Asynchronous Lint Engine: {{{
 
-call s:HL('ALEError', s:none, s:none, s:undercurl, s:red)
-call s:HL('ALEWarning', s:none, s:none, s:undercurl, s:yellow)
+call s:HL('ALEError', s:red, s:none, s:undercurl.s:bold)
+call s:HL('ALEWarning', s:yellow, s:none, s:undercurl.s:bold)
 call s:HL('ALEInfo', s:none, s:none, s:undercurl, s:blue)
 
 hi! link ALEErrorSign GruvboxRedSign
@@ -1176,7 +1199,7 @@ hi! link jsClassDefinition GruvboxYellow
 " }}}
 " TypeScript: {{{
 
-hi! link typeScriptReserved GruvboxAqua
+hi! link typeScriptReserved GruvboxAquaItalic
 hi! link typeScriptLabel GruvboxAqua
 hi! link typeScriptFuncKeyword GruvboxAqua
 hi! link typeScriptIdentifier GruvboxOrange
@@ -1188,7 +1211,7 @@ hi! link typeScriptLogicSymbols GruvboxFg1
 hi! link typeScriptDocSeeTag Comment
 hi! link typeScriptDocParam Comment
 hi! link typeScriptDocTags vimCommentTitle
-hi! link typeScriptGlobalObjects GruvboxFg1
+hi! link typeScriptGlobalObjects GruvboxPurpleItalic
 hi! link typeScriptParens GruvboxFg3
 hi! link typeScriptOpSymbols GruvboxFg3
 hi! link typeScriptHtmlElemProperties GruvboxFg1

@@ -65,6 +65,8 @@ syn region typescriptInterpolation matchgroup=typescriptInterpolationDelimiter
       \ start=/${/ end=/}/ contained
       \ contains=@typescriptExpression
 
+syn match typescriptObject "\<\u\l\w\+\>" display
+
 syn match typescriptNumber "-\=\<\d[0-9_]*L\=\>" display
 syn match typescriptNumber "-\=\<0[xX][0-9a-fA-F][0-9a-fA-F_]*\>" display
 syn match typescriptNumber "-\=\<0[bB][01][01_]*\>" display
@@ -133,6 +135,8 @@ syntax keyword typescriptReserved constructor declare as interface module abstra
 "" typescript/DOM/HTML/CSS specified things"{{{
 
 " typescript Objects"{{{
+  syn match   typescriptFunctionCall   "\w\+\ze(" display nextgroup=javaScriptFunctionArgs
+
   syn match typescriptFunction "(super\s*|constructor\s*)" contained nextgroup=typescriptVars
   syn region typescriptVars start="(" end=")" contained contains=typescriptParameters transparent keepend
   syn match typescriptParameters "([a-zA-Z0-9_?.$][\w?.$]*)\s*:\s*([a-zA-Z0-9_?.$][\w?.$]*)" contained skipwhite
@@ -204,9 +208,9 @@ syntax keyword typescriptFuncKeyword function
 
 syn match typescriptBraces "[{}\[\]]"
 syn match typescriptParens "[()]"
-syn match typescriptOpSymbols "=\{1,3}\|!==\|!=\|<\|>\|>=\|<=\|++\|+=\|--\|-="
 syn match typescriptEndColons "[;,]"
 syn match typescriptLogicSymbols "\(&&\)\|\(||\)\|\(!\)"
+syn match typescriptOpSymbols "=\{1,3}\|!==\|!=\|<\|>\|>=\|<=\|++\|+=\|--\|-="
 
 " typescriptFold Function {{{
 
@@ -236,6 +240,10 @@ if version >= 508 || !exists("did_typescript_syn_inits")
   "typescript highlighting
   HiLink typescriptParameters Operator
   HiLink typescriptSuperBlock Operator
+
+  HiLink typescriptFunctionCall Identifier
+
+  HiLink typescriptObject typescriptGlobalObjects
 
   HiLink typescriptEndColons Exception
   HiLink typescriptOpSymbols Operator

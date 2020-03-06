@@ -66,13 +66,18 @@ if ${use_color} ; then
     NC='\033[0m'
 
     ARROW='❱'  
+    SPARKLES='✨'
     HAND='☛ '
     THUNDER='⚡'
     SEP='┇'
 
-    function getStatusColor() {
-        [ $? -eq 0 ] && status_color=$GREEN || status_color=$RED
-        echo -en $status_color
+    CONSTRUCTION='🚧'
+    ANGER='💢'
+    NO_ENTRY='⛔'
+
+    function getStatusIcon() {
+        [ $? -eq 0 ] && status_icon=$SPARKLES || status_icon=$ANGER
+        echo -en $status_icon
     }
 
     function generateGitContent() {
@@ -90,7 +95,7 @@ if ${use_color} ; then
     }
 
     # PS1="\[\e[1m\e[92m\][ \[\e[0m\]\w \[\e[92m\]]\[\e[\$([ \$? -eq 0 ] && echo 92 || echo 31)m\] ❱ \[\e[0m\]"
-    PS1="\n\[${BACK} ╭─┥ ${SHADOW}\w\$(generateGitContent) ${BACK}┝─┈${NC}\]\n\[${BACK}\] ╰─╼┥\[\$(getStatusColor)\]${HAND}\[${NC}\] "
+    PS1="\n\[${BACK} ╭─┥ ${SHADOW}\w\$(generateGitContent) ${BACK}┝─┈${NC}\]\n\[${BACK}\] ╰─╼┥\[\$(getStatusIcon)\]\[${NC}\] "
 
 
 
@@ -101,17 +106,17 @@ if ${use_color} ; then
     alias copy='xclip -sel clip'
     alias ccat='pygmentize -g -O style=colorful,linenos=1'
 
-    alias tandem='$HOME/.applications/Tandemx86_641.2.1_73b32bb1cd4788894744220a4830ac9b.AppImage --no-sandbox'
+    alias tandem='$HOME/.applications/Tandemx86_641.2.1_73b32bb1cd4788894744220a4830ac9b.AppImage --no-sandbox &'
 
     alias mouse='kwriteconfig5 --file kcminputrc --group Mouse --key XLbInptMiddleEmulation --type bool true && kcminit mouse'
 
 else
-	if [[ ${EUID} == 0 ]] ; then
-		# show root@ when we don't have colors
-		PS1='\u@\h \w \$ '
-	else
-		PS1='\u@\h \w \$ '
-	fi
+    if [[ ${EUID} == 0 ]] ; then
+        # show root@ when we don't have colors
+        PS1='\u@\h \w \$ '
+    else
+        PS1='\u@\h \w \$ '
+    fi
 fi
 
 unset use_color safe_term match_lhs sh
@@ -147,7 +152,7 @@ alias vimtiny="nvim -u NONE"
 alias bye='exit'
 alias byebye='shutdown now'
 
-alias ls='ls --color'
+alias ls='ls --color --file-type'
 alias ll='ls -l'
 alias la='ls -a'
 alias lla='ls -la'

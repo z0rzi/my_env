@@ -9,6 +9,7 @@
     set hidden
     set showtabline=2  " always show tabline
     set noshowmode
+    " set termguicolors  " Increases the saturation
 
     set ve=block
     set hlsearch
@@ -68,9 +69,11 @@
 
     " GruvBox config
         let g:gruvbox_italic = 1
+        let g:gruvbox_undercurl = 1
         let g:gruvbox_termcolors = 256
         let g:gruvbox_contrast_dark = "medium"
-        let g:gruvbox_invert_selection = 1
+        let g:gruvbox_italicize_strings = 1
+        let g:gruvbox_invert_selection = 0
         let g:gruvbox_invert_signs = 0  " for GitGutter signs
         let g:gruvbox_guisp_fallback = 'bg'
 
@@ -102,6 +105,20 @@
 "
 " FUNCTIONS
 "
+
+    function! DuplicateLines(type, ...)
+        if a:0
+            silent exe "normal! gvy"
+        else
+            silent exe "normal! '[V']y"
+        endif
+
+        call setpos("'m", getpos("."))
+        silent exe "normal! P"
+        call setpos(".", getpos("'m"))
+        " s/^\ze.*\%#/\r/ " To add a new line between the old and the duplicate
+    endfunction
+
     function! GetGroupName()
         if !exists("*synstack" )
             return
@@ -240,6 +257,18 @@
         return l:string
     endfunction
 
+    function! EatNChars(num)
+        let l:number = a:num
+        let l:string = ""
+
+        while l:number > 0
+            let l:string .= nr2char(getchar())
+            let l:number -= 1
+        endwhile
+
+        return ''
+    endfunction
+
     function! SelectSmallestRangePossible(external)
         let lineCopy = getline('.')
         let curPos = col('.')
@@ -371,6 +400,53 @@
         endif
     endfunction
 
+    function! GetHighlightProps(grpName)
+        " Saving linting colors, for the function
+        let grpID = synIDtrans(hlID(a:grpName))
+
+        let baseProperties = [ "bold", "italic", "reverse", "inverse", "standout", "underline", "undercurl", "strikethrough" ]
+        let base = []
+
+        for prop in baseProperties
+            if synIDattr(grpID, prop) == '1'
+                let base += [prop]
+            endif
+        endfor
+        let base = join(base, ',')
+
+        return {
+                    \ 'name': a:grpName,
+                    \ 'fg': synIDattr(grpID, "fg"),
+                    \ 'bg': synIDattr(grpID, "bg"),
+                    \ 'base': base
+                    \ }
+    endfunction
+
+    function! ALEToggleHighlights(flag)
+        if a:flag == 0
+            hi clear ALEError
+            hi clear ALEWarning
+            hi clear ALEInfo
+        else
+            let grps = [g:AleErrorHI, g:AleWarningHI, g:AleInfoHI]
+
+            for grp in grps
+                let cmd = 'hi '.grp['name'].' '
+                if len(grp['fg']) > 0
+                    let cmd .= 'ctermfg='.grp['fg'].' '
+                endif
+                if len(grp['bg']) > 0
+                    let cmd .= 'ctermbg='.grp['bg'].' '
+                endif
+                if len(grp['base']) > 0
+                    let cmd .= 'cterm='.grp['base'].' '
+                endif
+                exe cmd
+            endfor
+        endif
+    endfunction
+
+
 
 "
 " PLUGINS CONFIG
@@ -380,7 +456,13 @@
         let b:ale_linters = ['eslint']
         let g:ale_enabled = 1
         let g:ale_sign_error = '✘'
-        let g:ale_sign_warning = '⚠️'
+        let g:ale_sign_warning = '⚠'
+        au! InsertEnter * call ALEToggleHighlights(0)
+        au! InsertLeave * call ALEToggleHighlights(1)
+        
+        let g:AleErrorHI = GetHighlightProps("ALEError")
+        let g:AleWarningHI = GetHighlightProps("ALEWarning")
+        let g:AleInfoHI = GetHighlightProps("ALEInfo")
 
     " Vim LightLine
 
@@ -469,6 +551,7 @@
           \}
     " YouCompleteMe
         set completeopt-=preview
+        let g:ycm_show_diagnostics_ui=0
     " easy-motion
         let g:EasyMotion_enter_jump_first=1
 
@@ -499,7 +582,8 @@
         let g:NERDTreeIgnore = ['\.class$', '\.log']
         " autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
         autocmd StdinReadPre * let s:std_in=1
-        autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
+        " autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
+        autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'cd '.argv()[0] | endif
         let g:NERDTreeDirArrowExpandable = '▸'
         let g:NERDTreeDirArrowCollapsible = '▾'
         let g:NERDTreeMapQuit = '<ESC>'
@@ -563,7 +647,6 @@
             Plugin 'tpope/vim-commentary'
 
             " Autocomplete
-            " Plugin 'Shougo/deoplete.nvim'
             Plugin 'ycm-core/YouCompleteMe'
 
             " Snippets
@@ -572,17 +655,11 @@
         "
         " Pretty editor
         "
-            " Pretty CSV files
-            Plugin 'mechatroner/rainbow_csv'
-
             " visual indents
             Plugin 'Yggdroot/indentLine'
 
             " Pretty icons
             Plugin 'ryanoasis/vim-devicons'
-
-            " " Line on top of screen
-            " Plugin 'vim-airline/vim-airline'
 
             " Line on the bottom of the screen
             Plugin 'itchyny/lightline.vim'
@@ -591,8 +668,8 @@
         " Language specific
         "
             " NodeJS
-            Plugin 'viruschidai/vim-as-nodejs-ide'
-            Plugin 'myhere/vim-nodejs-complete'
+            " Plugin 'viruschidai/vim-as-nodejs-ide'
+            " Plugin 'myhere/vim-nodejs-complete'
 
         "
         " Others
@@ -614,7 +691,6 @@
             Plugin 'scrooloose/nerdtree'
 
             " Buffer stuff
-            " Plugin 'mildred/vim-bufmru'
             Plugin 'taohexxx/lightline-buffer'
 
             " Linting
@@ -642,13 +718,13 @@
         vnoremap g= c<C-r>=<C-r>+<CR><ESC>
         nnoremap g= Vc<C-r>=<C-r>+<CR><ESC>
         inoremap \'e é
-        nnoremap cb xmj:call search('\<', 'b')<CR>c`j
-        nnoremap db xmj:call search('\<', 'b')<CR>d`j
+        nnoremap cb xmj<CMD>call search('\<', 'b')<CR>c`j
+        nnoremap db xmj<CMD>call search('\<', 'b')<CR>d`j
 
 
         " nnoremap <F3> :set hlsearch!<CR>
-        nnoremap <F3> :noh<CR>
-        nmap <F5> :redraw!<CR>:GitGutter<CR>:set foldmethod=expr<CR> " Plugin: GitGutter
+        nnoremap <F3> <CMD>noh<CR>
+        nmap <F5> <CMD>redraw!<CR><CMD>GitGutter<CR><CMD>set foldmethod=expr<CR> " Plugin: GitGutter
 
         " no yank delete
             nnoremap <leader> "p
@@ -664,22 +740,25 @@
             nnoremap 'V 0v$ho
 
         " move lines
-            nnoremap <C-j> :m+1<CR>
-            nnoremap <C-down> :m+1<CR>
-            nnoremap <C-k> :m-2<CR>
-            nnoremap <C-up> :m-2<CR>
+            nnoremap <C-j> <CMD>m+1<CR>
+            nnoremap <C-down> <CMD>m+1<CR>
+            nnoremap <C-k> <CMD>m-2<CR>
+            nnoremap <C-up> <CMD>m-2<CR>
 
             vnoremap <C-up> :m-2<CR>gv
             vnoremap <C-down> <ESC>'>jdd'<Pgv
             vnoremap <C-right> dpgvlolo
             vnoremap <C-left> dhPgvhoho
 
-        " Easy access macro
-            nmap Z @
-            nmap ZZ @@
+
+        " Duplicate lines
+            nnoremap <silent> z <CMD>set opfunc=DuplicateLines<CR>g@
+            vnoremap <silent> Z :<C-u>call DuplicateLines(visualmode(), 1)<CR>
+            nnoremap Z V:call DuplicateLines(visualmode(), 1)<CR>
+            noremap zz zz
 
         " Easy search n replace
-            nnoremap <C-c> :let @/="\\<".expand("<cword>")."\\>"<CR>lNcgn
+            nnoremap <C-c> <CMD>let @/="\\<".expand("<cword>")."\\>"<CR>lNcgn
 
         " Better ranges for XML
             nmap >it vitVkoj>
@@ -705,9 +784,9 @@
             nnoremap <C-RIGHT> w
             nnoremap <C-LEFT> b
 
-        " go through position history
-            nnoremap <S-UP> <C-i>
-            nnoremap <S-DOWN> <C-o>
+        " go to end of paragraph
+            nnoremap <S-UP> {(
+            nnoremap <S-DOWN> })
 
         " Move seletion area
             vnoremap <S-UP> V<C-v>koko
@@ -738,28 +817,28 @@
 
     " Plugin related maps
         " Ale
-            nnoremap <LEADER>hn :ALENext<CR>
-            nnoremap <LEADER>hp :ALEPrevious<CR>
+            nnoremap <LEADER>hn <CMD>ALENext<CR>
+            nnoremap <LEADER>hp <CMD>ALEPrevious<CR>
 
         " Git stuff
             " Plugin: GitGutter, fugitive
-            nnoremap <LEADER>gu :GitGutterUndoHunk<CR>
-            nnoremap <LEADER>gn :GitGutterNextHunk<CR>
-            nnoremap <LEADER>gp :GitGutterPrevHunk<CR>
-            nnoremap <LEADER>gP :GitGutterPreviewHunk<CR>
-            nnoremap <LEADER>gh :GitGutterLineHighlightsToggle<CR>
-            nnoremap <LEADER>gd :Gdiffsplit<CR>
-            nnoremap <LEADER>gb :GitBlame<CR>
+            nnoremap <LEADER>gu <CMD>GitGutterUndoHunk<CR>
+            nnoremap <LEADER>gn <CMD>GitGutterNextHunk<CR>
+            nnoremap <LEADER>gp <CMD>GitGutterPrevHunk<CR>
+            nnoremap <LEADER>gP <CMD>GitGutterPreviewHunk<CR>
+            nnoremap <LEADER>gh <CMD>GitGutterLineHighlightsToggle<CR>
+            nnoremap <LEADER>gd <CMD>Gdiffsplit<CR>
+            nnoremap <LEADER>gb <CMD>GitBlame<CR>
 
         " Tabular indenting
-            nnoremap <leader>t= mm:Tabular /^[^=]*\zs=<CR>`m
-            nnoremap <leader>t: mm:Tabular /^[^:]*:\zs/l0r1<CR>`m
-            nnoremap <leader>t> mm:Tabular /^[^=]*\zs=>/<CR>`m
-            nnoremap <leader>t<SPACE> mm:Tabular / *\zs /l0<CR>`m
+            nnoremap <leader>t= mm<CMD>Tabular /^[^=]*\zs=<CR>`m
+            nnoremap <leader>t: mm<CMD>Tabular /^[^:]*:\zs/l0r1<CR>`m
+            nnoremap <leader>t> mm<CMD>Tabular /^[^=]*\zs=>/<CR>`m
+            nnoremap <leader>t<SPACE> mm<CMD>Tabular / *\zs /l0<CR>`m
             vnoremap <leader>t= :Tabular /^[^=]*\zs=<CR>
             vnoremap <leader>t: :Tabular /:\zs<CR>
             vnoremap <leader>t<SPACE> :Tabular / *\zs /l0<CR>
-            nnoremap <leader>t> mm:Tabular /^[^=]*\zs=>/<CR>`m
+            nnoremap <leader>t> mm<CMD>Tabular /^[^=]*\zs=>/<CR>`m
 
             nmap <leader>t* mm?/\*\*<CR>kmn:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/@param\s\+\S\+\s\+\S\+\zs\s\+/ /<CR>`nO<ESC>0CTabular /^\s\+\*\s\+@\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@param\s\+\S\+\s\+\S\+\s*\zs\s/l0<ESC>:s/[^\\]\zs\|/\r/g<CR>^"tDddk^"rDddk^"eDdd`n:/\/\*\*/,/\*\//g/./<C-r>e<CR>`n:/\/\*\*/,/\*\//g/./<C-r>r<CR>`n:/\/\*\*/,/\*\//g/./<C-r>t<CR>`m
 
@@ -767,28 +846,28 @@
             vnoremap <leader>t :Tabular /
 
         " NerdTree toggle
-            map <LEADER>f :NERDTreeToggle<CR>
-            map <F2> :NERDTreeToggle<CR>
+            map <LEADER>f <CMD>NERDTreeToggle<CR>
+            map <F2> <CMD>NERDTreeToggle<CR>
 
         " FZF
-            nnoremap <C-p> :call FZFFindFile()<CR>
-            nnoremap <F12> :call FZFFindWordUnderCursor()<CR>
-            nnoremap <C-f> :call FZFFindWord()<CR>
-            nnoremap <LEADER>u :call FZFUnicode()<CR>
+            nnoremap <C-p> <CMD>call FZFFindFile()<CR>
+            nnoremap <F12> <CMD>call FZFFindWordUnderCursor()<CR>
+            nnoremap <C-f> <CMD>call FZFFindWord()<CR>
+            nnoremap <LEADER>u <CMD>call FZFUnicode()<CR>
 
 
         " Commentary
-            nnoremap  :Commentary<CR>
-            inoremap  <C-o>:Commentary<CR>
+            nnoremap  <CMD>Commentary<CR>
+            inoremap  <C-o><CMD>Commentary<CR>
             vnoremap  :Commentary<CR>gv
 
     " Buffer related maps
         " Buffers navigation 
-            nnoremap <Tab> :bnext<CR>
-            nnoremap <S-Tab> :bprev<CR>
+            nnoremap <Tab> <CMD>bnext<CR>
+            nnoremap <S-Tab> <CMD>bprev<CR>
 
         " Buffer management
-            nnoremap <LEADER>q :bd<CR>
+            nnoremap <LEADER>q <CMD>bd<CR>
 
     " Language specific  maps
         " Easy HTML tag change
@@ -817,17 +896,17 @@
             " inoremap `` ``<LEFT>
             " inoremap "" ""<LEFT>
             inoremap >> <ESC>ya>Pf<a <ESC>wyiwvi>pT<i/<C-o>T>
-            inoremap )) (<C-o>:echo search('[\.,;]\?$')<CR>)
-            inoremap ]] [<C-o>:echo search('[\.,;]\?$')<CR>]
-            inoremap }} {<C-o>:echo search('[\.,;]\?$')<CR>}
+            inoremap )) (<C-o><CMD>echo search('[\.,;]\?$')<CR>)
+            inoremap ]] [<C-o><CMD>echo search('[\.,;]\?$')<CR>]
+            inoremap }} {<C-o><CMD>echo search('[\.,;]\?$')<CR>}
 
         " Backspace selector
-            nnoremap d<BS> mm:call search('{')<CR>d%d'm
-            nnoremap c<BS> mm:call search('{')<CR>d%c'm
-            nnoremap y<BS> mm:call search('{')<CR>%y'm
-            nnoremap v<BS> mm:call search('{')<CR>V%o'm
-            nnoremap <<BS> mm:call search('{')<CR><%k<'m
-            nnoremap ><BS> mm:call search('{')<CR>>%k>'m
+            nnoremap d<BS> mm^<CMD>call search('[{\[(]$')<CR>%d'm
+            nnoremap c<BS> mm^<CMD>call search('[{\[(]$')<CR>%c'm
+            nnoremap c<BS> mm^<CMD>call search('[{\[(]$')<CR>%y'm
+            nnoremap v<BS> mm^<CMD>call search('[{\[(]$')<CR>v'mo%Vo
+            nnoremap <<BS> mm^<CMD>call search('[{\[(]$')<CR>%<'m
+            nnoremap ><BS> mm^<CMD>call search('[{\[(]$')<CR>%>'m
 
         " Paste selector
             nnoremap >p mm`[>`]`m
@@ -836,6 +915,16 @@
             nnoremap =p mm`[=`]`m
 
         " Easy delete until...
+            nnoremap v; vt;
+            nnoremap v: vt:
+            nnoremap v) vt)
+            nnoremap v} vt}
+            nnoremap v> vt>
+            nnoremap v] vt]
+            nnoremap v. vt.
+            nnoremap v" vt"
+            nnoremap v' vt'
+            nnoremap v, vt,
             onoremap ; t;
             onoremap : t:
             onoremap ) t)
@@ -846,13 +935,13 @@
             onoremap " t"
             onoremap ' t'
             onoremap , t,
-            nnoremap c= ^:call search('= \?\zs\\|$')<CR>mm:call search('[;,]\?$')<CR>mn`mc`n
-            nnoremap d= ^:call search('= \?\zs\\|$')<CR>mm:call search('[;,]\?$')<CR>mn`md`n
-            nnoremap dq mm:call search('\u\\|\>\\|_')<CR>d`m
-            nnoremap cq mm:call search('\u\\|\>\\|_')<CR>c`m
+            nnoremap c= ^<CMD>call search('= \?\zs\\|$')<CR>mm<CMD>call search('[;,]\?$')<CR>mn`mc`n
+            nnoremap d= ^<CMD>call search('= \?\zs\\|$')<CR>mm<CMD>call search('[;,]\?$')<CR>mn`md`n
+            nnoremap dq mm<CMD>call search('\u\\|\>\\|_')<CR>d`m
+            nnoremap cq mm<CMD>call search('\u\\|\>\\|_')<CR>c`m
 
         " semi-column things
-            inoremap ;; <C-o>:call setline('.', getline('.') . ';')<CR>
+            inoremap ;; <CMD>call setline('.', getline('.') . ';')<CR>
             inoremap ;a <C-o>A
             inoremap ;. <C-o>A.
             inoremap ;, <C-o>A,
@@ -885,12 +974,12 @@
             vnoremap m<BS> dvhpgv
         
         " TAB shortcut to send to end of line
-            inoremap .<TAB> <C-o>h<C-o>:echo search('[\.,;]\?$')<CR>.
-            inoremap ,<TAB> <C-o>h<C-o>:echo search('[\.,;]\?$')<CR>,
+            inoremap .<TAB> <C-o>h<C-o><CMD>echo search('[\.,;]\?$')<CR>.
+            inoremap ,<TAB> <C-o>h<C-o><CMD>echo search('[\.,;]\?$')<CR>,
 
         " Smallest range possible
-            onoremap io :call SelectSmallestRangePossible(0)<CR>
-            onoremap ao :call SelectSmallestRangePossible(1)<CR>
+            onoremap io <CMD>call SelectSmallestRangePossible(0)<CR>
+            onoremap ao <CMD>call SelectSmallestRangePossible(1)<CR>
             vnoremap io <ESC>:call SelectSmallestRangePossible(0)<CR>
             vnoremap ao <ESC>:call SelectSmallestRangePossible(1)<CR>
 
@@ -907,10 +996,13 @@
         autocmd! BufEnter *.vue :let b:commentary_format="// %s"
         autocmd! BufEnter *.ts :let b:commentary_format="// %s"
         autocmd! BufEnter *.coffee :let b:commentary_format="# %s"
+        autocmd! BufEnter *.conf :let b:commentary_format="# %s"
 
     " Faaast language specific iab
         autocmd FileType typescript iab <buffer> c const<SPACE><C-o>ge<RIGHT><C-o>dw
         autocmd FileType typescript iab <buffer> l let<SPACE><C-o>ge<RIGHT><C-o>dw
+        autocmd FileType typescript iab <buffer> ff for<SPACE>()<LEFT><C-o>g
+        autocmd FileType typescript inoreab <buffer> ii if<SPACE>()<LEFT><C-o>g
 
     " Correcting FZF buffer | Plugin: FZF
         autocmd! FileType fzf
