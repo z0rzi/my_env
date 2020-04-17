@@ -572,7 +572,7 @@ call s:HL('SignColumn', s:none, s:sign_column)
 
 " Line used for closed folds
 " call s:HL('Folded', s:green, s:bg1, s:italic)
-highlight Folded ctermfg=DarkGreen ctermbg=Black
+highlight Folded ctermfg=DarkGreen ctermbg=none
 
 " Column where folds are displayed
 call s:HL('FoldColumn', s:gray, s:bg1)

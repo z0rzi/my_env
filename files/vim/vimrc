@@ -1,6 +1,7 @@
-"
+" 
 " GENERAL NATIVE VIM SETTINGS
-"
+" 
+    filetype plugin indent off
     syn on
     filetype on
     set nu
@@ -9,7 +10,19 @@
     set hidden
     set showtabline=2  " always show tabline
     set noshowmode
+    set nobackup
+    set nowritebackup
+    set updatetime=300
+    set shortmess+=c
+    set signcolumn=yes
     " set termguicolors  " Increases the saturation
+    set previewheight=5
+
+    " different cursors in different modes
+        let &t_SI = "\<Esc>[6 q"
+        let &t_SR = "\<Esc>[4 q"
+        let &t_EI = "\<Esc>[2 q"
+        set timeoutlen=1000 ttimeoutlen=0
 
     set ve=block
     set hlsearch
@@ -48,12 +61,11 @@
         let g:vim_markdown_conceal=0
     " Ignored files ( formated in bash style, like in the `ls` command )
         let g:ignoredDirs = [ '__pycache__', '.git', 'cache', 'node_modules', 'coverage', 'dist' ]
-        let g:ignoredFiles = [ '*.log', '*.class' ]
+        let g:ignoredFiles = [ '*.log', '*.class', 'tags' ]
 
-
-"
+" 
 " LOOKS AND FEEL
-"
+" 
     " General
         colorscheme gruvbox
         set fillchars=stl:\ ,stlnc:=,vert:│,fold:\ ,diff:-
@@ -61,7 +73,6 @@
 
     " Folding
         let g:foldMode=1
-        set foldmethod=indent
         set foldlevelstart=99
         set foldmethod=expr
         set foldexpr=FindFoldLevel(v:lnum)
@@ -102,20 +113,66 @@
             let g:python_slow_sync=0
             let g:python_version_2=0
 
-"
+" 
 " FUNCTIONS
-"
+" 
+
+    function! EOL()
+        call setpos('.', [0, line('.'), col('$'), 0, col('$')])
+    endfunction
+
+    function! SmartJumpToEnd()
+        if search('\%#.\?$', 'n') != 0
+            call setpos("'m", getpos('.')
+            call search('^\(\s\+\).*\%#.*\n\(\1.*\n\)*\zs\1')
+            call append('.', repeat(' ', indent('.')))
+            norm!j
+            call setpos("'n", getpos('.')
+            norm!=`m`n
+        else
+            let pos = search('\%#.\{-}\zs[\[\](){}]')
+
+            if pos == 0
+                call search('.;\?$')
+            elseif search('\%#[[({]') != 0
+                " Opening tag
+                norm!%
+            else
+                " Closing tag
+                norm!h
+            endif
+        endif
+    endfunction
+
+    function! MapToNextMove(cmd)
+        exe "nnoremap <RIGHT> ".a:cmd."<CMD>call UnmapMoves()<CR>"
+        exe "nnoremap <LEFT>  ".a:cmd."<CMD>call UnmapMoves()<CR>"
+        exe "nnoremap <DOWN>  ".a:cmd."<CMD>call UnmapMoves()<CR>"
+        exe "nnoremap <UP>    ".a:cmd."<CMD>call UnmapMoves()<CR>"
+        exe "nnoremap <ESC>   ".a:cmd."<CMD>call UnmapMoves()<CR>"
+    endfunction
+    function! UnmapMoves()
+        nunmap <RIGHT>
+        nunmap <LEFT>
+        nunmap <DOWN>
+        nunmap <UP>
+        nunmap <ESC>
+    endfunction
 
     function! DuplicateLines(type, ...)
+        call setpos("'m", getpos("."))
         if a:0
             silent exe "normal! gvy"
         else
             silent exe "normal! '[V']y"
         endif
 
-        call setpos("'m", getpos("."))
         silent exe "normal! P"
-        call setpos(".", getpos("'m"))
+        call setpos('.', getpos('m"))
+        if search('^\s*\%#', 'n') != 0
+            call search('^\s\+\zs\S')
+            norm!$
+        endif
         " s/^\ze.*\%#/\r/ " To add a new line between the old and the duplicate
     endfunction
 
@@ -130,7 +187,7 @@
         if getline(a:lnum)=~'^$'
             let i = 0
             while 1
-                if ! (getline(a:lnum + i) =~ '^$')
+                if ! (getline(a:lnum + i) =~ '^\s*$')
                     return indent(a:lnum + i)
                 endif
                 let i += 1
@@ -139,15 +196,12 @@
                 endif
             endwhile
         endif
-        
+
         let nextIndent = 0
         let i = 0
-        while nextIndent == 0
+        while nextIndent == 0 && i <= 10
             let i += 1
-            if i > 10
-                break
-            endif
-            if ! (getline(a:lnum + i) =~ '^$')
+            if ! (getline(a:lnum + i) =~ '^\s*$')
                 let nextIndent = indent(a:lnum + i)
             endif
         endwhile
@@ -155,11 +209,11 @@
         if indent(a:lnum) < nextIndent
             if g:foldMode == 0
                 return '>' . nextIndent
-            elseif g:foldMode == 0
+            else
                 return indent(a:lnum)
             endif
         endif
-        
+
         " next line is a fold start
         if indent(a:lnum) > indent(a:lnum + 1) && FindFoldLevel(a:lnum + 1) =~ '^>'
             return '<' . indent(a:lnum)
@@ -168,39 +222,13 @@
         return indent(a:lnum)
     endfunction
 
-    function! FoldIfMakesSense()
-        let lnum = line('.')
-
-        let nextIndent = 0
-        let i = 0
-        while nextIndent == 0
-            let i += 1
-            if i > 10
-                break
-            endif
-            if ! (getline(lnum + i) =~ '^$')
-                let nextIndent = indent(lnum + i)
-            endif
-        endwhile
-
-        let condition = 0
-        if g:foldMode == 0
-            let condition = foldlevel(lnum) <= foldlevel(lnum+1) && indent(lnum) < nextIndent
-        elseif g:foldMode == 1
-            let condition = foldlevel(lnum-1) < foldlevel(lnum) && indent(lnum-1) < nextIndent
-        endif
-
-        if condition
-            foldclose
-        endif
-    endfunction
-
     function! NeatFoldText()
 
         let foldchar         = matchstr(&fillchars, 'fold:\zs.')
         let line             = ' ' . substitute(getline(v:foldstart), '^\s*"\?\s*\|\s*"\?\s*{{' . '{\d*\s*', '', 'g') . ' '
         let lines_count      = v:foldend - v:foldstart + 1
-        let lines_count_text = '» ' . printf("%10s", lines_count . ' lines') . repeat(foldchar, v:foldlevel*2)
+        let lines_count_text = printf("┈─ %1s lines ─┈", lines_count) . repeat(foldchar, 10)
+        " let lines_count_text = '» ' . printf(%10s", lines_count . ' lines') . repeat(foldchar, v:foldlevel*2)
         " let foldtextstart    = strpart('+' . repeat(foldchar, v:foldlevel*2) . line, 0, (winwidth(0)*2)/3)
         if g:foldMode == 0
             let foldtextstart    = getline(v:foldstart) . " ••• " 
@@ -209,52 +237,8 @@
         endif
         let foldtextend      = lines_count_text . repeat(foldchar, 8)
         let foldtextlength   = strlen(substitute(foldtextstart . foldtextend, '.', 'x', 'g')) + &foldcolumn
+
         return foldtextstart . repeat(foldchar, winwidth(0)-foldtextlength) . foldtextend
-    endfunction
-
-    function! CssMinify()
-        %s/\n//g
-        %s/\s\+\([:;{,><}]\)/\1/g
-        %s/\([:;{,><}]\)\s\+/\1/g
-        set filetype=css
-    endfunction
-
-    function! CssMaxify()
-        %s/\([^;}]\)}/\1;}/g
-        %s/}/\r}\r/g
-        %s/;/;\r/g
-        %s/{/\r{\r/g
-        %s/{/\r{\r/g
-        %s/^\s*\n//
-        %s/\t//g
-        %s/[><,]/ & /g
-        norm! gg<G
-        norm! gg<G
-        norm! gg<G
-        %g/{/norm!>i{
-        %s/^\(#.*\)\n\(\t\+\)/\2\1\r\2/
-        g/@keyframes/norm!J
-        %s/ \+/ /g
-        set filetype=css
-    endfunction
-
-    function! JsonMinify()
-        %s/\n//
-        %s/\s\+\([:{,\[\]}]\)/\1/g
-        %s/\([:{,\[\]}]\)\s\+/\1/g
-        set filetype=json
-    endfunction
-
-    function! GetOneChar()
-        let l:number = 1
-        let l:string = ""
-
-        while l:number > 0
-            let l:string .= nr2char(getchar())
-            let l:number -= 1
-        endwhile
-
-        return l:string
     endfunction
 
     function! EatNChars(num)
@@ -272,7 +256,7 @@
     function! SelectSmallestRangePossible(external)
         let lineCopy = getline('.')
         let curPos = col('.')
-        
+
         let lineCopy = lineCopy[:curPos-2] . '@' . lineCopy[curPos-1] . '@' . lineCopy[curPos:]
 
         " echo lineCopy
@@ -292,7 +276,7 @@
         if cara == ''
             return
         endif
-        
+
         let cmd = "normal! vi" . cara
         if a:external
             let cmd = cmd . 'loho'
@@ -326,6 +310,10 @@
             let ignoredDirsStr .= ' ! -path "*/' . d . '/*"'
         endfor
 
+        if expand('%:p') != ''
+            let ignoredDirsStr .= ' ! -path *'.expand('%:p').'"'
+        endif
+
         let cmd = 'ls --color=never -t $(find . -type f  ' . ignoredFilesStr . ' ' . ignoredDirsStr . ') 2> /dev/null'
         silent! exe fzf#run({'source': cmd, 'sink': 'e', 'options': '-d/ -n-1 --history /home/zorzi/.local/share/fzf-history/FZF --multi --no-sort --preview="git diff {}" --sync', 'down':'40%'})
     endfunction
@@ -351,7 +339,7 @@
         let [grepStr, grepArgs] = VimToGrepRegex(a:str)
 
         let previewLines = string(winheight(0) * 0.2)
-        
+
         let ignoredFilesStr = ''
         for f in g:ignoredFiles
             let ignoredFilesStr .= ' ! -name "' . f . '"'
@@ -446,17 +434,102 @@
         endif
     endfunction
 
-
-
-"
+" 
 " PLUGINS CONFIG
-"
+" 
+    " indentLine
+        let g:indentLine_char = '┆'
+
+    " CoC
+
+        let g:coc_snippet_next = "<C-x>"
+        let g:coc_snippet_prev = "<C-z>"
+        function! s:check_back_space() abort
+            let col = col('.') - 1
+            return !col || getline('.')[col - 1]  =~# '\s'
+        endfunction
+
+        " Use <c-space> to trigger completion.
+        inoremap <silent><expr> <c-space> coc#refresh()
+
+        " Use <cr> to confirm completion, `<C-g>u` means break undo chain at current
+        " position. Coc only does snippet and additional edit on confirm.
+        if has('patch8.1.1068')
+            " Use `complete_info` if your (Neo)Vim version supports it.
+            inoremap <expr> <C-x> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
+        else
+            imap <expr> <C-x> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+        endif
+
+        " GoTo code navigation.
+        " nmap <silent> <C-]> <Plug>(coc-definition)
+        " nmap <silent> gd <Plug>(coc-type-definition)
+        nmap <silent> <C-]> <Plug>(coc-implementation)
+        nmap <silent> <F12> <Plug>(coc-references)
+
+        " Use K to show documentation in preview window.
+        nnoremap <silent> <F1> :call <SID>show_documentation()<CR>
+
+        function! s:show_documentation()
+            if (index(['vim','help'], &filetype) >= 0)
+                execute 'h '.expand('<cword>')
+            else
+                call CocAction('doHover')
+            endif
+        endfunction
+
+        " Highlight the symbol and its references when holding the cursor.
+        " autocmd CursorHold * silent call CocActionAsync('highlight')
+
+        " Symbol renaming.
+        nmap <leader>rn <Plug>(coc-rename)
+
+        " Formatting selected code.
+        xmap <leader>f  <Plug>(coc-format-selected)
+        nmap <leader>f  <Plug>(coc-format-selected)
+
+        augroup mygroup
+            autocmd!
+            " Setup formatexpr specified filetype(s).
+            autocmd FileType typescript,json setl formatexpr=CocAction('formatSelected')
+            " Update signature help on jump placeholder.
+            autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
+        augroup end
+
+        " Remap keys for applying codeAction to the current line.
+        " nmap <leader>ac  <Plug>(coc-codeaction)
+
+        " Use <TAB> for selections ranges.
+        " NOTE: Requires 'textDocument/selectionRange' support from the language server.
+        " coc-tsserver, coc-python are the examples of servers that support it.
+        xmap <silent> <TAB> <Plug>(coc-range-select)
+
+        " Add `:Format` command to format current buffer.
+        command! -nargs=0 Format :call CocAction('format')
+
+        " Add `:Fold` command to fold current buffer.
+        command! -nargs=? Fold :call     CocAction('fold', <f-args>)
+
+        " Add `:OR` command for organize imports of the current buffer.
+        command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
+
+        " Add (Neo)Vim's native statusline support.
+        " NOTE: Please see `:h coc-status` for integrations with external plugins that
+        " provide custom statusline: lightline.vim, vim-airline.
+        set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
+
     " Ale Linting
         let b:ale_fixers = ['eslint']
-        let b:ale_linters = ['eslint']
+        let b:ale_linters = {
+                    \ 'typescript': ['eslint'],
+                    \ 'javascript': ['eslint'],
+                    \ 'python': []
+                    \ }
         let g:ale_enabled = 1
-        let g:ale_sign_error = '✘'
-        let g:ale_sign_warning = '⚠'
+        " let g:ale_sign_error = '✘'
+        " let g:ale_sign_warning = '⚠'
+        let g:ale_sign_error = ''
+        let g:ale_sign_warning = ''
         au! InsertEnter * call ALEToggleHighlights(0)
         au! InsertLeave * call ALEToggleHighlights(1)
         
@@ -511,9 +584,6 @@
         let g:lightline_buffer_expand_right_icon = ' ▶'
         let g:lightline_buffer_active_buffer_left_icon = ''
         let g:lightline_buffer_active_buffer_right_icon = ''
-        " let g:lightline_buffer_separator_icon = '  '
-        " let g:lightline_buffer_separator_right_icon = ' '
-        " let g:lightline_buffer_separator_left_icon = ' '
 
         " enable devicons, only support utf-8
         " require <https://github.com/ryanoasis/vim-devicons>
@@ -523,7 +593,7 @@
         let g:lightline_buffer_show_bufnr = 0
 
         " :help filename-modifiers
-        let g:lightline_buffer_fname_mod = ':t'
+        let g:lightline_buffer_fname_mod = ':r'
 
         " hide buffer list
         let g:lightline_buffer_excludes = ['vimfiler']
@@ -567,8 +637,11 @@
     " ultisnips
         let g:UltiSnipsSnippetDirectories  = [$HOME.'/.vim/UltiSnips']
         let g:UltiSnipsExpandTrigger       = "<C-l>"
-        let g:UltiSnipsJumpForwardTrigger  = "<C-x>"
-        let g:UltiSnipsJumpBackwardTrigger = "<C-z>"
+        inoremap <C-SPACE> <C-x>
+        inoremap <C-x> <CMD>call UltiSnips#JumpForwards()<CR>
+        inoremap <C-z> <CMD>call UltiSnips#JumpBackwards()<CR>
+        vnoremap <C-x> <CMD>call UltiSnips#JumpForwards()<CR>
+        vnoremap <C-z> <CMD>call UltiSnips#JumpBackwards()<CR>
 
     " deoplete
         let g:deoplete#enable_at_startup = 1
@@ -577,7 +650,7 @@
     " easy-motion
         autocmd StdinReadPre * let s:std_in=1
         nmap s <plug>(easymotion-overwin-f2)
-    
+
     " NerdTree
         let g:NERDTreeIgnore = ['\.class$', '\.log']
         " autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
@@ -619,18 +692,25 @@
         let g:fzf_layout = { 'down': '~40%' }
 
     " GitGutter
+        let g:gitgutter_map_keys = 0
         let g:gitgutter_max_signs = 2000
+        let g:gitgutter_sign_added = '▎'
+        let g:gitgutter_sign_modified = '▎'
+        let g:gitgutter_sign_removed = '▎'
+        let g:gitgutter_sign_modified_removed = '▎'
+        let g:gitgutter_sign_removed_above_and_below = '▎'
+        let g:gitgutter_sign_removed_first_line = '▎'
 
-"
+" 
 " PLUGINS
-"
+" 
     " including Vundle and initialize
     set rtp+=~/.vim/bundle/Vundle.vim
     call vundle#begin()
 
         " 
         " Gotta go fast!
-        "
+        " 
             " move lightning fast
             Plugin 'easymotion/vim-easymotion'
 
@@ -646,15 +726,12 @@
             " fast comment
             Plugin 'tpope/vim-commentary'
 
-            " Autocomplete
-            Plugin 'ycm-core/YouCompleteMe'
-
             " Snippets
             Plugin 'sirver/UltiSnips'
 
-        "
+        " 
         " Pretty editor
-        "
+        " 
             " visual indents
             Plugin 'Yggdroot/indentLine'
 
@@ -664,16 +741,15 @@
             " Line on the bottom of the screen
             Plugin 'itchyny/lightline.vim'
 
-        "
+        " 
         " Language specific
-        "
-            " NodeJS
-            " Plugin 'viruschidai/vim-as-nodejs-ide'
-            " Plugin 'myhere/vim-nodejs-complete'
+        " 
+            " Vue
+            Plugin 'darthmall/vim-vue'
 
-        "
+        " 
         " Others
-        "
+        " 
             " Vim Blames
             Plugin 'zivyangll/git-blame.vim'
 
@@ -696,9 +772,11 @@
             " Linting
             Plugin 'dense-analysis/ale' " Requires eslint to work (pacman -S eslint)
 
-        "
+            Plugin 'neoclide/coc.nvim', {'branch': 'release'}
+
+        " 
         " My plugins!
-        "
+        " 
             Plugin 'z0rzi/vim-adaptive-indent'
             Plugin 'z0rzi/vim-super-macro'
             Plugin 'z0rzi/vim-zorzi-smoothie'
@@ -706,13 +784,19 @@
 
     call vundle#end()
 
-"
+" 
 " MAPS
-"
+" 
     " Basic Vim Shortcuts
         nnoremap >> i<C-t><ESC>
         nnoremap Y y$
-        noremap <ENTER> %
+        nnoremap vv v$h
+        noremap <CR> %
+        nnoremap S ddO
+        nnoremap <M-z> <C-w>w
+        " nnoremap / /\v
+        vnoremap <CR> <CMD>if mode() == 'V' <BAR> call search('\%#.*\zs[{[(][;:.,\\]*$') <BAR> endif<CR>%
+        vnoremap $ $h
         nnoremap - 2<C-y><C-g>
         nnoremap + 2<C-e><C-g>
         vnoremap g= c<C-r>=<C-r>+<CR><ESC>
@@ -727,7 +811,7 @@
         nmap <F5> <CMD>redraw!<CR><CMD>GitGutter<CR><CMD>set foldmethod=expr<CR> " Plugin: GitGutter
 
         " no yank delete
-            nnoremap <leader> "p
+            nnoremap <leader> p
 
         " no include newline
             nnoremap 'd ^D
@@ -752,10 +836,10 @@
 
 
         " Duplicate lines
-            nnoremap <silent> z <CMD>set opfunc=DuplicateLines<CR>g@
-            vnoremap <silent> Z :<C-u>call DuplicateLines(visualmode(), 1)<CR>
-            nnoremap Z V:call DuplicateLines(visualmode(), 1)<CR>
-            noremap zz zz
+            nnoremap <silent> Z <CMD>set opfunc=DuplicateLines<CR>g@
+            vnoremap <silent> Z :<C-u>call DuplicateLines(visualmode(), 1)<CR>gv
+            nnoremap <silent> ZZ mnV:call DuplicateLines(visualmode(), 1)<CR>`n
+            nnoremap <silent> zx mnV:call DuplicateLines(visualmode(), 1)<CR>`n
 
         " Easy search n replace
             nnoremap <C-c> <CMD>let @/="\\<".expand("<cword>")."\\>"<CR>lNcgn
@@ -765,24 +849,48 @@
             nmap <it vitVkoj<
 
         " Search selection
-            vnoremap * y/<C-r>0<CR>
-            vnoremap # y?<C-r>0<CR>
+            vnoremap * y:let @/ = escape("<C-r>0", "/\^$*.[~")<CR>/<CR>
+            vnoremap # y:let @/ = escape("<C-r>0", "/\^$*.[~")<CR>?<CR>
 
         " Init folds
-            " nnoremap zff mm0"syw:%g/^<C-r>s[^[:blank:]#].*\ze\n/call FoldIfMakesSense()<CR>`m
-            nnoremap zff mm0"syw:%g/^<C-r>s[^[:blank:]#].*\n*<C-r>s\zs\s/+1call FoldIfMakesSense()<CR>`m
+            function! FoldIfMakeSense(offset)
+                let line = line('.') + matchstr(a:offset, '-\?\d*$')
+                let foldline = foldclosed(line)
+
+                if foldline != -1
+                    return
+                endif
+
+                exe"".a:offset."foldclose"
+            endfunction
+            function! FoldAllSameLevel()
+                let curpos = getcurpos()
+                let saveSearch = @/
+                let indent = matchstr(getline(line('.')), '^\s\+')
+                exe"%g/^\\(".indent."\\s*\\S\\)\\@!\\s*\\S.*\\(\\n\\s*\\)\\+".indent."\\S/call FoldIfMakeSense('+1')"
+                let @/ = saveSearch
+                call setpos('.', curpos)
+                noh
+            endfunction
+            nnoremap zff <CMD>call FoldAllSameLevel()<CR>
 
     " Moving mapping
         " fast exact search
             nnoremap <leader>/ /\<\><LEFT><LEFT>
 
         " go to next/previous match under cursor
-            nnoremap <S-LEFT> #
+            nnoremap <S-LEFT> <CMD>let @/ = '\<'.expand('<cword>').'\>'<CR>lbN
             nnoremap <S-RIGHT> *
 
         " Skip word by word with CTRL + direction
-            nnoremap <C-RIGHT> w
-            nnoremap <C-LEFT> b
+            nnoremap <C-LEFT> <CMD>call search('\<\<BAR>\u\l\<BAR>_[a-z]\<BAR>^', 'b')<CR>
+            nnoremap <C-RIGHT> <CMD>call search('\w\>\<BAR>\u\l\<BAR>_[a-z]\<BAR>$')<CR>
+            inoremap <C-LEFT> <CMD>call search('\<\<BAR>\u\l\<BAR>_[a-z]\<BAR>^', 'b')<CR>
+            inoremap <C-RIGHT> <CMD>call search('\>\zs\<BAR>\u\l\<BAR>_[a-z]\<BAR>$')<CR>
+            nnoremap <CS-LEFT> B
+            nnoremap <CS-RIGHT> E
+            inoremap <CS-LEFT> <CMD>norm!B<CR>
+            inoremap <CS-RIGHT> <CMD>norm!E<CR><RIGHT>
 
         " go to end of paragraph
             nnoremap <S-UP> {(
@@ -803,7 +911,7 @@
             nnoremap [ [{
             vnoremap ] ]}
             vnoremap [ [{
-        
+
         " Easy beg/end of line
             nnoremap ^ 0
             nnoremap 0 ^
@@ -816,17 +924,38 @@
             nmap <A-DOWN> <C-w><DOWN>
 
     " Plugin related maps
+        " CoC
+            nnoremap <C-f> :CocSearch 
+
+            " Tab to go through completion list
+            inoremap <silent><expr> <TAB>
+                  \ pumvisible() ? "\<C-n>":
+                  \ <SID>check_back_space() ? "\<TAB>":
+                  \ coc#refresh()
+            inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+            inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+
+            " Close the preview window when completion is done.
+            autocmd! CompleteDone * if pumvisible() == 0 | pclose | endif
+
+            " nmap <silent> <C-c> <Plug>(coc-cursors-position)
+            " nmap <silent> <C-d> <Plug>(coc-cursors-word)
+            " xmap <silent> <C-d> <Plug>(coc-cursors-range)
+            " use normal command like `<leader>xi(`
+            " nmap <leader>x  <Plug>(coc-cursors-operator)
+
         " Ale
-            nnoremap <LEADER>hn <CMD>ALENext<CR>
-            nnoremap <LEADER>hp <CMD>ALEPrevious<CR>
+            nnoremap <LEADER>jn <CMD>ALENext<CR>
+            nnoremap <LEADER>jp <CMD>ALEPrevious<CR>
 
         " Git stuff
-            " Plugin: GitGutter, fugitive
-            nnoremap <LEADER>gu <CMD>GitGutterUndoHunk<CR>
-            nnoremap <LEADER>gn <CMD>GitGutterNextHunk<CR>
-            nnoremap <LEADER>gp <CMD>GitGutterPrevHunk<CR>
-            nnoremap <LEADER>gP <CMD>GitGutterPreviewHunk<CR>
-            nnoremap <LEADER>gh <CMD>GitGutterLineHighlightsToggle<CR>
+            " Plugin: GitGutter
+            nnoremap <LEADER>gu <CMD>sil!GitGutterUndoHunk<CR>
+            nnoremap <LEADER>gn <CMD>sil!GitGutterNextHunk<CR>
+            nnoremap <LEADER>gp <CMD>sil!GitGutterPrevHunk<CR>
+            nnoremap <LEADER>gP <CMD>sil!GitGutterPreviewHunk<CR>
+            nnoremap <LEADER>gh <CMD>sil!GitGutterLineHighlightsToggle<CR>
             nnoremap <LEADER>gd <CMD>Gdiffsplit<CR>
             nnoremap <LEADER>gb <CMD>GitBlame<CR>
 
@@ -840,7 +969,7 @@
             vnoremap <leader>t<SPACE> :Tabular / *\zs /l0<CR>
             nnoremap <leader>t> mm<CMD>Tabular /^[^=]*\zs=>/<CR>`m
 
-            nmap <leader>t* mm?/\*\*<CR>kmn:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/@param\s\+\S\+\s\+\S\+\zs\s\+/ /<CR>`nO<ESC>0CTabular /^\s\+\*\s\+@\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@param\s\+\S\+\s\+\S\+\s*\zs\s/l0<ESC>:s/[^\\]\zs\|/\r/g<CR>^"tDddk^"rDddk^"eDdd`n:/\/\*\*/,/\*\//g/./<C-r>e<CR>`n:/\/\*\*/,/\*\//g/./<C-r>r<CR>`n:/\/\*\*/,/\*\//g/./<C-r>t<CR>`m
+            " nmap <leader>t* mm?/\*\*<CR>kmn:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/@param\s\+\S\+\s\+\S\+\zs\s\+/ /<CR>`nO<ESC>0CTabular /^\s\+\*\s\+@\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@param\s\+\S\+\s\+\S\+\s*\zs\s/l0<ESC>:s/[^\\]\zs\|/\r/g<CR>^tDddk^"rDddk^"eDdd`n:/\/\*\*/,/\*\//g/./<C-r>e<CR>`n:/\/\*\*/,/\*\//g/./<C-r>r<CR>`n:/\/\*\*/,/\*\//g/./<C-r>t<CR>`m
 
             nnoremap <leader>t :Tabular /
             vnoremap <leader>t :Tabular /
@@ -851,14 +980,14 @@
 
         " FZF
             nnoremap <C-p> <CMD>call FZFFindFile()<CR>
-            nnoremap <F12> <CMD>call FZFFindWordUnderCursor()<CR>
-            nnoremap <C-f> <CMD>call FZFFindWord()<CR>
+            " nnoremap <CS-f> <CMD>call FZFFindWordUnderCursor()<CR>
+            nnoremap <C-s> <CMD>call FZFFindWord()<CR>
             nnoremap <LEADER>u <CMD>call FZFUnicode()<CR>
 
 
         " Commentary
             nnoremap  <CMD>Commentary<CR>
-            inoremap  <C-o><CMD>Commentary<CR>
+            inoremap  <CMD>Commentary<CR>
             vnoremap  :Commentary<CR>gv
 
     " Buffer related maps
@@ -867,11 +996,7 @@
             nnoremap <S-Tab> <CMD>bprev<CR>
 
         " Buffer management
-            nnoremap <LEADER>q <CMD>bd<CR>
-
-    " Language specific  maps
-        " Easy HTML tag change
-            nnoremap ch vito<ESC>T<msvit<ESC>f/lmecwTMP<ESC>`scwTMP<ESC>F</TMP<CR>cgn
+            nnoremap <LEADER>q <CMD>b#<BAR>bd#<CR>
 
     " New Ideas
         " Fast insert mode
@@ -887,18 +1012,12 @@
             nnoremap <LEADER>. f.a
 
         " Double Tap shortcut
-            " inoremap << <><LEFT>
-            " inoremap (( ()<LEFT>
-            " inoremap [[ []<LEFT>
-            " inoremap {{ {}<LEFT>
-            " inoremap '' ''<LEFT>
-            " inoremap __ __<LEFT>
-            " inoremap `` ``<LEFT>
-            " inoremap "" ""<LEFT>
-            inoremap >> <ESC>ya>Pf<a <ESC>wyiwvi>pT<i/<C-o>T>
-            inoremap )) (<C-o><CMD>echo search('[\.,;]\?$')<CR>)
-            inoremap ]] [<C-o><CMD>echo search('[\.,;]\?$')<CR>]
-            inoremap }} {<C-o><CMD>echo search('[\.,;]\?$')<CR>}
+            inoremap )) (<CMD>call SmartJumpToEnd()<CR><RIGHT>)
+            inoremap ]] [<CMD>call SmartJumpToEnd()<CR><RIGHT>]
+            inoremap }} {<CMD>call SmartJumpToEnd()<CR><RIGHT>}
+            inoremap )<TAB> (<CMD>call SmartJumpToEnd()<CR><RIGHT>)
+            inoremap ]<TAB> [<CMD>call SmartJumpToEnd()<CR><RIGHT>]
+            inoremap }<TAB> {<CMD>call SmartJumpToEnd()<CR><RIGHT>}
 
         " Backspace selector
             nnoremap d<BS> mm^<CMD>call search('[{\[(]$')<CR>%d'm
@@ -928,6 +1047,7 @@
             onoremap ; t;
             onoremap : t:
             onoremap ) t)
+            onoremap ( t(
             onoremap } t}
             onoremap > t>
             onoremap ] t]
@@ -937,20 +1057,23 @@
             onoremap , t,
             nnoremap c= ^<CMD>call search('= \?\zs\\|$')<CR>mm<CMD>call search('[;,]\?$')<CR>mn`mc`n
             nnoremap d= ^<CMD>call search('= \?\zs\\|$')<CR>mm<CMD>call search('[;,]\?$')<CR>mn`md`n
+
+        " Until MAJ or underscore
             nnoremap dq mm<CMD>call search('\u\\|\>\\|_')<CR>d`m
             nnoremap cq mm<CMD>call search('\u\\|\>\\|_')<CR>c`m
+            inoremap <C-q> <SPACE><LEFT><CMD>exe "norm!mm" <BAR> call search('\u\<BAR>\<\<BAR>_\zs\w', 'b') <BAR> exe "norm!d`m"<CR><DEL>
+
+        " Delete after cursor in insert
+            inoremap <C-e> <CMD>norm!de<CR>
 
         " semi-column things
             inoremap ;; <CMD>call setline('.', getline('.') . ';')<CR>
             inoremap ;a <C-o>A
-            inoremap ;. <C-o>A.
+            inoremap ;. <CMD>norm!$<CR><RIGHT>.
             inoremap ;, <C-o>A,
-            inoremap <C-l> <RIGHT>
             inoremap <C-SPACE> <RIGHT>
 
         " select multiple lines in a VSCode Style
-            " nmap <CS-LEFT>
-            " nmap <CS-RIGHT>
             nnoremap <CS-DOWN> <C-v>j
             nnoremap <CS-UP> <C-v>k
             vnoremap <CS-DOWN> j
@@ -960,10 +1083,6 @@
             vnoremap <LEADER>I ^I
             vnoremap <LEADER>A $A
 
-        " Delete corresponding brace and similar
-            " To Fix!
-            " nmap d% v%<ESC>r@gvo<ESC>x:s/^\s*\n//<CR>gv:s/@//g<CR>:s/^\s*\n//<CR>gv<ESC>:noh<CR>
-
         " Around selection, completes the vim-surround plugin
             vmap m S
             vnoremap m/ c//<ESC>P
@@ -972,10 +1091,6 @@
             vnoremap m. c..<ESC>P
             vnoremap m<SPACE> c<SPACE><SPACE><ESC>P
             vnoremap m<BS> dvhpgv
-        
-        " TAB shortcut to send to end of line
-            inoremap .<TAB> <C-o>h<C-o><CMD>echo search('[\.,;]\?$')<CR>.
-            inoremap ,<TAB> <C-o>h<C-o><CMD>echo search('[\.,;]\?$')<CR>,
 
         " Smallest range possible
             onoremap io <CMD>call SelectSmallestRangePossible(0)<CR>
@@ -983,14 +1098,14 @@
             vnoremap io <ESC>:call SelectSmallestRangePossible(0)<CR>
             vnoremap ao <ESC>:call SelectSmallestRangePossible(1)<CR>
 
-
-"
+" 
 " AUTOCMD
-"
+" 
     " taking back position at buffer open
         autocmd BufReadPost * silent!norm!g;
         autocmd BufLeave * call AutoSaveWinView()
         autocmd BufEnter * call AutoRestoreWinView()
+
     " Correcting bad commenting for specific languages | Plugin: Commentary
         autocmd! BufEnter *.php :let b:commentary_format="// %s"
         autocmd! BufEnter *.vue :let b:commentary_format="// %s"
@@ -999,10 +1114,16 @@
         autocmd! BufEnter *.conf :let b:commentary_format="# %s"
 
     " Faaast language specific iab
-        autocmd FileType typescript iab <buffer> c const<SPACE><C-o>ge<RIGHT><C-o>dw
-        autocmd FileType typescript iab <buffer> l let<SPACE><C-o>ge<RIGHT><C-o>dw
-        autocmd FileType typescript iab <buffer> ff for<SPACE>()<LEFT><C-o>g
-        autocmd FileType typescript inoreab <buffer> ii if<SPACE>()<LEFT><C-o>g
+        autocmd FileType javascript,typescript iab <buffer> c const<CMD>sil!s/const\zs\s*// <BAR> call search('const\zs') <BAR> noh<CR>
+        autocmd FileType javascript,typescript iab <buffer> aw await<CMD>sil!s/await\zs\s*// <BAR> call search('await\zs') <BAR> noh<CR>
+        autocmd FileType javascript,typescript iab <buffer> l let<CMD>sil!s/let\zs\s*// <BAR> call search('let\zs') <BAR> noh<CR>
+        autocmd FileType javascript,typescript iab <buffer> r return<CMD>sil!s/let\zs\s*// <BAR> call search('return\zs') <BAR> noh<CR>
+        autocmd FileType javascript,typescript iab <buffer> ff <CMD>if match(getline(line('.')), ')$') != -1 <BAR> call setline('.', getline('.') . ';') <BAR> endif<CR>() => {<CR><SPACE><BS><C-o>g
+        autocmd FileType javascript,typescript inoreab <buffer> ii if<SPACE>()<LEFT><C-o>g
+        autocmd FileType javascript,typescript inoreab <buffer> tryc try {<CMD>call SmartJumpToEnd()<CR>} catch (err) {<CR>}<C-o>O<SPACE><BS><C-o>z
+
+    " Language specific maps
+        autocmd FileType html,php inoremap >> <ESC>ya>Pf<a <ESC>wyiwvi>pT<i/<C-o>T>
 
     " Correcting FZF buffer | Plugin: FZF
         autocmd! FileType fzf
@@ -1015,23 +1136,23 @@
         " autocmd InsertLeave * GitGutter
         " autocmd TextChanged * GitGutter
         autocmd BufWritePost * GitGutter
-    
+
     " Unsupported files formats
         autocmd BufEnter *.abnf set filetype=abnf
+        autocmd BufEnter *.fish set filetype=fish
         autocmd BufNewFile,BufRead *.vue set filetype=vue
         autocmd BufNewFile,BufRead *.coffee set filetype=coffee
 
-
-"
+" 
 " ABREVS
-"
+" 
     " Comments shortcut
         iab /// //<ENTER><C-o>O
         iab /** /**<CR><CR>/<UP>
 
-    "
+    " 
     " Mistypes
-    "
+    " 
         iab cnosole console
         iab cnosoel console
         iab cnsole console
@@ -1057,3 +1178,4 @@
         iab \> ➤
         iab \\> ⤷
         iab \! ⚠
+        iab \--- ――――――――――――――――――――

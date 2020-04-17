@@ -31,6 +31,20 @@ colors() {
 	done
 }
 
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/home/zorzi/Projects/my_app_engine/google-cloud-sdk/path.bash.inc' ]; then . '/home/zorzi/Projects/my_app_engine/google-cloud-sdk/path.bash.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/home/zorzi/Projects/my_app_engine/google-cloud-sdk/completion.bash.inc' ]; then . '/home/zorzi/Projects/my_app_engine/google-cloud-sdk/completion.bash.inc'; fi
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
 [ -r /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion
 
 use_color=true
@@ -61,8 +75,10 @@ if ${use_color} ; then
 
     GREEN='\033[1;32m'
     RED='\033[1;31m'
+    BLUE='\e[1;34m'
     BACK='\033[1;30m'
     SHADOW='\033[0;37m'
+    GRAY=$SHADOW
     NC='\033[0m'
 
     ARROW='❱'  
@@ -71,6 +87,7 @@ if ${use_color} ; then
     THUNDER='⚡'
     SEP='┇'
 
+    BOOM='💥'
     CONSTRUCTION='🚧'
     ANGER='💢'
     NO_ENTRY='⛔'
@@ -95,20 +112,12 @@ if ${use_color} ; then
     }
 
     # PS1="\[\e[1m\e[92m\][ \[\e[0m\]\w \[\e[92m\]]\[\e[\$([ \$? -eq 0 ] && echo 92 || echo 31)m\] ❱ \[\e[0m\]"
-    PS1="\n\[${BACK} ╭─┥ ${SHADOW}\w\$(generateGitContent) ${BACK}┝─┈${NC}\]\n\[${BACK}\] ╰─╼┥\[\$(getStatusIcon)\]\[${NC}\] "
-
-
+    PS1="\n\[${BACK} ╭─┥ ${SHADOW}\w\$(generateGitContent) ${BACK}┝─┈${NC}\]\n\[${BACK}\] ╰─╼┥\$(getStatusIcon)\[${NC}\] "
 
 	alias ls='ls --color=auto'
 	alias grep='grep --colour=auto'
 	alias egrep='egrep --colour=auto'
 	alias fgrep='fgrep --colour=auto'
-    alias copy='xclip -sel clip'
-    alias ccat='pygmentize -g -O style=colorful,linenos=1'
-
-    alias tandem='$HOME/.applications/Tandemx86_641.2.1_73b32bb1cd4788894744220a4830ac9b.AppImage --no-sandbox &'
-
-    alias mouse='kwriteconfig5 --file kcminputrc --group Mouse --key XLbInptMiddleEmulation --type bool true && kcminit mouse'
 
 else
     if [[ ${EUID} == 0 ]] ; then
@@ -158,6 +167,14 @@ alias la='ls -a'
 alias lla='ls -la'
 alias lls='clear;ls'
 
+alias copy='xclip -sel clip'
+alias ccat='pygmentize -g -O style=colorful,linenos=1'
+alias docker="docker_wrapper.sh"
+
+alias tandem='$HOME/.applications/Tandemx86_641.5.0.AppImage --no-sandbox &'
+
+alias mouse='kwriteconfig5 --file kcminputrc --group Mouse --key XLbInptMiddleEmulation --type bool true && kcminit mouse'
+
 alias :xa='exit'
 alias :x='exit'
 alias :q='exit'
@@ -171,16 +188,12 @@ alias git='git_wrapper.sh'
 
 alias javac='javac -encoding ISO-8859-1'
 
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/home/zorzi/Projects/my_app_engine/google-cloud-sdk/path.bash.inc' ]; then . '/home/zorzi/Projects/my_app_engine/google-cloud-sdk/path.bash.inc'; fi
 
-# The next line enables shell command completion for gcloud.
-if [ -f '/home/zorzi/Projects/my_app_engine/google-cloud-sdk/completion.bash.inc' ]; then . '/home/zorzi/Projects/my_app_engine/google-cloud-sdk/completion.bash.inc'; fi
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
-
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+# Displaying todo after noon!
+# last_term_time=`cat /tmp/last-term-time 2> /dev/null`
+# noon="`date +'%Y%m%d'`120000"
+# this_term_time=`date +"%Y%m%d%H%M%S"`
+# if [ ! "$last_term_time" ] || ([ $last_term_time -lt $noon ] && [ $this_term_time -gt $noon ]); then
+#     todo
+# fi
+# echo $this_term_time > /tmp/last-term-time

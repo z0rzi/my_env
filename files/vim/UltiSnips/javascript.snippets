@@ -20,7 +20,20 @@ fs.readFile('${1:./my_file.txt}', {encoding: 'utf-8'}, (err, data) => {
 });
 endsnippet
 
+snippet http_get "GET HTTP request" b
+const https = require('https');
 
+https.get('${1:http://my_link.com}', resp => {
+  let data = '';
+  resp.on('data', (chunk) => { data += chunk; });
+  resp.on('end', () => {
+    ${2:console.log(JSON.parse(data))};
+  });
+
+}).on("error", err => {
+    throw(err)
+});
+endsnippet
 
 snippet loop_object "Loops through an object" b
 for( const key of Object.keys(${1:obj}) ) {

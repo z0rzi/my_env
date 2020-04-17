@@ -8,22 +8,23 @@ fi
 path="$HOME/.my_env/files/emojis.txt"
 
 if [[ "$1" = "--edit" ]]; then
-    vim $path
+    nvim $path
     exit;
 fi
 
 
-choice=$(cat $path | fzf --no-sort)
+choice=$(echo -e "`sed -e 's/,\(.*\)$/\\\e[30m,\1/' -e 's/^/\\\e[0m/' $path`" | fzf --no-sort --ansi)
 
-emoji=`echo $choice | sed -e 's/\s\+|.*$//'`
-desc=`echo $choice | sed -e 's/^.*|\s*//'`
+emoji=`echo $choice | sed -e 's/^\([^\s|]\+\)|.*$/\1/' -e 's/\s//g'`
+desc=`echo $choice | sed -e 's/^[^|]*|\s*//'`
+
+( [ ! "$emoji" ] || [ ! "$desc" ] ) && exit
 
 grep "|\s*$desc$" $path | head -n1 > /tmp/emoji
 grep -v "|\s*$desc$" $path >> /tmp/emoji
 
 cat /tmp/emoji > $path
 
-
-echo $emoji | xclip -sel clip
+echo -n $emoji | xclip -sel clip
 
 sleep .01

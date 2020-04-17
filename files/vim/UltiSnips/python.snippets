@@ -4,19 +4,33 @@ snippet log "Logs a message" b
 print(${1:var})
 endsnippet
 
-snippet file_write "Write inside a file" b
+snippet file-write "Write inside a file" b
 file = open("${1:./my_file.txt}","w") 
 file.write(${2:"Hi there!"}) 
 file.close() 
 endsnippet
 
-snippet file_read_lbl "Reads a file line by line" b
+snippet file-read-lbl "Reads a file line by line" b
 file = open("${1:./my_file.txt}", "r") 
 for line in file: 
     ${2:print line}
 endsnippet
 
-snippet file_read "Reads a whole file content" b
+snippet file-read "Reads a whole file content" b
 file = open("${1:./my_file.txt}", "r") 
 content = file.readlines()
+endsnippet
+
+snippet json-stringify "Turns an object into a JSON blob" b
+import json
+
+${2:parsed} = json.dumps(${1:my_obj})
+
+${3:print($2)}
+endsnippet
+
+snippet json-parse "Turns a JSON Blob into an object" b
+import json
+
+${2:nice_json} = json.loads(${1:json_blob})
 endsnippet
