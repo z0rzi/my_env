@@ -71,7 +71,16 @@ syn match typescriptNumber "-\=\<\d[0-9_]*L\=\>" display
 syn match typescriptNumber "-\=\<0[xX][0-9a-fA-F][0-9a-fA-F_]*\>" display
 syn match typescriptNumber "-\=\<0[bB][01][01_]*\>" display
 syn match typescriptNumber "-\=\<0[oO]\o[0-7_]*\>" display
-syn region typescriptRegexpString start=+/[^/*]+me=e-1 skip=+\\\\\|\\/+ end=+/[gi]\{0,2\}\s*$+ end=+/[gi]\{0,2\}\s*[;.,)\]}]+me=e-1 contains=@htmlPreproc oneline
+syn region typescriptRegexpString start=+/[^/*]+me=e-1 skip=+\\\\\|\\/+ end=+/[gi]\{0,2\}\s*$+ end=+/[gi]\{0,2\}\s*[;.,)\]}]+me=e-1 contains=@htmlPreproc,RegexOneOf,RegexMult,RegexNamedCapt,RegexNonCapt,RegexBraces,RegexSpecial,RegexVerySpecial oneline
+
+syn match RegexBraces "\([^\\]\(\\\\\)*\)\@<=[()]"
+syn match RegexMult "\([^\\]\(\\\\\)*\)\@<=\([?*+|]\|{[[0-9,]]\{-}}\)"
+syn match RegexOneOf "\([^\\]\(\\\\\)*\)\@<=\[.\{-}\([^\\]\(\\\\\)*\)\@<=\]"
+syn match RegexNonCapt "\(\([^\\]\(\\\\\)*\)\@<=(\)\@<=?:"
+syn match RegexNamedCapt "\(\([^\\]\(\\\\\)*\)\@<=(\)?<.\{-}>"
+syn match RegexSpecial "\([^\\]\(\\\\\)*\)\@<=\\\w"
+syn match RegexVerySpecial "\([^\\]\(\\\\\)*\)\@<=[$^]"
+
 " syntax match typescriptSpecial "\\\d\d\d\|\\x\x\{2\}\|\\u\x\{4\}\|\\."
 " syntax region typescriptStringD start=+"+ skip=+\\\\\|\\$"+ end=+"+ contains=typescriptSpecial,@htmlPreproc
 " syntax region typescriptStringS start=+'+ skip=+\\\\\|\\$'+ end=+'+ contains=typescriptSpecial,@htmlPreproc
@@ -232,9 +241,9 @@ syn region foldBraces start=/{/ skip=/\(\/\/.*\)\|\(\/.*\/\)/ end=/}/ transparen
 if version >= 508 || !exists("did_typescript_syn_inits")
   if version < 508
     let did_typescript_syn_inits = 1
-    command -nargs=+ HiLink hi link <args>
+    command! -nargs=+ HiLink hi link <args>
   else
-    command -nargs=+ HiLink hi def link <args>
+    command! -nargs=+ HiLink hi def link <args>
   endif
 
   "typescript highlighting

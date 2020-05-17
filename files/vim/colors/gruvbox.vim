@@ -434,7 +434,6 @@ call s:HL('GruvboxFg1', s:fg1)
 call s:HL('GruvboxFg2', s:fg2)
 call s:HL('GruvboxFg3', s:fg3)
 call s:HL('GruvboxFg4', s:fg4)
-call s:HL('GruvboxGray', s:gray)
 call s:HL('GruvboxBg0', s:bg0)
 call s:HL('GruvboxBg1', s:bg1)
 call s:HL('GruvboxBg2', s:bg2)
@@ -469,6 +468,10 @@ call s:HL('GruvboxOrange', s:orange)
 call s:HL('GruvboxOrangeBold', s:orange, s:none, s:bold)
 call s:HL('GruvboxOrangeItalic', s:orange, s:none, s:italic)
 call s:HL('GruvboxOrangeUnderline', s:orange, s:none, s:underline)
+call s:HL('GruvboxGray', s:gray)
+call s:HL('GruvboxGrayBold', s:gray, s:none, s:bold)
+call s:HL('GruvboxGrayItalic', s:gray, s:none, s:italic)
+call s:HL('GruvboxGrayUnderline', s:gray, s:none, s:underline)
 
 call s:HL('GruvboxRedSign', s:red, s:sign_column, s:invert_signs)
 call s:HL('GruvboxGreenSign', s:green, s:sign_column, s:invert_signs)
@@ -996,6 +999,15 @@ hi! link vimSetSep GruvboxFg3
 hi! link vimSep GruvboxFg3
 hi! link vimContinue GruvboxFg3
 
+" }}}
+" REGEX: {{{
+  hi! link RegexMult GruvboxRed
+  hi! link RegexOneOf GruvboxOrange
+  hi! link RegexBraces GruvboxAquaItalic
+  hi! link RegexNonCapt GruvboxGrayItalic
+  hi! link RegexSpecial GruvboxPurple
+  hi! link RegexVerySpecial GruvboxBlueBold
+  hi! link RegexNamedCapt GruvboxGray
 " }}}
 " Clojure: {{{
 

@@ -27,4 +27,4 @@ cat /tmp/emoji > $path
 
 echo -n $emoji | xclip -sel clip
 
-sleep .01
+sleep .05

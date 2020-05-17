@@ -1,13 +1,7 @@
-priority -50
-
-snippet log "Logs a message" b
-console.log($1);
-endsnippet
+priority 50
 
 snippet file_write "Write inside a file" b
-file = open("${1:./my_file.txt}","w") 
-file.write(${2:"Hi there!"}) 
-file.close() 
+require('fs').writeFile('${1:/tmp/tmp.txt}', ${2:'test'}, err => {$0});
 endsnippet
 
 snippet file_read "Reads a whole file content" b
@@ -35,9 +29,33 @@ https.get('${1:http://my_link.com}', resp => {
 });
 endsnippet
 
-snippet loop_object "Loops through an object" b
-for( const key of Object.keys(${1:obj}) ) {
-    console.log( $1[key] );
-    $0
+
+snippet logObject "Logs an object" b
+console.log(require('util').inspect(${0:my_object}, /*show_hidden*/false, /*depth*/4, /*colorize*/true));
+endsnippet
+
+snippet log "Logs a message" b
+console.log(${1:{'${2/^(.*\.)?(\w+)(\(.*\))?$/$2/}': ${0:${2:var}}}});
+endsnippet
+
+snippet err "Logs an error" b
+console.error(${1:{'${2/^(.*\.)?(\w+)(\(.*\))?$/$2/}': ${0:${2:var}}}});
+endsnippet
+
+snippet time "Sets up a timer" b
+console.time('$1');
+console.timeEnd('${1:test}');
+endsnippet
+
+snippet forof "iterate" b
+for (const ${1:kid} of ${2:dad}) {
+    ${0:console.log($1);}
+}
+endsnippet
+
+snippet forobj "iterate" b
+for (const ${1:key} of Object.keys(${2:dad})) {
+    const ${3:kid} = $2[$1];
+    ${0:console.log($3);}
 }
 endsnippet

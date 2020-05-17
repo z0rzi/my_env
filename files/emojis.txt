@@ -1,25 +1,35 @@
-🙌    | Raising Hands, Yay
+🙏    | Folded Hands, Thank you
 👍    | Thumbs Up, +1
+🧗    | Person Climbing
 ❝❞    | Fancy Quotes
+😂    | Face with Tears of Joy, XD, Happy
+🤔    | Thinking Face, Huuum
+👌    | OK Hand
+🌟    | Glowing Star, Magic
+✨    | Sparkles, Stars, Magic
+🚀    | Rocket
+🔤    | Input Latin Letters
+🔬    | Microscope, Science, Labo, Experiment
+📖    | Open Book
+🎯    | Direct Hit, Target, Arrow, Goal
+😃    | Grinning Face with Big Eyes, Happy, :D
+🌮    | Tacos, Food, Eating
+💾    | Floppy Disk, Data, Database
+📕    | Closed Book
+🍹    | Tropical Drink, Cocktail
+🙌    | Raising Hands, Yay
 ✔️    | Check Mark, OK, Valid
 🔎    | Magnifying Glass Tilted Right, Zoom, Search
 ⌨️    | Keyboard
 💻    | Laptop
-🚀    | Rocket
-📖    | Open Book
-🎯    | Direct Hit, Target, Arrow, Goal
 ➡    | Right Arrow
-🤔    | Thinking Face, Huuum
-🌮    | Tacos, Food, Eating
 👩‍🍳  | Woman Cook, Chef, Cuisine
 👨‍🍳  | Man Cook, Chef, Cuisine
 🔥    | On fire, Hot, +1
 〞〝  | High Quotes
 «»    | Classical double Quotes
 ❮❯    | Weird Quotes
-🙏    | Folded Hands, Thank you
 😓    | Downcast Face with Sweat, Sad, :(
-😂    | Face with Tears of Joy, XD, Happy
 💪    | Flexed Biceps, Power
 🎉    | Party Popper
 🔗    | Link
@@ -28,7 +38,6 @@
 🤯    | Exploding Head, Mindblown
 💥    | Collision, Boom, Explosion
 💼    | Briefcase, Work
-🌟    | Glowing Star, Magic
 🔌    | Electric Plug
 ⛔    | No Entry
 💽    | Computer Disk, Data, Database
@@ -38,7 +47,6 @@
 🧪    | Test Tube, Science, Labo, Experiment
 ↗    | Up-Right Arrow
 😐    | Neutral Face, :|
-👌    | OK Hand
 🎶    | Musical Notes
 😔    | Pensive Face, Dissapointed
 🌈    | Rainbow
@@ -53,7 +61,6 @@
 🥩    | Cut of Meat
 🍞    | Bread
 🍐    | Pear
-✨    | Sparkles, Stars, Magic
 🧬    | DNA, Science, Labo, Experiment
 🃏    | Joker
 🌝    | Full Moon Face
@@ -67,13 +74,10 @@
 💚    | Green Heart
 ☎️    | Telephone
 🥂    | Clinking Glasses, Drink, Alchool, Champain
-🍹    | Tropical Drink, Cocktail
 🏡    | House with Garden
-🧗    | Person Climbing
 🚲    | Bicycle, Bike, Cycling
 🍽️    | Fork and Knife with Plate, Eat, Hungry
 🏠    | House
-🔬    | Microscope, Science, Labo, Experiment
 🧠    | Brain, Clever, Smart
 ❓    | Question Mark
 🤬    | Face with Symbols on Mouth, Mad, Fuck, Angry, >:(
@@ -89,7 +93,6 @@
 🚧    | Construction
 ⚠️    | Warning
 👋    | Waving Hand
-😃    | Grinning Face with Big Eyes, Happy, :D
 🔰    | Japanese Symbol for Beginner
 🙃    | Upside-Down Face, Welp, (:
 😁    | Beaming Face with Smiling Eyes, Happy, :D
@@ -832,7 +835,6 @@
 🖨️    | Printer
 🖱️    | Computer Mouse
 🖲️    | Trackball
-💾    | Floppy Disk, Data, Database
 💿    | Optical Disk
 📀    | DVD
 🧮    | Abacus
@@ -850,7 +852,6 @@
 🔦    | Flashlight, Torch
 🏮    | Red Paper Lantern
 📔    | Notebook with Decorative Cover
-📕    | Closed Book
 📗    | Green Book
 📘    | Blue Book
 📙    | Orange Book
@@ -1136,7 +1137,6 @@
 🔡    | Input Latin Lowercase
 🔢    | Input Numbers
 🔣    | Input Symbols
-🔤    | Input Latin Letters
 🅰    | A Button (Blood Type)
 🆎    | AB Button (Blood Type)
 🅱    | B Button (Blood Type)

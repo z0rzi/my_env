@@ -1,3 +1,6 @@
 {
-  "diagnostic.enable": false
+  "diagnostic.enable": false,
+
+  "vetur.format.enable": true,
+  "vetur.useWorkspaceDependencies": true
 }

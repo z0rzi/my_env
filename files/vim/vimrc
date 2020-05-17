@@ -1,7 +1,7 @@
 " 
 " GENERAL NATIVE VIM SETTINGS
 " 
-    filetype plugin indent off
+    " filetype plugin indent off
     syn on
     filetype on
     set nu
@@ -12,7 +12,7 @@
     set noshowmode
     set nobackup
     set nowritebackup
-    set updatetime=300
+    set updatetime=130
     set shortmess+=c
     set signcolumn=yes
     " set termguicolors  " Increases the saturation
@@ -52,7 +52,7 @@
     set tabstop=4 shiftwidth=4 expandtab
 
     " Considering '-' as part of a word
-        " set iskeyword+=-
+        set iskeyword+=-
 
     " change the leader key to <space>
         let g:mapleader = "\<Space>"
@@ -117,18 +117,92 @@
 " FUNCTIONS
 " 
 
+    function! ComparePositions(pos1, pos2)
+        if a:pos1[0] < a:pos2[0]
+            return 1
+        endif
+        if a:pos1[0] > a:pos2[0]
+            return -1
+        endif
+        if a:pos1[1] < a:pos2[1]
+            return 1
+        endif
+        if a:pos1[1] > a:pos2[1]
+            return -1
+        endif
+        return 0
+    endfunction
+
+    function! CursorOnMatch(searchPattern)
+        let position = getcurpos()[1:2]
+        let curpos = getpos('.')
+        call setpos('.', [0] + position + [0])
+
+        let pos = searchpos(a:searchPattern, 'ec')
+
+        if pos == [0,0] || ComparePositions(position, pos) < 0
+            call setpos('.', curpos)
+            return 0
+        endif
+
+
+        let pos = searchpos(a:searchPattern, 'bnc')
+
+        if pos == [0,0] || ComparePositions(pos, position) < 0
+            call setpos('.', curpos)
+            return 0
+        endif
+
+        call setpos('.', curpos)
+        return 1
+    endfunction
+    function MoveFaster(num, count)
+        let g:num = a:num
+        let g:count = a:count
+        if a:count > 0
+            if a:num < 0
+                let curline = line('.')
+                call setpos('.', [0, 2*curline - a:count, col('.'), 0])
+            elseif a:num > 0
+                call setpos('.', [0, a:count, col('.'), 0])
+            endif
+        endif
+        let b:tap = getbufvar(bufnr(), 'tap', 0)
+        let lastTap = b:tap
+        if a:num > 0
+            let out = "\<DOWN>"
+        elseif a:num < 0
+            let out = "\<UP>"
+        endif
+
+        if a:num > 0 && lastTap > 0 || a:num < 0 && lastTap < 0
+            let out = repeat(out, abs(lastTap))
+
+            if abs(b:tap) < 2
+                let b:tap = lastTap + a:num
+            endif
+        elseif b:tap != 0
+            let b:tap = 0
+        else
+            let b:tap = lastTap + a:num
+        endif
+
+        exe "norm!".out
+    endfunction
+
     function! EOL()
         call setpos('.', [0, line('.'), col('$'), 0, col('$')])
     endfunction
 
     function! SmartJumpToEnd()
         if search('\%#.\?$', 'n') != 0
-            call setpos("'m", getpos('.')
+            call setpos("'m", getpos('.'))
             call search('^\(\s\+\).*\%#.*\n\(\1.*\n\)*\zs\1')
             call append('.', repeat(' ', indent('.')))
             norm!j
-            call setpos("'n", getpos('.')
+            call setpos("'n", getpos('.'))
             norm!=`m`n
+            call EOL()
         else
             let pos = search('\%#.\{-}\zs[\[\](){}]')
 
@@ -145,21 +219,35 @@
     endfunction
 
     function! MapToNextMove(cmd)
-        exe "nnoremap <RIGHT> ".a:cmd."<CMD>call UnmapMoves()<CR>"
-        exe "nnoremap <LEFT>  ".a:cmd."<CMD>call UnmapMoves()<CR>"
-        exe "nnoremap <DOWN>  ".a:cmd."<CMD>call UnmapMoves()<CR>"
-        exe "nnoremap <UP>    ".a:cmd."<CMD>call UnmapMoves()<CR>"
-        exe "nnoremap <ESC>   ".a:cmd."<CMD>call UnmapMoves()<CR>"
+        let cmd = substitute(a:cmd, '\[\[\(\w\+\)\]\]', '<\1>', 'g')
+        echo cmd
+        exe "noremap <RIGHT> ".cmd."<CMD>call UnmapMoves()<CR>"
+        exe "noremap <LEFT>  ".cmd."<CMD>call UnmapMoves()<CR>"
+        exe "noremap <DOWN>  ".cmd."<CMD>call UnmapMoves()<CR>"
+        exe "noremap <UP>    ".cmd."<CMD>call UnmapMoves()<CR>"
+        exe "noremap <ESC>   ".cmd."<CMD>call UnmapMoves()<CR>"
+        exe "inoremap <RIGHT> ".cmd."<CMD>call UnmapMoves()<CR>"
+        exe "inoremap <LEFT>  ".cmd."<CMD>call UnmapMoves()<CR>"
+        exe "inoremap <DOWN>  ".cmd."<CMD>call UnmapMoves()<CR>"
+        exe "inoremap <UP>    ".cmd."<CMD>call UnmapMoves()<CR>"
+        exe "inoremap <ESC>   ".cmd."<CMD>call UnmapMoves()<CR>"
     endfunction
     function! UnmapMoves()
-        nunmap <RIGHT>
-        nunmap <LEFT>
-        nunmap <DOWN>
-        nunmap <UP>
-        nunmap <ESC>
+        unmap <RIGHT>
+        unmap <LEFT>
+        unmap <DOWN>
+        unmap <UP>
+        unmap <ESC>
+        iunmap <RIGHT>
+        iunmap <LEFT>
+        iunmap <DOWN>
+        iunmap <UP>
+        iunmap <ESC>
     endfunction
 
     function! DuplicateLines(type, ...)
+        let copySave = [@0, @+, @*]
+        let save = winsaveview()
         call setpos("'m", getpos("."))
         if a:0
             silent exe "normal! gvy"
@@ -168,11 +256,13 @@
         endif
 
         silent exe "normal! P"
-        call setpos('.', getpos('m"))
+        call setpos('.', getpos("'m"))
         if search('^\s*\%#', 'n') != 0
             call search('^\s\+\zs\S')
             norm!$
         endif
+        call winrestview(save)
+        let [@0, @+, @*] = copySave
         " s/^\ze.*\%#/\r/ " To add a new line between the old and the duplicate
     endfunction
 
@@ -311,11 +401,11 @@
         endfor
 
         if expand('%:p') != ''
-            let ignoredDirsStr .= ' ! -path *'.expand('%:p').'"'
+            let ignoredDirsStr .= ' ! -path "*'.expand('%:p').'"'
         endif
 
         let cmd = 'ls --color=never -t $(find . -type f  ' . ignoredFilesStr . ' ' . ignoredDirsStr . ') 2> /dev/null'
-        silent! exe fzf#run({'source': cmd, 'sink': 'e', 'options': '-d/ -n-1 --history /home/zorzi/.local/share/fzf-history/FZF --multi --no-sort --preview="git diff {}" --sync', 'down':'40%'})
+        silent! exe fzf#run({'source': cmd, 'sink': 'e', 'options': '-e -d/ -n-1 --history /home/zorzi/.local/share/fzf-history/FZF --multi --no-sort --preview="git diff --color=always {}" --sync', 'down':'40%'})
     endfunction
     function! s:FZFOpenVimOutput(str)
         let thefile = matchstr(a:str, '^.\{-\}\ze:')
@@ -329,7 +419,6 @@
         call FZFFind(expand("<cword>"))
     endfunction
     function! FZFFindWord()
-        let curline = getline('.')
         call inputsave()
         let str = input('> ')
         call inputrestore()
@@ -338,7 +427,7 @@
     function! FZFFind(str)
         let [grepStr, grepArgs] = VimToGrepRegex(a:str)
 
-        let previewLines = string(winheight(0) * 0.2)
+        let previewLines = string(float2nr(&lines * 0.4))
 
         let ignoredFilesStr = ''
         for f in g:ignoredFiles
@@ -351,10 +440,9 @@
         endfor
 
         let cmd = 'grep -Isnr ' . grepArgs . ' --color=always "' . grepStr . '" $(ls --color=never -t $(find . -type f  ' . ignoredFilesStr . ' ' . ignoredDirsStr . ') 2> /dev/null )'
-        let preview = '"awk -F: ''{printf(\"sed -n %d,%dp %s\",(\$2>'.previewLines.'?\$2-'.previewLines.':1), \$2+'.previewLines.', \$1)}'' <<< {} | xargs -I% bash -c \"%\" | grep --color=always -C100 \"' . grepStr . '\""'
-        " let preview = ''
-        let g:cmd = preview
-        call fzf#run({'source': cmd, 'sink': function('s:FZFOpenVimOutput'), 'options': '--no-sort --ansi --multi --sync --preview=' . preview , 'down':'40%' })
+        " let preview = '"echo {} | awk -F: ''{printf(\"sed -n %d,%dp %s\",(\$2>'.previewLines.'?\$2-'.previewLines.':1), \$2+'.previewLines.', \$1)}'' | xargs -I% bash -c \"%\" | highlight --syntax (echo \"{}\" | sed -e \"s/:.*\\$//g\") -O ansi | grep -C 100 --color=always \"' . grepStr . '\" "'
+        let preview = '"preview.sh {} '.previewLines.' | grep -C 100 --color=always \"'.grepStr.'\""'
+        call fzf#run({'source': cmd, 'sink': function('s:FZFOpenVimOutput'), 'options': '-e --no-sort --ansi --multi --sync --preview=' . preview , 'down':'40%' })
     endfunction
     function! s:FZFPrintUnicode(line)
         let cara = matchstr( a:line, '\S\ze\s' )
@@ -365,7 +453,7 @@
     endfunction
     function! FZFUnicode()
         let cmd = 'cat $HOME/.vim/customFiles/unicode_chars.txt'
-        call fzf#run({'source': cmd, 'sink': function('s:FZFPrintUnicode'), 'options': '--no-sort --ansi', 'down':'40%' })
+        call fzf#run({'source': cmd, 'sink': function('s:FZFPrintUnicode'), 'options': '-e --no-sort --ansi', 'down':'40%' })
     endfunction
 
     " Save current view settings on a per-window, per-buffer basis.
@@ -440,6 +528,8 @@
     " indentLine
         let g:indentLine_char = '┆'
 
+    " Golden ratio
+
     " CoC
 
         let g:coc_snippet_next = "<C-x>"
@@ -469,6 +559,7 @@
 
         " Use K to show documentation in preview window.
         nnoremap <silent> <F1> :call <SID>show_documentation()<CR>
+        inoremap <silent> <F1> <CMD>call CocActionAsync('showSignatureHelp')<CR>
 
         function! s:show_documentation()
             if (index(['vim','help'], &filetype) >= 0)
@@ -593,7 +684,7 @@
         let g:lightline_buffer_show_bufnr = 0
 
         " :help filename-modifiers
-        let g:lightline_buffer_fname_mod = ':r'
+        let g:lightline_buffer_fname_mod = ':s?/\zs\(.\).*\ze/?\1…?'
 
         " hide buffer list
         let g:lightline_buffer_excludes = ['vimfiler']
@@ -626,11 +717,11 @@
         let g:EasyMotion_enter_jump_first=1
 
     " auto-pairs
-        let g:AutoPairs={'(':')', '[':']', '{':'}',"'":"'",'"':'"', "`":"`", '```':'```', '"""':'"""', "'''":"'''", "<":">"}
+        let g:AutoPairs={'(': ')', '[': ']', '{': '}',"'":"'",'"':'"', "`":"`", '```':'```', '"""':'"""', "'''":"'''", "<":">"}
         let g:AutoPairsShortcutFastWrap = '<C-]>'
         let g:AutoPairsFlyMode = 0
         let g:AutoPairsMultilineClose = 0
-        let g:AutoPairsShortcutToggle = "<M-l>"
+        " let g:AutoPairsShortcutToggle = "<M-l>"
 
         au FileType php let b:AutoPairs = AutoPairsDefine({'<?' : '?>', '<?php': '?>'})
 
@@ -642,10 +733,6 @@
         inoremap <C-z> <CMD>call UltiSnips#JumpBackwards()<CR>
         vnoremap <C-x> <CMD>call UltiSnips#JumpForwards()<CR>
         vnoremap <C-z> <CMD>call UltiSnips#JumpBackwards()<CR>
-
-    " deoplete
-        let g:deoplete#enable_at_startup = 1
-        autocmd CompleteDone * silent! pclose!
 
     " easy-motion
         autocmd StdinReadPre * let s:std_in=1
@@ -660,7 +747,7 @@
         let g:NERDTreeDirArrowExpandable = '▸'
         let g:NERDTreeDirArrowCollapsible = '▾'
         let g:NERDTreeMapQuit = '<ESC>'
-        let g:NERDTreeQuitOnOpen = 1
+        let g:NERDTreeQuitOnOpen = 0
         autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | bn | exe 'NERDTree' | endif
         nmap <LEADER>5 :NERDTreeClose<CR>:let @f="<C-r>%"<CR>:NERDTreeVCS<CR>:NERDTreeFind <C-r>f<CR>
 
@@ -684,12 +771,12 @@
         call NERDTreeHighlightFile('css', 'cyan', 'none', 'cyan', '#151515')
         call NERDTreeHighlightFile('coffee', 'Red', 'none', 'red', '#151515')
         call NERDTreeHighlightFile('js', 'Red', 'none', '#ffa500', '#151515')
+        call NERDTreeHighlightFile('ts', 'Cyan', 'none', '#ffa500', '#151515')
         call NERDTreeHighlightFile('php', 'Magenta', 'none', '#ff00ff', '#151515')
 
     " FZF
         let g:fzf_history_dir = '~/.local/share/fzf-history'
         let g:fzf_nvim_statusline = 0 " disable statusline overwriting
-        let g:fzf_layout = { 'down': '~40%' }
 
     " GitGutter
         let g:gitgutter_map_keys = 0
@@ -718,7 +805,7 @@
             Plugin 'vim-indent-object'
 
             " fast close pairs
-            Plugin 'jiangmiao/auto-pairs'
+            " Plugin 'jiangmiao/auto-pairs'
 
             " Fast surround shortcuts
             Plugin 'tpope/vim-surround'
@@ -726,8 +813,10 @@
             " fast comment
             Plugin 'tpope/vim-commentary'
 
-            " Snippets
-            Plugin 'sirver/UltiSnips'
+            if has('nvim')
+                " Snippets
+                Plugin 'sirver/UltiSnips'
+            endif
 
         " 
         " Pretty editor
@@ -745,7 +834,11 @@
         " Language specific
         " 
             " Vue
-            Plugin 'darthmall/vim-vue'
+            " Plugin 'darthmall/vim-vue'
+            " Plugin 'leafOfTree/vim-vue-plugin'
+
+            " Typescript
+            Plugin 'leafgarland/typescript-vim'
 
         " 
         " Others
@@ -774,6 +867,10 @@
 
             Plugin 'neoclide/coc.nvim', {'branch': 'release'}
 
+            " Windows resizing
+            Plugin 'roman/golden-ratio'
+
+
         " 
         " My plugins!
         " 
@@ -781,6 +878,8 @@
             Plugin 'z0rzi/vim-super-macro'
             Plugin 'z0rzi/vim-zorzi-smoothie'
             Plugin 'z0rzi/vim-glorious-commentary'
+            Plugin 'z0rzi/vim-auto-regex'
+            Plugin 'z0rzi/vim-smart-hits'
 
     call vundle#end()
 
@@ -792,10 +891,14 @@
         nnoremap Y y$
         nnoremap vv v$h
         noremap <CR> %
-        nnoremap S ddO
+        inoremap <F2> <ESC>
+        inoremap <C-x><C-l> <C-x><C-l>
+        " nnoremap S <CMD>call setline('.', repeat(' ', FindFoldLevel(line('.'))))<CR>A
+
         nnoremap <M-z> <C-w>w
         " nnoremap / /\v
-        vnoremap <CR> <CMD>if mode() == 'V' <BAR> call search('\%#.*\zs[{[(][;:.,\\]*$') <BAR> endif<CR>%
+        vnoremap <CR> <CMD>if mode() == 'V' <BAR> call search('\%#.*\zs\([{[(][;:.,\\]*\<BAR>\/\*\+\)$') <BAR> endif<CR>%
+
         vnoremap $ $h
         nnoremap - 2<C-y><C-g>
         nnoremap + 2<C-e><C-g>
@@ -808,10 +911,11 @@
 
         " nnoremap <F3> :set hlsearch!<CR>
         nnoremap <F3> <CMD>noh<CR>
-        nmap <F5> <CMD>redraw!<CR><CMD>GitGutter<CR><CMD>set foldmethod=expr<CR> " Plugin: GitGutter
+        " Plugin: GitGutter
+        nmap <F5> <CMD>redraw!<CR><CMD>GitGutter<CR><CMD>set foldmethod=expr<CR>
 
         " no yank delete
-            nnoremap <leader> p
+            nnoremap <leader> "_
 
         " no include newline
             nnoremap 'd ^D
@@ -842,15 +946,19 @@
             nnoremap <silent> zx mnV:call DuplicateLines(visualmode(), 1)<CR>`n
 
         " Easy search n replace
-            nnoremap <C-c> <CMD>let @/="\\<".expand("<cword>")."\\>"<CR>lNcgn
+            " nnoremap <C-c> <CMD>let @/="\\<".expand("<cword>")."\\>"<CR>lNcgn
+            nnoremap <C-c> <CMD>if CursorOnMatch(@/) <BAR> exe "norm!lN" <BAR> else <BAR> let @/="\\<".expand("<cword>")."\\>" <BAR> endif<CR>cgn
 
         " Better ranges for XML
             nmap >it vitVkoj>
             nmap <it vitVkoj<
 
-        " Search selection
-            vnoremap * y:let @/ = escape("<C-r>0", "/\^$*.[~")<CR>/<CR>
-            vnoremap # y:let @/ = escape("<C-r>0", "/\^$*.[~")<CR>?<CR>
+        " Cool selection stuff
+            vnoremap <C-c> "ay:let @/ = escape(@a, "/\\^$*.[~") <BAR> call histadd('/', @a) <BAR> set hlsearch <CR>cgn
+            vnoremap <S-LEFT> "ay:let @/ = escape(@a, "/\\^$*.[~") <BAR> call histadd('/', @a)<CR>?<CR>
+            vnoremap <S-RIGHT> "ay:let @/ = escape(@a, "/\\^$*.[~") <BAR> call histadd('/', @a)<CR>/<CR>
+            vnoremap # "ay:let @/ = escape(@a, "/\\^$*.[~") <BAR> call histadd('/', @a)<CR>?<CR>
+            vnoremap * "ay:let @/ = escape(@a, "/\\^$*.[~") <BAR> call histadd('/', @a)<CR>/<CR>
 
         " Init folds
             function! FoldIfMakeSense(offset)
@@ -879,8 +987,22 @@
             nnoremap <leader>/ /\<\><LEFT><LEFT>
 
         " go to next/previous match under cursor
-            nnoremap <S-LEFT> <CMD>let @/ = '\<'.expand('<cword>').'\>'<CR>lbN
-            nnoremap <S-RIGHT> *
+            function! NextOccurence(way)
+                if ! CursorOnMatch(@/)
+                    let @/ = '\<'.expand('<cword>').'\>'
+                else
+                    let @/ = @/
+                endif
+                call histadd('/', @/)
+                call search(@/, 'bc')
+                if a:way > 0
+                    norm!n
+                else
+                    norm!N
+                endif
+            endfunction
+            nnoremap <silent> <S-LEFT> <CMD>call NextOccurence(-1) <BAR> set hlsearch <CR>
+            nnoremap <silent> <S-RIGHT> <CMD>call NextOccurence(1) <BAR> set hlsearch <CR>
 
         " Skip word by word with CTRL + direction
             nnoremap <C-LEFT> <CMD>call search('\<\<BAR>\u\l\<BAR>_[a-z]\<BAR>^', 'b')<CR>
@@ -893,14 +1015,39 @@
             inoremap <CS-RIGHT> <CMD>norm!E<CR><RIGHT>
 
         " go to end of paragraph
-            nnoremap <S-UP> {(
-            nnoremap <S-DOWN> })
+            function! IndentJump(direction)
+                let curline = line('.')
+                let indent = matchstr(getline(curline), '^\s*')
+                if a:direction >= 0
+                    let nextLineNum = search('^.*\S.*$', 'n')
+                else
+                    let nextLineNum = search('^.*\S.*\n\_.*\%#', 'nb')
+                endif
+                let nextIndent = matchstr(getline(nextLineNum), '^\s*')
+
+                if len(nextIndent) < len(indent) || len(indent) == 0
+                    if a:direction >= 0
+                        let flag = ''
+                    else
+                        let flag = 'b'
+                    endif
+                    call search('^.*\S.*\zs$', flag)
+                else
+                    if a:direction >= 0
+                        call search('^\('.indent.'\).*\n\(\1.*\n\|\s*\n\)*\1.*\zs')
+                    else
+                        call search('^\('.indent.'\)\S.*\zs\ze\n\(\1.*\n\|\s*\n\)*.*\%#')
+                    endif
+                endif
+            endfunction
+            noremap <S-UP> <CMD>call IndentJump(-1)<CR>
+            noremap <S-DOWN> <CMD>call IndentJump(1)<CR>
 
         " Move seletion area
-            vnoremap <S-UP> V<C-v>koko
-            vnoremap <S-DOWN> V<C-v>jojo
-            vnoremap <S-RIGHT> V<C-v>lolo
-            vnoremap <S-LEFT> V<C-v>hoho
+            " vnoremap <S-UP> V<C-v>koko
+            " vnoremap <S-DOWN> V<C-v>jojo
+            " vnoremap <S-RIGHT> V<C-v>lolo
+            " vnoremap <S-LEFT> V<C-v>hoho
 
         " go to end of paragraph
             nnoremap { [(
@@ -922,10 +1069,15 @@
             nmap <A-UP> <C-w><UP>
             nmap <A-RIGHT> <C-w><RIGHT>
             nmap <A-DOWN> <C-w><DOWN>
+            nmap <A-h> <C-w>h
+            nmap <A-k> <C-w>k
+            nmap <A-h> <C-w>h
+            nmap <A-l> <C-w>l
 
     " Plugin related maps
         " CoC
-            nnoremap <C-f> :CocSearch 
+            " nnoremap <C-f> :CocSearch 
+            " nnoremap <C-f><C-f> :CocSearch \b<C-r>=expand('<cword>')<CR>\b
 
             " Tab to go through completion list
             inoremap <silent><expr> <TAB>
@@ -975,13 +1127,14 @@
             vnoremap <leader>t :Tabular /
 
         " NerdTree toggle
-            map <LEADER>f <CMD>NERDTreeToggle<CR>
-            map <F2> <CMD>NERDTreeToggle<CR>
+            nnoremap <LEADER>f <CMD>NERDTreeToggle<CR>
+            nnoremap <F2> <CMD>NERDTreeToggle<CR>
 
         " FZF
             nnoremap <C-p> <CMD>call FZFFindFile()<CR>
             " nnoremap <CS-f> <CMD>call FZFFindWordUnderCursor()<CR>
-            nnoremap <C-s> <CMD>call FZFFindWord()<CR>
+            nnoremap <C-s> <CMD>call FZFFindWordUnderCursor()<CR>
+            nnoremap <C-f> <CMD>call FZFFindWord()<CR>
             nnoremap <LEADER>u <CMD>call FZFUnicode()<CR>
 
 
@@ -996,7 +1149,8 @@
             nnoremap <S-Tab> <CMD>bprev<CR>
 
         " Buffer management
-            nnoremap <LEADER>q <CMD>b#<BAR>bd#<CR>
+            nnoremap <LEADER>Q <CMD>bprev<BAR>bd#<CR>
+            nnoremap <LEADER>q <CMD>bd<CR>
 
     " New Ideas
         " Fast insert mode
@@ -1020,12 +1174,16 @@
             inoremap }<TAB> {<CMD>call SmartJumpToEnd()<CR><RIGHT>}
 
         " Backspace selector
-            nnoremap d<BS> mm^<CMD>call search('[{\[(]$')<CR>%d'm
-            nnoremap c<BS> mm^<CMD>call search('[{\[(]$')<CR>%c'm
-            nnoremap c<BS> mm^<CMD>call search('[{\[(]$')<CR>%y'm
-            nnoremap v<BS> mm^<CMD>call search('[{\[(]$')<CR>v'mo%Vo
-            nnoremap <<BS> mm^<CMD>call search('[{\[(]$')<CR>%<'m
-            nnoremap ><BS> mm^<CMD>call search('[{\[(]$')<CR>%>'m
+            function! BSOperator()
+                exe"norm!V\<ESC>"
+                call setpos("'<", getpos('.'))
+                call search('[{\[(]$', 'W')
+                norm!%
+                call setpos("'>", getpos('.'))
+                norm!gv
+            endfunction
+            onoremap <BS> <CMD>call BSOperator()<CR>
+            vnoremap <BS> <CMD>call BSOperator()<CR>
 
         " Paste selector
             nnoremap >p mm`[>`]`m
@@ -1098,26 +1256,47 @@
             vnoremap io <ESC>:call SelectSmallestRangePossible(0)<CR>
             vnoremap ao <ESC>:call SelectSmallestRangePossible(1)<CR>
 
+        " Faster moves
+            command! -nargs=1 -range MoveFast call MoveFaster("<args>", "<count>")
+            nnoremap <silent> <DOWN> :MoveFast 1<CR>
+            nnoremap <silent> <UP> :MoveFast -1<CR>
+            nnoremap <RIGHT> <CMD>let b:tap=0<CR><RIGHT>
+            nnoremap <LEFT> <CMD>let b:tap=0<CR><LEFT>
+            autocmd InsertEnter,InsertLeave,CursorHold * let b:tap=0
+
 " 
 " AUTOCMD
 " 
+    " auto delete empty lines on insert leave
+        " autocmd InsertLeave * sil!s/^\s*$//
+
     " taking back position at buffer open
         autocmd BufReadPost * silent!norm!g;
         autocmd BufLeave * call AutoSaveWinView()
         autocmd BufEnter * call AutoRestoreWinView()
 
     " Correcting bad commenting for specific languages | Plugin: Commentary
-        autocmd! BufEnter *.php :let b:commentary_format="// %s"
-        autocmd! BufEnter *.vue :let b:commentary_format="// %s"
-        autocmd! BufEnter *.ts :let b:commentary_format="// %s"
-        autocmd! BufEnter *.coffee :let b:commentary_format="# %s"
-        autocmd! BufEnter *.conf :let b:commentary_format="# %s"
+        autocmd! FileType php let b:commentary_format="// %s"
+        autocmd! FileType vue let b:commentary_format="// %s"
+        autocmd! FileType typescript let b:commentary_format="// %s"
+        autocmd! FileType coffee let b:commentary_format="# %s"
+        autocmd! FileType conf let b:commentary_format="# %s"
+        autocmd! FileType vim let b:commentary_format="\" %s"
+
+    " Auto detecting indent on entering a file! | Plugin: vim-adaptive-indent
+        autocmd BufReadPost * AdaptIndent
 
     " Faaast language specific iab
-        autocmd FileType javascript,typescript iab <buffer> c const<CMD>sil!s/const\zs\s*// <BAR> call search('const\zs') <BAR> noh<CR>
-        autocmd FileType javascript,typescript iab <buffer> aw await<CMD>sil!s/await\zs\s*// <BAR> call search('await\zs') <BAR> noh<CR>
-        autocmd FileType javascript,typescript iab <buffer> l let<CMD>sil!s/let\zs\s*// <BAR> call search('let\zs') <BAR> noh<CR>
-        autocmd FileType javascript,typescript iab <buffer> r return<CMD>sil!s/let\zs\s*// <BAR> call search('return\zs') <BAR> noh<CR>
+        function! BetterIAB(word)
+            let v = winsaveview()
+            s/\%#\s*//
+            call winrestview(v)
+            return a:word
+        endfunction
+        autocmd FileType javascript,typescript iab <buffer> c <C-r>=BetterIAB('const')<CR>
+        autocmd FileType javascript,typescript iab <buffer> aw <C-r>=BetterIAB('await')<CR>
+        autocmd FileType javascript,typescript iab <buffer> asy <C-r>=BetterIAB('async')<CR>
+        autocmd FileType javascript,typescript iab <buffer> l <C-r>=BetterIAB('let')<CR>
         autocmd FileType javascript,typescript iab <buffer> ff <CMD>if match(getline(line('.')), ')$') != -1 <BAR> call setline('.', getline('.') . ';') <BAR> endif<CR>() => {<CR><SPACE><BS><C-o>g
         autocmd FileType javascript,typescript inoreab <buffer> ii if<SPACE>()<LEFT><C-o>g
         autocmd FileType javascript,typescript inoreab <buffer> tryc try {<CMD>call SmartJumpToEnd()<CR>} catch (err) {<CR>}<C-o>O<SPACE><BS><C-o>z
@@ -1143,16 +1322,24 @@
         autocmd BufNewFile,BufRead *.vue set filetype=vue
         autocmd BufNewFile,BufRead *.coffee set filetype=coffee
 
+    " Highlight current selection
+        let g:selMatches = ''
+        hi SelectionOthers cterm=bold,underline ctermbg=NONE ctermfg=none
+        function! HighlightSel()
+            sil!call matchdelete(g:selMatches)
+            sil!exe "norm!\"aygv"
+            let g:selMatches = matchadd('SelectionOthers', substitute(escape(@a, '/\\^$*.[~'), '|', '\|', 'g'))
+        endfunction
+        autocmd CursorMoved * if mode() == 'v' | call HighlightSel() | else | sil!call matchdelete(g:selMatches) | endif
+
 " 
 " ABREVS
 " 
     " Comments shortcut
         iab /// //<ENTER><C-o>O
-        iab /** /**<CR><CR>/<UP>
+        " iab /** /**<CR><CR>/<UP>
 
-    " 
     " Mistypes
-    " 
         iab cnosole console
         iab cnosoel console
         iab cnsole console
@@ -1178,4 +1365,52 @@
         iab \> ➤
         iab \\> ⤷
         iab \! ⚠
-        iab \--- ――――――――――――――――――――
+
+function! DoAtEach(macro)
+    let save = winsaveview()
+    let count = 0
+    call setpos('.', [0, 1, 1, 0])
+    while search(@/, 'W')
+        let count += 1
+
+        exe "exe \"norm! " . substitute(a:macro, '<[a-zA-Z-]\+>\|"', '\\&', 'gi') . "\""
+
+        if count > 2000
+            break
+        endif
+    endwhile
+
+    call winrestview(save)
+    echo "Macro executed on ".count." lines"
+endfunction
+command! -nargs=+  MacroToAll call DoAtEach('<args>')
+
+
+
+function! ParseErrorLine(errLine)
+    let data = split(a:errLine, ':')
+    let filename = remove(data, 0)
+    if len(data) > 0
+        let line = remove(data, 0)
+    else
+        let line = 1
+    endif
+    if len(data) > 0
+        let column = remove(data, 0)
+    else
+        let column = 1
+    endif
+    exe "edit ".filename
+    call cursor(line, column)
+    filetype detect
+    redraw!
+endfunction
+command! -nargs=+  Err call ParseErrorLine('<args>')
+nnoremap <LEADER><LEADER> :Err<SPACE>
+
+function HandleSignal()
+    let message = readfile('/tmp/vim_sig.txt')
+    call ParseErrorLine(message[0])
+endfunction
+
+autocmd Signal SIGUSR1 call HandleSignal()
