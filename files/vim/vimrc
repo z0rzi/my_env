@@ -5,7 +5,7 @@
     syn on
     filetype on
     set nu
-    set wrap
+    set nowrap
     set ruler
     set hidden
     set showtabline=2  " always show tabline
@@ -61,7 +61,7 @@
         let g:vim_markdown_conceal=0
     " Ignored files ( formated in bash style, like in the `ls` command )
         let g:ignoredDirs = [ '__pycache__', '.git', 'cache', 'node_modules', 'coverage', 'dist' ]
-        let g:ignoredFiles = [ '*.log', '*.class', 'tags' ]
+        let g:ignoredFiles = [ '*.log', '*.class', 'tags', '*.lock' ]
 
 " 
 " LOOKS AND FEEL
@@ -156,7 +156,7 @@
         call setpos('.', curpos)
         return 1
     endfunction
-    function MoveFaster(num, count)
+    function! MoveFaster(num, count)
         let g:num = a:num
         let g:count = a:count
         if a:count > 0
@@ -192,6 +192,36 @@
 
     function! EOL()
         call setpos('.', [0, line('.'), col('$'), 0, col('$')])
+    endfunction
+
+    function! CursorInFileWindow()
+        let notFile = {
+            \   'filetype' : [
+            \     'qf'      , 'vimpager', 'undotree', 'tagbar',
+            \     'nerdtree', 'vimshell', 'vimfiler', 'voom'  ,
+            \     'tabman'  , 'unite'   , 'quickrun', 'Decho',
+            \     'fzf'
+            \   ],
+            \   'bufname' : [
+            \     'GoToFile'                  , 'diffpanel_\d\+'      ,
+            \     '__Gundo_Preview__'         , '__Gundo__'           ,
+            \     '\[LustyExplorer-Buffers\]' , '\-MiniBufExplorer\-' ,
+            \     '_VOOM\d\+$'                , '__Urannotate_\d\+__' ,
+            \     '__MRU_Files__', '.*FZF'
+            \   ]
+            \ }
+
+        if index(notFile.filetype, &ft) != -1 ||
+                    \ len(&buftype)
+            return 0
+        endif
+        let bufname = buffer_name()
+        for rx in notFile.bufname
+            if len(matchstr(bufname, rx))
+                return 0
+            endif
+        endfor
+        return 1
     endfunction
 
     function! SmartJumpToEnd()
@@ -246,23 +276,22 @@
     endfunction
 
     function! DuplicateLines(type, ...)
-        let copySave = [@0, @+, @*]
-        let save = winsaveview()
-        call setpos("'m", getpos("."))
-        if a:0
-            silent exe "normal! gvy"
-        else
-            silent exe "normal! '[V']y"
-        endif
+        let viewSave = winsaveview()
 
-        silent exe "normal! P"
-        call setpos('.', getpos("'m"))
+        echom a:0
+        if a:0
+            silent exe 'normal! gv"yy'
+        else
+            silent exe "normal! '[V']\"yy"
+        endif
+        silent exe 'normal! "yP'
+
+        call winrestview(viewSave)
         if search('^\s*\%#', 'n') != 0
             call search('^\s\+\zs\S')
             norm!$
         endif
-        call winrestview(save)
-        let [@0, @+, @*] = copySave
+        call winrestview(viewSave)
         " s/^\ze.*\%#/\r/ " To add a new line between the old and the duplicate
     endfunction
 
@@ -525,13 +554,40 @@
 " 
 " PLUGINS CONFIG
 " 
+    " smartHits
+        let g:smartHits_pairs = [
+            \ ['(', ')'],
+            \ ['[', ']'],
+            \ ['{', '}'],
+            \ ['<', '>'],
+            \ ['/**', '*/'],
+            \ ['''', ''''],
+            \ ['"', '"'],
+            \ ['```', '```'],
+            \ ]
+
+        let g:smartHits_abbrevs = {
+            \   'javascript': {
+            \     'l': "let",
+            \     'c': "const",
+            \     'aw': "await",
+            \     'ii': "if(  )\<LEFT>\<LEFT>!",
+            \     'ff': "\<ESC>:if match(getline(line('.')), ')$') != -1 \<BAR> call setline('.', getline('.') . ';') \<BAR> endif\<CR>a() => {\<CR>}\<C-o>O!",
+            \     'tryc': "try {\<ESC>:call SmartJumpToEnd()\<CR>a} catch (err) {\<CR>}\<C-o>O\<SPACE>\<BS>\<C-o>z"
+            \   },
+            \   'typescript': {
+            \     '@inherit': 'javascript',
+            \   },
+            \ }
+
     " indentLine
         let g:indentLine_char = '┆'
 
-    " Golden ratio
+    " Golden View
+        let g:goldenview__enable_default_mapping = 0
+        let g:goldenview__enable_at_startup = 1
 
     " CoC
-
         let g:coc_snippet_next = "<C-x>"
         let g:coc_snippet_prev = "<C-z>"
         function! s:check_back_space() abort
@@ -639,24 +695,14 @@
             \   ]
             \ },
             \ 'tabline': {
-            \   'left': [ [ 'bufferinfo' ],
-            \             [ 'separator' ],
-            \             [ 'bufferbefore', 'buffercurrent', 'bufferafter' ], ],
+            \   'left': [ ['buffers'] ],
             \   'right': [ [ 'close' ], ],
             \ },
             \ 'component_expand': {
-            \   'buffercurrent': 'lightline#buffer#buffercurrent',
-            \   'bufferbefore': 'lightline#buffer#bufferbefore',
-            \   'bufferafter': 'lightline#buffer#bufferafter',
+            \   'buffers': 'lightline#bufferline#buffers'
             \ },
             \ 'component_type': {
-            \   'buffercurrent': 'tabsel',
-            \   'bufferbefore': 'raw',
-            \   'bufferafter': 'raw',
-            \ },
-            \ 'component_function': {
-            \   'bufferinfo': 'lightline#buffer#bufferinfo',
-            \   'gitbranch': 'fugitive#head',
+            \   'buffers': 'tabsel'
             \ },
             \ 'component': {
             \   'separator': '',
@@ -664,45 +710,9 @@
             \ },
         \ }
 
-        " lightline-buffer ui settings
-        " replace these symbols with ascii characters if your environment does not support unicode
-        let g:lightline_buffer_logo = ' '
-        let g:lightline_buffer_readonly_icon = ''
-        let g:lightline_buffer_modified_icon = '~'
-        let g:lightline_buffer_git_icon = ' '
-        let g:lightline_buffer_ellipsis_icon = '..'
-        let g:lightline_buffer_expand_left_icon = '◀ '
-        let g:lightline_buffer_expand_right_icon = ' ▶'
-        let g:lightline_buffer_active_buffer_left_icon = ''
-        let g:lightline_buffer_active_buffer_right_icon = ''
-
-        " enable devicons, only support utf-8
-        " require <https://github.com/ryanoasis/vim-devicons>
-        let g:lightline_buffer_enable_devicons = 1
-
-        " lightline-buffer function settings
-        let g:lightline_buffer_show_bufnr = 0
-
-        " :help filename-modifiers
-        let g:lightline_buffer_fname_mod = ':s?/\zs\(.\).*\ze/?\1…?'
-
-        " hide buffer list
-        let g:lightline_buffer_excludes = ['vimfiler']
-
-        " max file name length
-        let g:lightline_buffer_maxflen = 30
-
-        " max file extension length
-        let g:lightline_buffer_maxfextlen = 3
-
-        " min file name length
-        let g:lightline_buffer_minflen = 16
-
-        " min file extension length
-        let g:lightline_buffer_minfextlen = 3
-
-        " reserve length for other component (e.g. info, close)
-        let g:lightline_buffer_reservelen = 20
+        let g:lightline.component_raw = {'buffers': 1}
+        let g:lightline#bufferline#enable_devicons = 1
+        let g:lightline#bufferline#clickable = 1
 
         let g:lightline.separator = {
             \   'left': '', 'right': ''
@@ -744,35 +754,130 @@
         autocmd StdinReadPre * let s:std_in=1
         " autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
         autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'cd '.argv()[0] | endif
-        let g:NERDTreeDirArrowExpandable = '▸'
-        let g:NERDTreeDirArrowCollapsible = '▾'
+        let g:NERDTreeDirArrowExpandable = '┆'
+        let g:NERDTreeDirArrowCollapsible = '🢆'
         let g:NERDTreeMapQuit = '<ESC>'
         let g:NERDTreeQuitOnOpen = 0
-        autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | bn | exe 'NERDTree' | endif
-        nmap <LEADER>5 :NERDTreeClose<CR>:let @f="<C-r>%"<CR>:NERDTreeVCS<CR>:NERDTreeFind <C-r>f<CR>
+        let g:NERDChristmasTree = 1
+        " let g:NERDTreeMinimalUI = 1
+        let g:NERDTreeWinPos = "left"
+        let g:NERDTreeWinSize = 30
+
+        function! GetOpenedBuffers()
+            return filter(range(1, bufnr('$')), 'buflisted(v:val)')
+        endfunction
+        function! NtIsOpened()
+            return g:NERDTree.IsOpen()
+        endfunction
+        function! CursorInNt()
+            if bufname() =~ 'NERD_tree_\d'
+                return 1
+            endif
+            let bufnr = 0
+            while bufnr < bufnr('$')
+                let bufnr += 1
+                if getbufvar(bufnr, 'NERDTree', {}) != {}
+                    if bufnr == bufnr()
+                        return 1
+                    endif
+                endif
+            endwhile
+            return 0
+        endfunction
+        function! OnNtEnter()
+            if winnr("$") == 1
+                let buffs = filter(GetOpenedBuffers(), 'v:val != '.g:Nt_LastLeftBuffer)
+                if len(buffs) > 0
+                    exe "b".buffs[0]
+                    NERDTreeFind
+                    exe "norm! \<C-w>w"
+                else
+                    quit
+                endif
+            else
+                if winwidth(win_getid()) < g:NERDTreeWinSize
+                    exe "vertical resize " . g:NERDTreeWinSize
+                endif
+            endif
+            return
+        endfunction
+        function! OnNtLeave()
+            return
+        endfunction
+        function! OnFileEnter()
+            if ! NtIsOpened() | return | endif
+
+            let win = win_getid()
+            NERDTreeFind
+            call win_gotoid(win)
+        endfunction
+        function! OnFileleave()
+        endfunction
+        function! NtBuffEnter()
+            if exists('g:Nt_operating') && g:Nt_operating == 1 | return | endif
+            if exists('g:Nt_lastOpe') && g:Nt_lastOpe == 'BuffIn' | return | endif
+            let g:Nt_lastOpe = 'BuffIn'
+            let g:Nt_operating = 1
+            if CursorInNt()
+                call OnNtEnter()
+            elseif CursorInFileWindow()
+                call OnFileEnter()
+            endif
+            let g:Nt_operating = 0
+        endfunction
+        function! NtBuffLeave()
+            if exists('g:Nt_operating') && g:Nt_operating == 1 | return | endif
+            if exists('g:Nt_lastOpe') && g:Nt_lastOpe == 'BuffOut' | return | endif
+            let g:Nt_lastOpe = 'BuffOut'
+            let g:Nt_operating = 1
+            let g:Nt_LastLeftBuffer = bufnr()
+            if CursorInNt()
+                call OnNtLeave()
+            elseif CursorInFileWindow()
+                call OnFileleave()
+            endif
+            let g:Nt_operating = 0
+        endfunction
+        autocmd BufEnter,WinEnter * call NtBuffEnter()
+        autocmd BufLeave,WinLeave * call NtBuffLeave()
+
+        nmap <LEADER>6 :NERDTreeClose<CR>:let @f="<C-r>%"<CR>:NERDTreeVCS<CR>:NERDTreeFind <C-r>f<CR>
+        nmap <LEADER>5 :NERDTreeFind<CR>
+
+        autocmd filetype nerdtree set tabstop=2 shiftwidth=2 noexpandtab
 
         " simple click
         let NERDTreeMouseMode=3
 
         " NERDTree File highlighting
-        function! NERDTreeHighlightFile(extension, fg, bg, guifg, guibg)
-            exec 'autocmd filetype nerdtree highlight ' . a:extension .' ctermbg='. a:bg .' ctermfg='. a:fg .' guibg='. a:guibg .' guifg='. a:guifg
-            exec 'autocmd filetype nerdtree syn match ' . a:extension .' #^\s\+.*'. a:extension .'$#'
+        function! NERDTreeHighlightFile(extension, link)
+            exec 'autocmd filetype nerdtree highlight link ' . a:extension .' '.a:link
+            exec 'autocmd filetype nerdtree syn match ' . a:extension .' #^\W*\ze\w.*'. a:extension .'$#'
         endfunction
-        call NERDTreeHighlightFile('txt', 'green', 'none', 'green', '#151515')
-        call NERDTreeHighlightFile('ini', 'yellow', 'none', 'yellow', '#151515')
-        call NERDTreeHighlightFile('md', 'blue', 'none', '#3366FF', '#151515')
-        call NERDTreeHighlightFile('yaml', 'yellow', 'none', 'yellow', '#151515')
-        call NERDTreeHighlightFile('config', 'yellow', 'none', 'yellow', '#151515')
-        call NERDTreeHighlightFile('conf', 'yellow', 'none', 'yellow', '#151515')
-        call NERDTreeHighlightFile('json', 'yellow', 'none', 'yellow', '#151515')
-        call NERDTreeHighlightFile('html', 'yellow', 'none', 'yellow', '#151515')
-        call NERDTreeHighlightFile('py', 'cyan', 'none', 'cyan', '#151515')
-        call NERDTreeHighlightFile('css', 'cyan', 'none', 'cyan', '#151515')
-        call NERDTreeHighlightFile('coffee', 'Red', 'none', 'red', '#151515')
-        call NERDTreeHighlightFile('js', 'Red', 'none', '#ffa500', '#151515')
-        call NERDTreeHighlightFile('ts', 'Cyan', 'none', '#ffa500', '#151515')
-        call NERDTreeHighlightFile('php', 'Magenta', 'none', '#ff00ff', '#151515')
+        autocmd filetype nerdtree highlight link folders GruvboxGrayItalic
+        autocmd filetype nerdtree syn match folders #^\s*.*/#
+
+        call NERDTreeHighlightFile('txt', 'GruvboxBlue')
+        call NERDTreeHighlightFile('md',  'GruvboxBlue')
+        call NERDTreeHighlightFile('css', 'GruvboxBlue')
+
+        call NERDTreeHighlightFile('ini',        'GruvboxAqua')
+        call NERDTreeHighlightFile('yaml',       'GruvboxAqua')
+        call NERDTreeHighlightFile('yml',        'GruvboxAqua')
+        call NERDTreeHighlightFile('config',     'GruvboxAqua')
+        call NERDTreeHighlightFile('conf',       'GruvboxAqua')
+        call NERDTreeHighlightFile('Dockerfile', 'GruvboxAqua')
+
+        call NERDTreeHighlightFile('json', 'GruvboxYellow')
+        call NERDTreeHighlightFile('csv',  'GruvboxYellow')
+
+        call NERDTreeHighlightFile('html', 'GruvboxPurple')
+        call NERDTreeHighlightFile('php',  'GruvboxPurple')
+
+        call NERDTreeHighlightFile('py',     'GruvboxRed')
+        call NERDTreeHighlightFile('coffee', 'GruvboxRed')
+        call NERDTreeHighlightFile('js',     'GruvboxRed')
+        call NERDTreeHighlightFile('ts',     'GruvboxRed')
 
     " FZF
         let g:fzf_history_dir = '~/.local/share/fzf-history'
@@ -858,9 +963,13 @@
 
             " tree file explorer
             Plugin 'scrooloose/nerdtree'
+            Plugin 'Xuyuanp/nerdtree-git-plugin'
+
 
             " Buffer stuff
-            Plugin 'taohexxx/lightline-buffer'
+            " Plugin 'taohexxx/lightline-buffer'
+            Plugin 'mengelbrecht/lightline-bufferline'
+            
 
             " Linting
             Plugin 'dense-analysis/ale' " Requires eslint to work (pacman -S eslint)
@@ -868,7 +977,8 @@
             Plugin 'neoclide/coc.nvim', {'branch': 'release'}
 
             " Windows resizing
-            Plugin 'roman/golden-ratio'
+            " Plugin 'roman/golden-ratio'
+            " Plugin 'zhaocai/GoldenView.Vim'
 
 
         " 
@@ -1286,21 +1396,6 @@
     " Auto detecting indent on entering a file! | Plugin: vim-adaptive-indent
         autocmd BufReadPost * AdaptIndent
 
-    " Faaast language specific iab
-        function! BetterIAB(word)
-            let v = winsaveview()
-            s/\%#\s*//
-            call winrestview(v)
-            return a:word
-        endfunction
-        autocmd FileType javascript,typescript iab <buffer> c <C-r>=BetterIAB('const')<CR>
-        autocmd FileType javascript,typescript iab <buffer> aw <C-r>=BetterIAB('await')<CR>
-        autocmd FileType javascript,typescript iab <buffer> asy <C-r>=BetterIAB('async')<CR>
-        autocmd FileType javascript,typescript iab <buffer> l <C-r>=BetterIAB('let')<CR>
-        autocmd FileType javascript,typescript iab <buffer> ff <CMD>if match(getline(line('.')), ')$') != -1 <BAR> call setline('.', getline('.') . ';') <BAR> endif<CR>() => {<CR><SPACE><BS><C-o>g
-        autocmd FileType javascript,typescript inoreab <buffer> ii if<SPACE>()<LEFT><C-o>g
-        autocmd FileType javascript,typescript inoreab <buffer> tryc try {<CMD>call SmartJumpToEnd()<CR>} catch (err) {<CR>}<C-o>O<SPACE><BS><C-o>z
-
     " Language specific maps
         autocmd FileType html,php inoremap >> <ESC>ya>Pf<a <ESC>wyiwvi>pT<i/<C-o>T>
 
@@ -1321,6 +1416,7 @@
         autocmd BufEnter *.fish set filetype=fish
         autocmd BufNewFile,BufRead *.vue set filetype=vue
         autocmd BufNewFile,BufRead *.coffee set filetype=coffee
+        autocmd BufNewFile,BufRead *.jrl set filetype=journal
 
     " Highlight current selection
         let g:selMatches = ''
@@ -1337,7 +1433,6 @@
 " 
     " Comments shortcut
         iab /// //<ENTER><C-o>O
-        " iab /** /**<CR><CR>/<UP>
 
     " Mistypes
         iab cnosole console

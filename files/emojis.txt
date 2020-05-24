@@ -1,10 +1,25 @@
-🙏    | Folded Hands, Thank you
+💙    | Blue Heart
+🙂    | Slightly Smiling Face, Happy, :)
+🍽️    | Fork and Knife with Plate, Eat, Hungry
+🙄    | Face with Rolling Eyes, Yeeeeah, Right
+💀    | Skull, Dead, Death
+☠️    | Skull and Crossbones, Dead
+🤷    | Person Shrugging, Welp
 👍    | Thumbs Up, +1
+🤔    | Thinking Face, Huuum
+🤯    | Exploding Head, Mindblown
+🚆    | Train
+💪    | Flexed Biceps, Power
+🍷    | Wine Glass, France
+🌮    | Tacos, Food, Eating
+❌    | Cross Mark
+😠    | Angry Face, Mad, >:(
+👌    | OK Hand
+😂    | Face with Tears of Joy, XD, Happy
+😤    | Face with Steam From Nose, Mad, Angry
+🙏    | Folded Hands, Thank you
 🧗    | Person Climbing
 ❝❞    | Fancy Quotes
-😂    | Face with Tears of Joy, XD, Happy
-🤔    | Thinking Face, Huuum
-👌    | OK Hand
 🌟    | Glowing Star, Magic
 ✨    | Sparkles, Stars, Magic
 🚀    | Rocket
@@ -13,7 +28,6 @@
 📖    | Open Book
 🎯    | Direct Hit, Target, Arrow, Goal
 😃    | Grinning Face with Big Eyes, Happy, :D
-🌮    | Tacos, Food, Eating
 💾    | Floppy Disk, Data, Database
 📕    | Closed Book
 🍹    | Tropical Drink, Cocktail
@@ -30,12 +44,9 @@
 «»    | Classical double Quotes
 ❮❯    | Weird Quotes
 😓    | Downcast Face with Sweat, Sad, :(
-💪    | Flexed Biceps, Power
 🎉    | Party Popper
 🔗    | Link
 🧘    | Person in Lotus Position, Meditation
-💀    | Skull, Dead, Death
-🤯    | Exploding Head, Mindblown
 💥    | Collision, Boom, Explosion
 💼    | Briefcase, Work
 🔌    | Electric Plug
@@ -50,8 +61,6 @@
 🎶    | Musical Notes
 😔    | Pensive Face, Dissapointed
 🌈    | Rainbow
-🙄    | Face with Rolling Eyes, Yeeeeah, Right
-😤    | Face with Steam From Nose, Mad, Angry
 🥜    | Peanuts
 🍎    | Red Apple
 🍱    | Bento Box
@@ -76,7 +85,6 @@
 🥂    | Clinking Glasses, Drink, Alchool, Champain
 🏡    | House with Garden
 🚲    | Bicycle, Bike, Cycling
-🍽️    | Fork and Knife with Plate, Eat, Hungry
 🏠    | House
 🧠    | Brain, Clever, Smart
 ❓    | Question Mark
@@ -106,7 +114,6 @@
 🐈    | Cat
 😆    | Grinning Squinting Face, Happy, X), XD
 🤣    | Rolling on the Floor Laughing, XD
-🙂    | Slightly Smiling Face, Happy, :)
 😉    | Winking Face, ;)
 😊    | Smiling Face with Smiling Eyes
 😇    | Smiling Face with Halo
@@ -158,20 +165,18 @@
 🥺    | Pleading Face, Pity, Aaaaaww
 😦    | Frowning Face with Open Mouth, Unbeliveable, Wow, :o
 😧    | Anguished Face, :o
-😨    | Fearful Face, Wow, :o
+😨    | Fearful Face, Scared, Wow, :o
 😰    | Anxious Face with Sweat, :o
 😥    | Sad but Relieved Face, :(
 😢    | Crying Face, Sad, :'(
 😭    | Loudly Crying Face, Sad, Tear, :'(
-😱    | Face Screaming in Fear, Aaaaah, :o
+😱    | Face Screaming in Fear, Scared, Aaaaah, :o
 😞    | Disappointed Face, Sad, :(
 😩    | Weary Face, Sad, :(
 😫    | Tired Face, Sad, :(
 😡    | Pouting Face, Mad, Angry, >:(
-😠    | Angry Face, Mad, >:(
 😈    | Smiling Face with Horns, Devil
 👿    | Angry Face with Horns, Devil
-☠    | Skull and Crossbones
 🤡    | Clown Face
 👹    | Ogre
 👺    | Goblin
@@ -242,7 +247,6 @@
 🙋    | Person Raising Hand
 🙇    | Person Bowing
 🤦    | Person Facepalming
-🤷    | Person Shrugging, Welp
 👮    | Police Officer
 🕵️    | Detective, Inspector
 💂    | Guard
@@ -579,7 +583,6 @@
 🍵    | Teacup Without Handle
 🍶    | Sake, Alcool
 🍾    | Bottle with Popping Cork
-🍷    | Wine Glass, France
 🍸    | Cocktail Glass
 🍺    | Beer Mug
 🍻    | Clinking Beer Mugs
@@ -712,7 +715,6 @@
 🚃    | Railway Car
 🚄    | High-Speed Train
 🚅    | Bullet Train
-🚆    | Train
 🚇    | Metro
 🚈    | Light Rail
 🚉    | Station
@@ -971,7 +973,6 @@
 ❤    | Red Heart
 🧡    | Orange Heart
 💛    | Yellow Heart
-💙    | Blue Heart
 💜    | Purple Heart
 🖤    | Black Heart
 💯    | Hundred Points
@@ -1121,7 +1122,6 @@
 ⭕    | Hollow Red Circle
 ✅    | Check Mark Button
 ☑    | Check Box with Check
-❌    | Cross Mark
 ❎    | Cross Mark Button
 ➰    | Curly Loop
 ➿    | Double Curly Loop
