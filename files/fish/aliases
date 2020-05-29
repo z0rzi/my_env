@@ -1,0 +1,41 @@
+vim nvim
+minivim   nvim -u NONE
+tinyvim   nvim -u NONE
+vimtiny   nvim -u NONE
+
+watch watch -t
+
+tree tree -CF
+
+rm    gio trash
+
+bye     exit
+byebye  shutdown now
+
+
+ls    ls --color --file-type
+ll    ls -l
+la    ls -a
+lla   ls -la
+lls   clear;ls
+
+copy     xclip -sel clip
+ccat     pygmentize -g -O style=colorful,linenos=1
+docker   docker_wrapper.sh
+
+tandem  nohup $HOME/.applications/Tandemx86_641.5.0.AppImage --no-sandbox 2&> /dev/null & disown
+silent  nohup $argv 2&> /dev/null & disown && echo
+mouse   kwriteconfig5 --file kcminputrc --group Mouse --key XLbInptMiddleEmulation --type bool true && kcminit mouse
+
+:xa   exit
+:x    exit
+:q    exit
+:qa   exit
+
+color  grep -C 100000
+
+javac  javac -encoding ISO-8859-1 
+
+git    git_wrapper.sh
+
+javac  javac -encoding ISO-8859-1

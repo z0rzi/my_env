@@ -99,6 +99,23 @@ case "$to_setup" in
 
         echo "VIM setup completed"
         ;;
+
+    "all" | "fish")
+        echo "Starting FISH setup..."
+
+        ln -fs $path/files/fish $HOME/.config/fish
+
+        echo "FISH setup completed"
+        ;;
+
+    "all" | "kitty")
+        echo "Starting KITTY setup..."
+
+        mkdir -p $HOME/.config/kitty
+        ln -fs $path/files/kitty/kitty.conf $HOME/.config/kitty/kitty.conf
+
+        echo "KITTY setup completed"
+        ;;
     *)
         errorMessage
         ;;
