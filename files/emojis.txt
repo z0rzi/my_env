@@ -1,11 +1,24 @@
+😃    | Grinning Face with Big Eyes, Happy, :D
+👍    | Thumbs Up, +1
+😐    | Neutral Face, :|
+🧡    | Orange Heart
+🌈    | Rainbow
+😅    | Grinning Face with Sweat, ^^'
+😂    | Face with Tears of Joy, XD, Happy
+😌    | Relieved Face, :)
+🤡    | Clown Face
+😶    | Face Without Mouth, No mouth, :|
+🙏    | Folded Hands, Thank you
+😕    | Confused Face, Sad, :(
+😀    | Grinning Face, Happy, :D
+🤷    | Person Shrugging, Welp
+👨‍🍳  | Man Cook, Chef, Cuisine
 💙    | Blue Heart
 🙂    | Slightly Smiling Face, Happy, :)
 🍽️    | Fork and Knife with Plate, Eat, Hungry
 🙄    | Face with Rolling Eyes, Yeeeeah, Right
 💀    | Skull, Dead, Death
 ☠️    | Skull and Crossbones, Dead
-🤷    | Person Shrugging, Welp
-👍    | Thumbs Up, +1
 🤔    | Thinking Face, Huuum
 🤯    | Exploding Head, Mindblown
 🚆    | Train
@@ -15,9 +28,7 @@
 ❌    | Cross Mark
 😠    | Angry Face, Mad, >:(
 👌    | OK Hand
-😂    | Face with Tears of Joy, XD, Happy
 😤    | Face with Steam From Nose, Mad, Angry
-🙏    | Folded Hands, Thank you
 🧗    | Person Climbing
 ❝❞    | Fancy Quotes
 🌟    | Glowing Star, Magic
@@ -27,7 +38,6 @@
 🔬    | Microscope, Science, Labo, Experiment
 📖    | Open Book
 🎯    | Direct Hit, Target, Arrow, Goal
-😃    | Grinning Face with Big Eyes, Happy, :D
 💾    | Floppy Disk, Data, Database
 📕    | Closed Book
 🍹    | Tropical Drink, Cocktail
@@ -38,7 +48,6 @@
 💻    | Laptop
 ➡    | Right Arrow
 👩‍🍳  | Woman Cook, Chef, Cuisine
-👨‍🍳  | Man Cook, Chef, Cuisine
 🔥    | On fire, Hot, +1
 〞〝  | High Quotes
 «»    | Classical double Quotes
@@ -54,13 +63,10 @@
 💽    | Computer Disk, Data, Database
 🤐    | Zipper-Mouth Face
 💢    | Anger Symbol
-😶    | Face Without Mouth, No mouth, :|
 🧪    | Test Tube, Science, Labo, Experiment
 ↗    | Up-Right Arrow
-😐    | Neutral Face, :|
 🎶    | Musical Notes
 😔    | Pensive Face, Dissapointed
-🌈    | Rainbow
 🥜    | Peanuts
 🍎    | Red Apple
 🍱    | Bento Box
@@ -91,7 +97,6 @@
 🤬    | Face with Symbols on Mouth, Mad, Fuck, Angry, >:(
 🎂    | Birthday Cake
 🍫    | Chocolate Bar
-😅    | Grinning Face with Sweat, ^^'
 🔔    | Bell
 🐰    | Rabbit Face
 👵    | Old Woman
@@ -107,7 +112,6 @@
 😄    | Grinning Face with Smiling Eyes, Happy, :D
 🏢    | Office Building
 📂    | Open File Folder
-😀    | Grinning Face, Happy, :D
 😟    | Worried Face
 ☹️    | Frowning Face, :(
 🏘️    | Houses
@@ -137,7 +141,6 @@
 😏    | Smirking Face
 😒    | Unamused Face, :(
 🤥    | Lying Face, Sad
-😌    | Relieved Face, :)
 😪    | Sleepy Face, Zzzzz
 🤤    | Drooling Face
 😴    | Sleeping Face, Zzzzz
@@ -156,7 +159,6 @@
 😎    | Smiling Face with Sunglasses, Cool
 🤓    | Nerd Face, Glasses
 🧐    | Face with Monocle, Snob
-😕    | Confused Face, Sad, :(
 🙁    | Slightly Frowning Face, Sad
 😮    | Face with Open Mouth, Surprised, Wow, :o
 😯    | Hushed Face, Surprise, Wow, :o
@@ -177,7 +179,6 @@
 😡    | Pouting Face, Mad, Angry, >:(
 😈    | Smiling Face with Horns, Devil
 👿    | Angry Face with Horns, Devil
-🤡    | Clown Face
 👹    | Ogre
 👺    | Goblin
 👻    | Ghost, Scary, Boooh
@@ -971,7 +972,6 @@
 ❣    | Heart Exclamation
 💔    | Broken Heart
 ❤    | Red Heart
-🧡    | Orange Heart
 💛    | Yellow Heart
 💜    | Purple Heart
 🖤    | Black Heart

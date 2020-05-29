@@ -1,7 +1,9 @@
 priority 50
 
 snippet file_write "Write inside a file" b
-require('fs').writeFile('${1:/tmp/tmp.txt}', ${2:'test'}, err => {$0});
+require('fs').writeFile('${1:/tmp/tmp.txt}', ${2:'test'}, (${0:err}) => {
+    console.error($0)
+})
 endsnippet
 
 snippet file_read "Reads a whole file content" b

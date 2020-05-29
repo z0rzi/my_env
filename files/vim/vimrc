@@ -12,7 +12,7 @@
     set noshowmode
     set nobackup
     set nowritebackup
-    set updatetime=130
+    " set updatetime=130
     set shortmess+=c
     set signcolumn=yes
     " set termguicolors  " Increases the saturation
@@ -578,6 +578,9 @@
             \   'typescript': {
             \     '@inherit': 'javascript',
             \   },
+            \   'vue': {
+            \     '@inherit': 'javascript',
+            \   },
             \ }
 
     " indentLine
@@ -666,8 +669,13 @@
         set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 
     " Ale Linting
-        let b:ale_fixers = ['eslint']
-        let b:ale_linters = {
+        let g:ale_fixers = {
+                    \ 'typescript': ['prettier'],
+                    \ 'javascript': ['prettier'],
+                    \ 'python': []
+                    \ }
+
+        let g:ale_linters = {
                     \ 'typescript': ['eslint'],
                     \ 'javascript': ['eslint'],
                     \ 'python': []
@@ -862,6 +870,7 @@
         call NERDTreeHighlightFile('css', 'GruvboxBlue')
 
         call NERDTreeHighlightFile('ini',        'GruvboxAqua')
+        call NERDTreeHighlightFile('gql',        'GruvboxAqua')
         call NERDTreeHighlightFile('yaml',       'GruvboxAqua')
         call NERDTreeHighlightFile('yml',        'GruvboxAqua')
         call NERDTreeHighlightFile('config',     'GruvboxAqua')
@@ -1367,12 +1376,12 @@
             vnoremap ao <ESC>:call SelectSmallestRangePossible(1)<CR>
 
         " Faster moves
-            command! -nargs=1 -range MoveFast call MoveFaster("<args>", "<count>")
-            nnoremap <silent> <DOWN> :MoveFast 1<CR>
-            nnoremap <silent> <UP> :MoveFast -1<CR>
-            nnoremap <RIGHT> <CMD>let b:tap=0<CR><RIGHT>
-            nnoremap <LEFT> <CMD>let b:tap=0<CR><LEFT>
-            autocmd InsertEnter,InsertLeave,CursorHold * let b:tap=0
+            " command! -nargs=1 -range MoveFast call MoveFaster("<args>", "<count>")
+            " nnoremap <silent> <DOWN> :MoveFast 1<CR>
+            " nnoremap <silent> <UP> :MoveFast -1<CR>
+            " nnoremap <RIGHT> <CMD>let b:tap=0<CR><RIGHT>
+            " nnoremap <LEFT> <CMD>let b:tap=0<CR><LEFT>
+            " autocmd InsertEnter,InsertLeave,CursorHold * let b:tap=0
 
 " 
 " AUTOCMD
