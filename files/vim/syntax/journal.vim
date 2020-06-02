@@ -1,1 +1,1 @@
-/home/zorzi/Documents/journal/journal.vim
+/mnt/DATA/home/zorzi//Documents/journal/journal.vim

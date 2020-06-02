@@ -25,6 +25,14 @@ grep -v "|\s*$desc$" $path >> /tmp/emoji
 
 cat /tmp/emoji > $path
 
-echo -n $emoji | xclip -sel clip
 
-sleep .05
+cmd=$(cat <<EOF
+( ( echo -n $emoji | gpaste-client ) || \
+( echo -n $emoji | clipit ) || \
+( echo -n $emoji | xclip -sel clip ) ) && sleep 1
+EOF
+)
+
+nohup bash -c "$cmd" 2&>/dev/null & disown
+
+sleep .01

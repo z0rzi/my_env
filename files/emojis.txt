@@ -1,35 +1,47 @@
-😃    | Grinning Face with Big Eyes, Happy, :D
-👍    | Thumbs Up, +1
-😐    | Neutral Face, :|
-🧡    | Orange Heart
-🌈    | Rainbow
 😅    | Grinning Face with Sweat, ^^'
-😂    | Face with Tears of Joy, XD, Happy
-😌    | Relieved Face, :)
-🤡    | Clown Face
+🤐    | Zipper-Mouth Face
+🤔    | Thinking Face, Huuum
 😶    | Face Without Mouth, No mouth, :|
-🙏    | Folded Hands, Thank you
-😕    | Confused Face, Sad, :(
-😀    | Grinning Face, Happy, :D
+👌    | OK Hand
+😮    | Face with Open Mouth, Surprised, Wow, :o
 🤷    | Person Shrugging, Welp
+👍    | Thumbs Up, +1
+🧗    | Person Climbing
+🎉    | Party Popper
+🌈    | Rainbow
+🤡    | Clown Face
+☠️    | Skull and Crossbones, Dead
+😰    | Anxious Face with Sweat, :o
+🥓    | Bacon
+🙄    | Face with Rolling Eyes, Yeeeeah, Right
+✅    | Check Mark Button
+✔️    | Check Mark, OK, Valid
+🕶️    | Sunglasses, Cool
 👨‍🍳  | Man Cook, Chef, Cuisine
+🤤    | Drooling Face, bave
+😄    | Grinning Face with Smiling Eyes, Happy, :D
+🚆    | Train
+🧡    | Orange Heart
+⚰️    | Coffin, deat, death, funerals
+😕    | Confused Face, Sad, :(
+😌    | Relieved Face, :)
+🤯    | Exploding Head, Mindblown
+😘    | Face Blowing a Kiss, <3
+😐    | Neutral Face, :|
+😃    | Grinning Face with Big Eyes, Happy, :D
+😂    | Face with Tears of Joy, XD, Happy
+🙏    | Folded Hands, Thank you
+😀    | Grinning Face, Happy, :D
 💙    | Blue Heart
 🙂    | Slightly Smiling Face, Happy, :)
 🍽️    | Fork and Knife with Plate, Eat, Hungry
-🙄    | Face with Rolling Eyes, Yeeeeah, Right
 💀    | Skull, Dead, Death
-☠️    | Skull and Crossbones, Dead
-🤔    | Thinking Face, Huuum
-🤯    | Exploding Head, Mindblown
-🚆    | Train
 💪    | Flexed Biceps, Power
 🍷    | Wine Glass, France
 🌮    | Tacos, Food, Eating
 ❌    | Cross Mark
 😠    | Angry Face, Mad, >:(
-👌    | OK Hand
 😤    | Face with Steam From Nose, Mad, Angry
-🧗    | Person Climbing
 ❝❞    | Fancy Quotes
 🌟    | Glowing Star, Magic
 ✨    | Sparkles, Stars, Magic
@@ -42,7 +54,6 @@
 📕    | Closed Book
 🍹    | Tropical Drink, Cocktail
 🙌    | Raising Hands, Yay
-✔️    | Check Mark, OK, Valid
 🔎    | Magnifying Glass Tilted Right, Zoom, Search
 ⌨️    | Keyboard
 💻    | Laptop
@@ -53,7 +64,6 @@
 «»    | Classical double Quotes
 ❮❯    | Weird Quotes
 😓    | Downcast Face with Sweat, Sad, :(
-🎉    | Party Popper
 🔗    | Link
 🧘    | Person in Lotus Position, Meditation
 💥    | Collision, Boom, Explosion
@@ -61,7 +71,6 @@
 🔌    | Electric Plug
 ⛔    | No Entry
 💽    | Computer Disk, Data, Database
-🤐    | Zipper-Mouth Face
 💢    | Anger Symbol
 🧪    | Test Tube, Science, Labo, Experiment
 ↗    | Up-Right Arrow
@@ -109,7 +118,6 @@
 🔰    | Japanese Symbol for Beginner
 🙃    | Upside-Down Face, Welp, (:
 😁    | Beaming Face with Smiling Eyes, Happy, :D
-😄    | Grinning Face with Smiling Eyes, Happy, :D
 🏢    | Office Building
 📂    | Open File Folder
 😟    | Worried Face
@@ -124,7 +132,6 @@
 🥰    | Smiling Face with Hearts, <3
 😍    | Smiling Face with Heart-Eyes, <3
 🤩    | Star-Struck
-😘    | Face Blowing a Kiss, <3
 😗    | Kissing Face
 😚    | Kissing Face with Closed Eyes
 😙    | Kissing Face with Smiling Eyes
@@ -142,7 +149,6 @@
 😒    | Unamused Face, :(
 🤥    | Lying Face, Sad
 😪    | Sleepy Face, Zzzzz
-🤤    | Drooling Face
 😴    | Sleeping Face, Zzzzz
 😷    | Face with Medical Mask, Sick
 🤒    | Face with Thermometer, Sick
@@ -160,7 +166,6 @@
 🤓    | Nerd Face, Glasses
 🧐    | Face with Monocle, Snob
 🙁    | Slightly Frowning Face, Sad
-😮    | Face with Open Mouth, Surprised, Wow, :o
 😯    | Hushed Face, Surprise, Wow, :o
 😲    | Astonished Face, :o
 😳    | Flushed Face, O_o
@@ -168,7 +173,6 @@
 😦    | Frowning Face with Open Mouth, Unbeliveable, Wow, :o
 😧    | Anguished Face, :o
 😨    | Fearful Face, Scared, Wow, :o
-😰    | Anxious Face with Sweat, :o
 😥    | Sad but Relieved Face, :(
 😢    | Crying Face, Sad, :'(
 😭    | Loudly Crying Face, Sad, Tear, :'(
@@ -296,7 +300,6 @@
 🧵    | Thread
 🧶    | Yarn
 👓    | Glasses
-🕶️    | Sunglasses, Cool
 🥽    | Goggles
 🥼    | Lab Coat
 👔    | Necktie
@@ -536,7 +539,6 @@
 🧀    | Cheese Wedge
 🍖    | Meat on Bone
 🍗    | Poultry Leg
-🥓    | Bacon
 🍔    | Hamburger
 🍟    | French Fries
 🍕    | Pizza
@@ -957,7 +959,6 @@
 🧽    | Sponge
 🧯    | Fire Extinguisher
 🚬    | Cigarette
-⚰️    | Coffin, deat, death, funerals
 ⚱️    | Funeral Urn
 🗿    | Moai
 🚰    | Potable Water
@@ -1120,7 +1121,6 @@
 🔱    | Trident Emblem
 📛    | Name Badge
 ⭕    | Hollow Red Circle
-✅    | Check Mark Button
 ☑    | Check Box with Check
 ❎    | Cross Mark Button
 ➰    | Curly Loop

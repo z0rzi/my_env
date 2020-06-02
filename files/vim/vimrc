@@ -1136,15 +1136,19 @@
         " go to end of paragraph
             function! IndentJump(direction)
                 let curline = line('.')
-                let indent = matchstr(getline(curline), '^\s*')
+                " let indent = matchstr(getline(curline), '^\s*')
+                let indent = indent(curline)
                 if a:direction >= 0
-                    let nextLineNum = search('^.*\S.*$', 'n')
+                    " let nextLineNum = search('^.*\S.*$', 'n')
+                    let nextLineNum = nextnonblank(line('.')+1)
                 else
-                    let nextLineNum = search('^.*\S.*\n\_.*\%#', 'nb')
+                    " let nextLineNum = search('^.*\S.*\n\_.*\%#', 'nb')
+                    let nextLineNum = prevnonblank(line('.')-1)
                 endif
-                let nextIndent = matchstr(getline(nextLineNum), '^\s*')
+                " let nextIndent = matchstr(getline(nextLineNum), '^\s*')
+                let nextIndent = indent(nextLineNum)
 
-                if len(nextIndent) < len(indent) || len(indent) == 0
+                if nextIndent < indent || indent == 0
                     if a:direction >= 0
                         let flag = ''
                     else
@@ -1153,9 +1157,11 @@
                     call search('^.*\S.*\zs$', flag)
                 else
                     if a:direction >= 0
-                        call search('^\('.indent.'\).*\n\(\1.*\n\|\s*\n\)*\1.*\zs')
+                        " call search('^\('.indent.'\).*\n\(\1.*\n\|\s*\n\)*\1.*\zs')
+                        call search('[\n[:blank:]]*\n\%\( \)\{,'.(indent-1).'}\S')
                     else
-                        call search('^\('.indent.'\)\S.*\zs\ze\n\(\1.*\n\|\s*\n\)*.*\%#')
+                        " call search('^\('.indent.'\)\S.*\zs\ze\n\(\1.*\n\|\s*\n\)*.*\%#')
+                        call search('^\%\( \)\{,'.(indent-1).'}\S.*\n[\n[:blank:]]*.*\zs', 'b')
                     endif
                 endif
             endfunction
