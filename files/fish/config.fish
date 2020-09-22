@@ -9,10 +9,20 @@ while read line
 end < $HOME/.config/fish/aliases
 
 
-set PATH $PATH:$HOME/.my_env/scripts/:
+set PATH $PATH:$HOME/.my_env/scripts/:$HOME/.cargo/bin
 
+# Launching TMUX
+if test ! "$TMUX"
+    tmux has-session 2&> /dev/null
+    if test $status -eq 0
+        # exec tmux attach
+        exec tmux
+    else
+        exec tmux
+    end
+end
 
-# # Displaying todo after noon!
+# Displaying todo after noon!
 # set last_term_time (cat /tmp/last-term-time 2> /dev/null)
 # set noon (date +'%Y%m%d')"120000"
 # set this_term_time (date +"%Y%m%d%H%M%S")

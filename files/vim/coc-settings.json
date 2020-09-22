@@ -1,6 +1,117 @@
 {
-  "diagnostic.enable": false,
+      "diagnostic.enable": true,
+      "diagnostic.displayByAle": false,
+      "diagnostic.errorSign": "",
+      "diagnostic.warningSign": "",
+      "diagnostic.infoSign": "",
+      "diagnostic.hintSign": "",
+      "diagnostic.messageDelay": 1000,
+      "diagnostic.format": "[%severity] %message",
 
-  "vetur.format.enable": true,
-  "vetur.useWorkspaceDependencies": true
+      "eslint.enable": true,
+      "eslint.autoFix": true,
+      "eslint.filetypes": ["typescript", "vue", "javascript"],
+      "eslint.autoFixOnSave": false,
+      "eslint.codeAction.showDocumentation": {
+          "enable": true
+      },
+      "eslint.run": "onSave",
+      "eslint.packageManager": "yarn",
+      "eslint.options": {"useEslintrc": true},
+
+      "explorer.icon.enableVimDevicons": true,
+      "explorer.previewAction.onHover": false,
+
+      "explorer.file.column.indent.indentLine": true,
+      "explorer.file.column.git.icon.mixed": "✸",
+      "explorer.file.column.git.icon.modified": "✸",
+      "explorer.file.column.git.icon.added": "+",
+      "explorer.file.column.git.icon.deleted": "-",
+      "explorer.file.column.git.icon.renamed": "↷",
+      "explorer.file.column.git.icon.untracked": "+",
+      "explorer.file.column.git.icon.ignored": ".",
+
+      "explorer.keyMappings": {
+            "i": false,
+
+            "gk": "expandablePrev",
+            "gj": "expandableNext",
+
+            "v": "toggleSelection",
+            "m": "actionMenu",
+
+            "x": "collapse",
+            "l": ["expandable?", "expand", "open"],
+            "J": ["toggleSelection", "nodeNext"],
+            "K": ["toggleSelection", "nodePrev"],
+            "gl": "expandRecursive",
+            "gh": "collapseRecursive",
+            "<2-LeftMouse>": [
+                  "expandable?",
+                  ["expanded?", "collapse", "expand"],
+                  "open"
+            ],
+            "<cr>": ["expandable?", ["expanded?", "collapse", "expand"], "open"],
+            "e": "open",
+            "s": "open:split",
+            "E": "open:vsplit",
+            "t": "open:tab",
+            "<bs>": "gotoParent",
+            "gp": "preview:labeling",
+
+            "Y": "copyFilepath",
+            "y": "copyFile",
+            "d": "cutFile",
+            "p": "pasteFile",
+            "<del>": "delete",
+
+            "a": "addFile",
+            "A": "addDirectory",
+            "r": "rename",
+
+            ".": "toggleHidden",
+            "R": "refresh",
+
+            "?": "help",
+            "q": "quit",
+            "<esc>": "esc",
+            "X": "systemExecute",
+            "gd": "listDrive",
+
+            "f": "search",
+            "F": "searchRecursive",
+            "S": "searchRecursive",
+
+            "gf": "gotoSource:file",
+            "gb": "gotoSource:buffer",
+
+            "[[": "sourcePrev",
+                  "]]": "sourceNext",
+
+                  "[d": "diagnosticPrev",
+                        "]d": "diagnosticNext",
+
+                        "[c": "gitPrev",
+                              "]c": "gitNext",
+                              "<<": "gitStage",
+                              ">>": "gitUnstage"
+      },
+
+      "vetur.format.enable": true,
+      "vetur.useWorkspaceDependencies": true,
+
+      "languageserver": {
+            "nim": {
+                  "command": "nimlsp",
+                  "filetypes": ["nim"]
+            },
+            "rust": {
+                  "command": "rust-analyzer",
+                  "filetypes": ["rust"]
+            },
+            "vue": {
+                  "command": "vls",
+                  "filetypes": ["vue"]
+            }
+      }
 }

@@ -1,9 +1,27 @@
+:e nvim
 vim nvim
 minivim   nvim -u NONE
 tinyvim   nvim -u NONE
 vimtiny   nvim -u NONE
 
+:h man
+
 watch watch -t
+
+:vs test "$TMUX" && tmux split -h && tmux lastp || tmux
+:sp test "$TMUX" && tmux split -v && tmux lastp || tmux
+
+
+audio pagraphcontrol
+mixer pagraphcontrol
+
+mkdirr mkdir $argv && cd
+cdd mkdir $argv && cd
+ccd mkdir $argv && cd
+
+winkill xdotool selectwindow windowkill
+
+record_window recordmydesktop --s_quality -1 --fps 30 --windowid (xwininfo | awk '/^xwininfo: Window id:/{print $4}')
 
 tree tree -CF
 

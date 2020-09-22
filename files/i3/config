@@ -127,6 +127,7 @@
     for_window [class="tandem"] floating enable
     for_window [class="gnome-calendar"] floating enable
     for_window [class="Gnome-calendar"] floating enable
+    for_window [class="GStreamer"] floating enable
 
 #
 # WORKSPACES
@@ -205,8 +206,8 @@
     bindsym $alt+Shift+2  move container to workspace $wsr4; workspace $wsr4
     bindsym $alt+Shift+F2 move container to workspace $wsr5; workspace $wsr5
 
-    bindsym $alt+Shift+Up workspace next
-    bindsym $alt+Shift+Down workspace prev 
+    bindsym $alt+Shift+Up exec /home/zorzi/.my_env/scripts/change_workspace.sh up
+    bindsym $alt+Shift+Down exec /home/zorzi/.my_env/scripts/change_workspace.sh down
     bindsym $alt+$mod+Shift+Up   move container to workspace next; workspace next
     bindsym $alt+$mod+Shift+Down move container to workspace prev; workspace prev
 
@@ -218,13 +219,14 @@
     # exec_always --no-startup-id sbxkb
     # exec --no-startup-id start_conky_green
     exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
-    exec --no-startup-id nitrogen --restore; sleep 1; compton -b
+    # exec --no-startup-id nitrogen --restore
+    exec --no-startup-id nitrogen --restore; sleep 1; picom -b
     exec --no-startup-id manjaro-hello
     exec --no-startup-id nm-applet
     exec --no-startup-id xfce4-power-manager
     # exec --no-startup-id clipit
-    exec --no-startup-id start_conky_maia
-    exec --no-startup-id xautolock -time 10 -locker blurlock
+    # exec --no-startup-id start_conky_maia
+    exec --no-startup-id xautolock -time 30 -locker blurlock
     exec_always --no-startup-id ff-theme-util
     exec_always --no-startup-id fix_xcursor
     
@@ -235,6 +237,7 @@
     exec --no-startup-id bash -c "optimus-manager-qt &"
     exec --no-startup-id bash -c "kdeconnect-indicator &"
     exec --no-startup-id bash -c "gpaste-client start"
+    exec --no-startup-id libinput-gestures-setup start
     # exec --no-startup-id bash -c "gpaste-client daemon-reexec"
 
 #
@@ -289,7 +292,7 @@ bindsym $mod+Shift+space floating toggle
 bindsym $mod+space focus mode_toggle
 
 # toggle sticky
-bindsym $mod+Shift+s sticky toggle
+bindsym $mod+c sticky toggle
 
 # focus the parent container
 bindsym $mod+a focus parent
@@ -321,7 +324,7 @@ bindsym $mod+Shift+c reload
 bindsym $mod+Shift+r restart
 
 # exit i3 (logs you out of your X session)
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
+# bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
 
 # Set shut down, restart and locking features
 bindsym $mod+0 mode "$mode_system"
@@ -406,7 +409,8 @@ bar {
     status_command ~/.my_env/scripts/my_i3status.sh
     position bottom
 
-    font pango:monospace 8, FontAwesome 11
+    # font Vera:20
+    font pango:Bitstream Vera Sans 10
 
 
     separator_symbol "|"
@@ -422,8 +426,9 @@ bar {
         # separator  #454947
 
         background #222D31
-        statusline #d7d7d9
+        # statusline #FFFFFF
         separator  #ec1d1c
+        # separator  #000000
 
         # #                  border  backgr. text
         # focused_workspace  #F9FAF9 #16a085 #292F34

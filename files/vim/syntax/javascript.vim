@@ -84,6 +84,17 @@ syntax match   javaScriptSpecialCharacter "'\\.'"
 syntax match   javaScriptNumber           "-\=\<\d\+L\=\>\|0[xX][0-9a-fA-F]\+\>"
 syntax region  javaScriptRegexpString     start=+/[^/*]+me=e-1 skip=+\\\\\|\\/+ end=+/[gim]\{0,2\}\s*$+ end=+/[gim]\{0,2\}\s*[;.,)\]}]+me=e-1 contains=@htmlPreproc oneline
 syntax match   javaScriptFloat          /\<-\=\%(\d\+\.\d\+\|\d\+\.\|\.\d\+\)\%([eE][+-]\=\d\+\)\=\>/
+
+
+syn match RegexBraces "\([^\\]\(\\\\\)*\)\@<=[()]" containedin=javaScriptRegexpString
+syn match RegexMult "\([^\\]\(\\\\\)*\)\@<=\([?*+|]\|{[[0-9,]]\{-}}\)" containedin=javaScriptRegexpString
+syn match RegexOneOf "\([^\\]\(\\\\\)*\)\@<=\[.\{-}\([^\\]\(\\\\\)*\)\@<=\]" containedin=javaScriptRegexpString
+syn match RegexNonCapt "\(\([^\\]\(\\\\\)*\)\@<=(\)\@<=?:" containedin=javaScriptRegexpString
+syn match RegexNamedCapt "\(\([^\\]\(\\\\\)*\)\@<=(\)?<.\{-}>" containedin=javaScriptRegexpString
+syn match RegexSpecial "\([^\\]\(\\\\\)*\)\@<=\\\w" containedin=javaScriptRegexpString
+syn match RegexVerySpecial "\([^\\]\(\\\\\)*\)\@<=[$^]" containedin=javaScriptRegexpString
+
+
 "}}}
 "  DOM, Browser and Ajax Support   {{{
 syntax keyword javaScriptBrowserObjects           window navigator screen history location console

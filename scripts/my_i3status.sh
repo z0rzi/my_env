@@ -4,30 +4,57 @@
 #
 # For icons: https://fontawesome.com/cheatsheet?from=io
 
+CLICK_LEFT=1
+CLICK_MIDDLE=2
+CLICK_RIGHT=3
+SCROLL_UP=5
+SCROLL_DOWN=5
+
+JSON_PARSER="/home/zorzi/.my_env/scripts/parse_json.js"
+AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
 
 #
 # DATA
 #
-    MODULES='docker ram swap cpu battery time'
-    # MODULES='cpu'
+    MODULES='ram swap cpu battery weather airplane docker time'
 
     ICON_CPU='🔥'
     ICON_SWAP='🍩'
     ICON_RAM='🥓'
     ICON_TIME=''
     ICON_DOCKER=''
+    ICON_AIRPLANE=''
     ICON_BATTERY_80=''
     ICON_BATTERY_60=''
     ICON_BATTERY_40=''
-    ICON_BATTERY_30=''
+    ICON_BATTERY_20=''
     ICON_BATTERY_00=''
     ICON_BATTERY_CHARGING='⚡'
+    
+    ICON_WEATHER_RAIN='🌧️'
+    ICON_WEATHER_RAINSUN='🌦️ '
+    ICON_WEATHER_SNOWFLAKE='❄️'
+    ICON_WEATHER_SNOW='🌨️'
+    ICON_WEATHER_STORM='🌩️'
+    ICON_WEATHER_STORMRAIN='⛈️'
+    ICON_WEATHER_TORNADO='🌪️'
+    ICON_WEATHER_CLOUDY0='☁️'
+    ICON_WEATHER_CLOUDY1='⛅'
+    ICON_WEATHER_CLOUDY2='🌤️'
+    ICON_WEATHER_SUN='☀️'
+    ICON_WEATHER_COMET='☄️'
+    ICON_WEATHER_NIGHT='🌌'
+    ICON_WEATHER_MOON='🌘'
 
-    THRESHOLD_BATTERY_LOW=20
+
+    THRESHOLD_BATTERY_LOW=10
     THRESHOLD_BATTERY_HIGH=95
 
     COLOR_DOCKER_ON="#0399c4"
     COLOR_DOCKER_OFF="#999999"
+
+    COLOR_AIRPLANE_ON="#03c499"
+    COLOR_AIRPLANE_OFF="#999999"
 
     COLOR_BATTERY_HIGH="#27ae60"
     COLOR_BATTERY_LOW="#e74c3c"
@@ -37,8 +64,34 @@
 #
 # HELPERS
 #
+    function trim() {
+        awk '/./ {gsub("^[[:blank:]]*|[[:blank:]]*$", ""); print}'
+    }
+
     function formatPercentage() {
         sed -e 's/^0*\([0-9]\+\.\)/\1/' -e 's/\(\..\).*$/\1/' -e 's/\.0*$//' -e 's/\(\.[0-9]*[1-9]\)0*$/\1/' <<< "$1"
+    }
+
+    function getPublicIP() {
+        if [ ! -f "/tmp/.pub_ip" ]; then
+            curl ifconfig.me -o /tmp/.pub_ip
+        fi
+
+        cat /tmp/.pub_ip | trim
+    }
+
+    function getLatLng() {
+        if [ ! -f "/tmp/.location" ]; then
+            curl 'https://iplocation.com/' \
+                -o /tmp/.location \
+                -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36' \
+                --data "ip=$(getPublicIP | trim)" \
+                --compressed
+        fi
+
+        raw=$(cat /tmp/.location)
+
+        $JSON_PARSER "$raw" "%(|lat) %(|lng)"
     }
 
 
@@ -48,7 +101,8 @@
 
     # CPU
         function cpu_text() {
-            perc=`mpstat | tr ',' '.' | awk '/all/ { print 100.0 - $12 }'`
+            # perc=`mpstat | tr ',' '.' | awk '/all/ { print 100.0 - $12 }'`
+            perc=`iostat -syzc | sed '4p;d' | awk '{print 100.0 - $6}'`
             perc=`formatPercentage $perc`
             echo " $ICON_CPU$perc% "
         }
@@ -82,6 +136,7 @@
 
             percentage=`awk '/percentage/ {print $2}' <<< $infos`
             num=`grep -o "[0-9]\+" <<< $percentage`
+            plugged=`[[ "$infos" =~ state:[^\n]*discharging ]] || echo 1`
 
             if [ "$num" -gt 80 ]; then
                 icon=$ICON_BATTERY_80
@@ -92,21 +147,21 @@
             elif [ "$num" -gt 20 ]; then
                 icon=$ICON_BATTERY_20
             else
-                if [ "$num" -gt 5 ] && [ ! -f '/tmp/.lowbat' ]; then
-                    notify-send "Low battery, Plug Me!" -i /usr/share/icons/hicolor/32x32/status/battery-low.png
+                if [ ! "$plugged" ] && [ "$num" -gt 5 ] && [ ! -f '/tmp/.lowbat' ]; then
                     touch /tmp/.lowbat
+                    notify-send "Low battery, Plug Me!" -i /usr/share/icons/hicolor/32x32/status/battery-low.png
                 fi
                 icon=$ICON_BATTERY_00
             fi
 
-            if [[ ! "$infos" =~ state:[^\n]*discharging ]]; then
+            if [ "$plugged" ]; then
                 [ -f '/tmp/.lowbat' ] && rm /tmp/.lowbat
                 [ -f '/tmp/.nobat' ] && rm /tmp/.nobat
                 icon="$ICON_BATTERY_CHARGING$icon"
             else
                 if [ "$num" -lt 5 ] && [ ! -f '/tmp/.nobat' ]; then
-                    notify-send "No more battery, you gotta do something man" -u critical -i /usr/share/icons/hicolor/32x32/status/battery-empty.png
                     touch /tmp/.nobat
+                    notify-send "No more battery, you gotta do something man" -u critical -i /usr/share/icons/hicolor/32x32/status/battery-empty.png
                 fi
             fi
 
@@ -143,7 +198,25 @@
             printf $COLOR_TIME
         }
         function time_click() {
-            brave "https://calendar.google.com/calendar/r"
+            if [ "$1" = "$CLICK_RIGHT" ]; then
+                export LC_TIME='en_US.UTF-8'
+                notify-send "`date +'%d / %m / %Y'`"  "`date +'%A %d of %B, %Y'`" -t 5000
+                return
+            fi
+
+            $BROWSER "https://calendar.google.com/calendar/r" > /dev/null &
+        }
+
+    # AIRPLANE
+        function airplane_text() {
+            printf " $ICON_AIRPLANE "
+        }
+        function airplane_color() {
+            status=`$AIRPLANE_TOOL status`
+            [ "$status" = "on" ] && printf "$COLOR_AIRPLANE_ON" || printf "$COLOR_AIRPLANE_OFF"
+        }
+        function airplane_click() {
+            gksu $AIRPLANE_TOOL toggle &> /dev/null
         }
 
     # DOCKER
@@ -155,11 +228,87 @@
             [ $? -eq 0 ] && printf "$COLOR_DOCKER_ON" || printf "$COLOR_DOCKER_OFF"
         }
         function docker_click() {
+            if [ "$1" = "$CLICK_RIGHT" ]; then
+                notify-send "Running containers:" "`docker ps`" -t 5000
+                return
+            fi
             systemctl status docker &> /dev/null
             [ $? -eq 0 ] && systemctl stop docker &> /dev/null || systemctl start docker &> /dev/null
         }
 
+    # WEATHER
+        function getWeather() {
+            now=`date +%y%m%d%H%M`
+            if [ ! -f "/tmp/.weather_check_time" ] || [ ! -f "/tmp/.weather" ]; then
+                echo $now > /tmp/.weather_check_time
+                before=0
+            else
+                before=`cat /tmp/.weather_check_time | trim`
+            fi
 
+            if [ "$before" -lt $((now - 60)) ]; then
+                # Every 60 mins
+                echo $now > /tmp/.weather_check_time
+                read lat lng <<< "$(getLatLng)"
+
+                # Api from https://rapidapi.com/ClimaCell/api/climacell?endpoint=apiendpoint_d775527a-c5c0-44f6-9c34-9c943f7b8131
+                curl --request GET \
+                    -o /tmp/.weather \
+                    --url 'https://climacell-microweather-v1.p.rapidapi.com/weather/realtime?unit_system=si&fields=temp,weather_code,sunrise,sunset&lat='$lat'&lon='$lng \
+                    --header 'x-rapidapi-host: climacell-microweather-v1.p.rapidapi.com' \
+                    --header 'x-rapidapi-key: bc4ad2bf7bmsh6cedd1de54adf93p11ad86jsneae68ced3020'
+            fi
+            $JSON_PARSER "`cat /tmp/.weather`" "%(|temp|value) %(|weather_code|value) %(|sunrise|value) %(|sunset|value)" | trim
+        }
+        function weather_getIcon() {
+            case "$1" in
+                "rain" | "rain_heavy" | "freezing_rain" | "freezing_rain_light" | "freezing_rain_heavy" | "freezing_drizzle" | "drizzle")
+                    icon=$ICON_WEATHER_RAIN
+                    ;;
+                "rain_light")
+                    icon=$ICON_WEATHER_RAINSUN
+                    ;;
+                "snow" | "snow_heavy" | "snow_light" | "flurries")
+                    icon=$ICON_WEATHER_SNOW
+                    ;;
+                "ice_pellets" | "ice_pellets_heavy" | "ice_pellets_light" | "tstorm")
+                    icon=$ICON_WEATHER_STORMRAIN
+                    ;;
+                "fog" | "fog_light" | "cloudy" | "mostly_cloudy")
+                    icon=$ICON_WEATHER_CLOUDY0
+                    ;;
+                "partly_cloudy" | "partly_cloudy_night")
+                    icon=$ICON_WEATHER_CLOUDY1
+                    ;;
+                "mostly_clear" | "mostly_clear_night")
+                    icon=$ICON_WEATHER_CLOUDY2
+                    ;;
+                "clear" | "clear_night")
+                    icon=$ICON_WEATHER_SUN
+                    ;;
+                *)
+                    icon='❓'
+                    ;;
+            esac
+            printf $icon
+        }
+        function weather_text() {
+            read temp code _ <<< `getWeather`
+            icon=`weather_getIcon $code`
+            printf " $icon $temp° "
+        }
+        function weather_click() {
+            if [ "$1" = "$CLICK_RIGHT" ]; then
+                read temp code raw_rise raw_set <<< `getWeather`
+
+                icon=`weather_getIcon $code`
+                rise=`date -d "$raw_rise" +%H:%M`
+                set=`date -d "$raw_set" +%H:%M`
+                notify-send "$icon $temp° | $code" "🌅 $rise  ➜  $set 🌇" -t 5000
+                return
+            fi
+            rm /tmp/.weather
+        }
 
 
 #
@@ -173,7 +322,9 @@
         json+=',['
 
         for module in $MODULES; do
-            json+='{"name":"'$module'", "color": "'`${module}_color`'",   "full_text": "'`${module}_text`'"},'
+            color=`${module}_color 2> /dev/null`
+            text=`${module}_text 2> /dev/null`
+            json+='{"name":"'$module'", "color": "'$color'",   "full_text": "'$text'"},'
         done
         json=${json::-1}
 
@@ -182,7 +333,10 @@
         echo -n "$json" || exit 1
 
         while read -t 2 line; do
-            app=`grep -o '"name":"\w\+"' <<< "$line" | sed 's/^.*:"\|"$//g'`
-            ${app}_click
+            if [[ "$line" =~ ^, ]]; then
+                line=${line:1}
+            fi
+            read name button <<< "`$JSON_PARSER $line '%(|name) %(|button)'`"
+            ${name}_click $button
         done
     done

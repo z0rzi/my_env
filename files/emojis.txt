@@ -1,69 +1,123 @@
-😅    | Grinning Face with Sweat, ^^'
-🤐    | Zipper-Mouth Face
-🤔    | Thinking Face, Huuum
-😶    | Face Without Mouth, No mouth, :|
-👌    | OK Hand
-😮    | Face with Open Mouth, Surprised, Wow, :o
-🤷    | Person Shrugging, Welp
-👍    | Thumbs Up, +1
 🧗    | Person Climbing
+👋    | Waving Hand
+😞    | Disappointed Face, Sad, :(
+😂    | Face with Tears of Joy, XD, Happy
+😅    | Grinning Face with Sweat, ^^'
+🤔    | Thinking Face, Huuum
+💪    | Flexed Biceps, Power
+❝❞    | Fancy Quotes
+✅    | Check Mark Button
+✔️    | Check Mark, OK, Valid
+➡    | Right Arrow
+🙏    | Folded Hands, Thank you
+🙂    | Slightly Smiling Face, Happy, :)
+😓    | Downcast Face with Sweat, Sad, :(
+😐    | Neutral Face, :|
+⭐    | Star, Magic
+🌟    | Glowing Star, Magic
+✡    | Star of David
+😃    | Grinning Face with Big Eyes, Happy, :D
+👍    | Thumbs Up, +1
+💖    | Sparkling Heart
+😉    | Winking Face, ;)
+🤯    | Exploding Head, Mindblown
+🤐    | Zipper-Mouth Face
+🙌    | Raising Hands, Yay
+🍳    | Cooking
+😛    | Face with Tongue, :p
+│     | box drawings light vertical
 🎉    | Party Popper
+🙃    | Upside-Down Face, Welp, (:
+🔬    | Microscope, Science, Labo, Experiment
+😘    | Face Blowing a Kiss, <3
+👌    | OK Hand
+⛩️    | Shinto Shrine, Japan
+💙    | Blue Heart
+🏎️    | Racing Car
+📔    | Notebook with Decorative Cover
+🌲    | Evergreen Tree
+💠    | Diamond with a Dot
+🖕    | Middle Finger, Hand
+⬅     | Left Arrow
+⤵     | Right Arrow Curving Down
+📑    | Bookmark Tabs
+🧠    | Brain, Clever, Smart
+🎁    | Wrapped Gift
+👎    | Thumbs Down, Hand, -1
+👏    | Clapping Hands
+💀    | Skull, Dead, Death
+✏️    | Pencil, Drawing, Graphite
+😕    | Confused Face, Sad, :(
+👀    | Eyes, Look
+🤷    | Person Shrugging, Welp
+🍨    | Ice Cream, Fat
+🍪    | Cookie, Fat
+😪    | Sleepy Face, Zzzzz
+😶    | Face Without Mouth, No mouth, :|
 🌈    | Rainbow
+😤    | Face with Steam From Nose, Mad, Angry
+🤑    | Money-Mouth Face
+😌    | Relieved Face, :)
+🐈    | Cat
+👇    | Backhand Index Pointing Down, Hand
+🙄    | Face with Rolling Eyes, Yeeeeah, Right
+😀    | Grinning Face, Happy, :D
+🍽️    | Fork and Knife with Plate, Eat, Hungry
+🍑    | Peach
+🤤    | Drooling Face, bave
+😔    | Pensive Face, Dissapointed
+🗞️    | Rolled-Up Newspaper
+🍬    | Candy, Sweet
+❔    | White Question Mark
+❗    | Exclamation Mark
+❓    | Question Mark
+📂    | Open File Folder
+➕    | Plus Sign
+🌊    | Water Wave, Surf
+📺    | Television
+🛌    | Person in Bed
+☑    | Check Box with Check
+🤗    | Hugging Face
+💰    | Money Bag
+🗑️    | Wastebasket, Bin, Office trash
+🛸    | Flying Saucer
+🦋    | Butterfly
+😍    | Smiling Face with Heart-Eyes, <3
+🍆    | Eggplant
+😮    | Face with Open Mouth, Surprised, Wow, :o
+🥖    | Baguette Bread, France
+🌇    | Sunset
+🌅    | Sunrise
 🤡    | Clown Face
 ☠️    | Skull and Crossbones, Dead
 😰    | Anxious Face with Sweat, :o
 🥓    | Bacon
-🙄    | Face with Rolling Eyes, Yeeeeah, Right
-✅    | Check Mark Button
-✔️    | Check Mark, OK, Valid
 🕶️    | Sunglasses, Cool
 👨‍🍳  | Man Cook, Chef, Cuisine
-🤤    | Drooling Face, bave
 😄    | Grinning Face with Smiling Eyes, Happy, :D
 🚆    | Train
 🧡    | Orange Heart
 ⚰️    | Coffin, deat, death, funerals
-😕    | Confused Face, Sad, :(
-😌    | Relieved Face, :)
-🤯    | Exploding Head, Mindblown
-😘    | Face Blowing a Kiss, <3
-😐    | Neutral Face, :|
-😃    | Grinning Face with Big Eyes, Happy, :D
-😂    | Face with Tears of Joy, XD, Happy
-🙏    | Folded Hands, Thank you
-😀    | Grinning Face, Happy, :D
-💙    | Blue Heart
-🙂    | Slightly Smiling Face, Happy, :)
-🍽️    | Fork and Knife with Plate, Eat, Hungry
-💀    | Skull, Dead, Death
-💪    | Flexed Biceps, Power
 🍷    | Wine Glass, France
 🌮    | Tacos, Food, Eating
 ❌    | Cross Mark
 😠    | Angry Face, Mad, >:(
-😤    | Face with Steam From Nose, Mad, Angry
-❝❞    | Fancy Quotes
-🌟    | Glowing Star, Magic
 ✨    | Sparkles, Stars, Magic
 🚀    | Rocket
 🔤    | Input Latin Letters
-🔬    | Microscope, Science, Labo, Experiment
 📖    | Open Book
 🎯    | Direct Hit, Target, Arrow, Goal
 💾    | Floppy Disk, Data, Database
 📕    | Closed Book
 🍹    | Tropical Drink, Cocktail
-🙌    | Raising Hands, Yay
 🔎    | Magnifying Glass Tilted Right, Zoom, Search
 ⌨️    | Keyboard
 💻    | Laptop
-➡    | Right Arrow
 👩‍🍳  | Woman Cook, Chef, Cuisine
 🔥    | On fire, Hot, +1
 〞〝  | High Quotes
 «»    | Classical double Quotes
 ❮❯    | Weird Quotes
-😓    | Downcast Face with Sweat, Sad, :(
 🔗    | Link
 🧘    | Person in Lotus Position, Meditation
 💥    | Collision, Boom, Explosion
@@ -75,7 +129,6 @@
 🧪    | Test Tube, Science, Labo, Experiment
 ↗    | Up-Right Arrow
 🎶    | Musical Notes
-😔    | Pensive Face, Dissapointed
 🥜    | Peanuts
 🍎    | Red Apple
 🍱    | Bento Box
@@ -91,7 +144,6 @@
 🔩    | Nut and Bolt, DIY
 💩    | Pile of Poo, Caca
 💸    | Money with Wings
-💰    | Money Bag
 👨    | Man
 👪    | Family
 🏫    | School
@@ -101,8 +153,6 @@
 🏡    | House with Garden
 🚲    | Bicycle, Bike, Cycling
 🏠    | House
-🧠    | Brain, Clever, Smart
-❓    | Question Mark
 🤬    | Face with Symbols on Mouth, Mad, Fuck, Angry, >:(
 🎂    | Birthday Cake
 🍫    | Chocolate Bar
@@ -114,41 +164,31 @@
 🏃    | Person Running
 🚧    | Construction
 ⚠️    | Warning
-👋    | Waving Hand
 🔰    | Japanese Symbol for Beginner
-🙃    | Upside-Down Face, Welp, (:
 😁    | Beaming Face with Smiling Eyes, Happy, :D
 🏢    | Office Building
-📂    | Open File Folder
 😟    | Worried Face
 ☹️    | Frowning Face, :(
 🏘️    | Houses
-🐈    | Cat
 😆    | Grinning Squinting Face, Happy, X), XD
 🤣    | Rolling on the Floor Laughing, XD
-😉    | Winking Face, ;)
 😊    | Smiling Face with Smiling Eyes
 😇    | Smiling Face with Halo
 🥰    | Smiling Face with Hearts, <3
-😍    | Smiling Face with Heart-Eyes, <3
 🤩    | Star-Struck
 😗    | Kissing Face
 😚    | Kissing Face with Closed Eyes
 😙    | Kissing Face with Smiling Eyes
 😋    | Face Savoring Food
-😛    | Face with Tongue, :p
 😜    | Winking Face with Tongue, :p
 🤪    | Zany Face, :p
 😝    | Squinting Face with Tongue, :p
-🤑    | Money-Mouth Face
-🤗    | Hugging Face
 🤭    | Face with Hand Over Mouth
 🤫    | Shushing Face, Ssshhh
 🤨    | Face with Raised Eyebrow
 😏    | Smirking Face
 😒    | Unamused Face, :(
 🤥    | Lying Face, Sad
-😪    | Sleepy Face, Zzzzz
 😴    | Sleeping Face, Zzzzz
 😷    | Face with Medical Mask, Sick
 🤒    | Face with Thermometer, Sick
@@ -177,7 +217,6 @@
 😢    | Crying Face, Sad, :'(
 😭    | Loudly Crying Face, Sad, Tear, :'(
 😱    | Face Screaming in Fear, Scared, Aaaaah, :o
-😞    | Disappointed Face, Sad, :(
 😩    | Weary Face, Sad, :(
 😫    | Tired Face, Sad, :(
 😡    | Pouting Face, Mad, Angry, >:(
@@ -210,15 +249,11 @@
 🤙    | Call Me Hand
 👈    | Backhand Index Pointing Left, Hand
 👆    | Backhand Index Pointing Up, Hand
-🖕    | Middle Finger, Hand
-👇    | Backhand Index Pointing Down, Hand
 ☝️    | Index Pointing Up, Hand
-👎    | Thumbs Down, Hand, -1
 ✊    | Raised Fist, Hand
 👊    | Oncoming Fist, Hand
 🤛    | Left-Facing Fist, Hand
 🤜    | Right-Facing Fist, Hand
-👏    | Clapping Hands
 👐    | Open Hands
 🤲    | Palms Up Together, Hand
 🤝    | Handshake
@@ -231,7 +266,6 @@
 👃    | Nose, Smell
 🦷    | Tooth, Dentist
 🦴    | Bone, Dog
-👀    | Eyes, Look
 👁️    | Eye, Look
 👅    | Tongue
 👄    | Mouth
@@ -385,34 +419,34 @@
 🦇    | Bat
 🐻    | Bear
 🐨    | Koala
-🐼    | Panda
-🦘    | Kangaroo
+🐼    | Panda, Japan
+🦘    | Kangaroo, Australia
 🦡    | Badger
-🐾    | Paw Prints
+🐾    | Paw Prints, Steps, Animal
 🦃    | Turkey
 🐔    | Chicken
-🐓    | Rooster
-🐣    | Hatching Chick
-🐤    | Baby Chick
-🐥    | Front-Facing Baby Chick
+🐓    | Rooster, Chicken, Bird
+🐣    | Hatching Chick, Egg, Bird
+🐤    | Baby Chicken, Bird
+🐥    | Front-Facing Baby Chicken, Bird
 🐦    | Bird
 🐧    | Penguin, Ice, Cold
 🕊️    | Dove, Bird
-🦅    | Eagle
-🦆    | Duck
-🦢    | Swan
-🦉    | Owl
-🦚    | Peacock
-🦜    | Parrot
-🐸    | Frog
+🦅    | Eagle, Bird
+🦆    | Duck, Bird
+🦢    | Swan, Bird
+🦉    | Owl, bird
+🦚    | Peacock, Bird
+🦜    | Parrot, Bird
+🐸    | Frog, Toad
 🐊    | Crocodile
 🐢    | Turtle
-🦎    | Lizard
-🐍    | Snake
-🐲    | Dragon Face
-🐉    | Dragon
-🦕    | Sauropod
-🦖    | T-Rex
+🦎    | Lizard, Snake
+🐍    | Snake, Lizard
+🐲    | Dragon Face, Dinosaur
+🐉    | Dragon, Dinosaur
+🦕    | Sauropod, Dinosaur
+🦖    | T-Rex, Dinosaur
 🐳    | Spouting Whale
 🐋    | Whale
 🐬    | Dolphin
@@ -422,8 +456,7 @@
 🦈    | Shark
 🐙    | Octopus
 🐚    | Spiral Shell
-🐌    | Snail
-🦋    | Butterfly
+🐌    | Snail, France
 🐛    | Bug
 🐜    | Ant
 🐝    | Honeybee
@@ -445,7 +478,6 @@
 🌼    | Blossom
 🌷    | Tulip
 🌱    | Seedling
-🌲    | Evergreen Tree
 🌳    | Deciduous Tree
 🌴    | Palm Tree
 🌵    | Cactus
@@ -480,7 +512,6 @@
 🌜    | Last Quarter Moon Face
 ☀    | Sun
 🌞    | Sun with Face
-⭐    | Star, Magic
 🌠    | Shooting Star, Magic
 ☁️    | Cloud, Weather
 ⛅    | Sun Behind Cloud, Weather
@@ -502,7 +533,6 @@
 ⛄    | Snowman Without Snow
 ☄️    | Comet, Super, Discovery
 💧    | Droplet, Water
-🌊    | Water Wave, Surf
 🎄    | Christmas Tree, Sapling
 🎋    | Tanabata Tree
 🎍    | Pine Decoration
@@ -514,14 +544,12 @@
 🍍    | Pineapple
 🥭    | Mango
 🍏    | Green Apple
-🍑    | Peach
 🍒    | Cherries
 🍓    | Strawberry
 🥝    | Kiwi Fruit
 🍅    | Tomato
 🥥    | Coconut
 🥑    | Avocado
-🍆    | Eggplant
 🥔    | Potato
 🥕    | Carrot
 🌽    | Ear of Corn
@@ -532,7 +560,6 @@
 🍄    | Mushroom
 🌰    | Chestnut
 🥐    | Croissant
-🥖    | Baguette Bread
 🥨    | Pretzel
 🥯    | Bagel
 🥞    | Pancakes
@@ -546,7 +573,6 @@
 🥪    | Sandwich
 🌯    | Burrito
 🥙    | Stuffed Flatbread
-🍳    | Cooking
 🥘    | Shallow Pan of Food
 🍲    | Pot of Food
 🥗    | Green Salad
@@ -571,13 +597,10 @@
 🥡    | Takeout Box
 🍦    | Soft Ice Cream
 🍧    | Shaved Ice, Fat
-🍨    | Ice Cream, Fat
 🍩    | Doughnut, Fat
-🍪    | Cookie, Fat
 🍰    | Shortcake
 🧁    | Cupcake
 🥧    | Pie
-🍬    | Candy, Sweet
 🍭    | Lollipop, Sweet
 🍮    | Custard
 🍯    | Honey Pot
@@ -699,7 +722,6 @@
 ⛪    | Church
 🕌    | Mosque
 🕍    | Synagogue
-⛩️    | Shinto Shrine, Japan
 🕋    | Kaaba
 ⛲    | Fountain
 ⛺    | Tent
@@ -707,9 +729,7 @@
 🌃    | Night with Stars
 🏙    | Cityscape
 🌄    | Sunrise Over Mountains
-🌅    | Sunrise
 🌆    | Cityscape at Dusk
-🌇    | Sunset
 🌉    | Bridge at Night
 🎠    | Carousel Horse
 🎡    | Ferris Wheel
@@ -740,7 +760,6 @@
 🚚    | Delivery Truck
 🚛    | Articulated Lorry
 🚜    | Tractor
-🏎️    | Racing Car
 🏍️    | Motorcycle
 🛵    | Motor Scooter
 🛴    | Kick Scooter
@@ -767,7 +786,6 @@
 🚠    | Mountain Cableway
 🚡    | Aerial Tramway
 🛰️    | Satellite
-🛸    | Flying Saucer
 🌠    | Shooting Star
 🌌    | Milky Way
 ⛱    | Umbrella on Ground
@@ -787,7 +805,6 @@
 🕳️    | Hole
 💣    | Bomb
 🛀    | Person Taking Bath
-🛌    | Person in Bed
 🔪    | Kitchen Knife
 🏺    | Amphora
 🗺️    | World Map
@@ -814,7 +831,6 @@
 🎐    | Wind Chime
 🧧    | Red Envelope
 🎀    | Ribbon
-🎁    | Wrapped Gift
 🔮    | Crystal Ball
 🧿    | Nazar Amulet
 🕹️    | Joystick, Video games
@@ -846,7 +862,6 @@
 🎥    | Movie Camera
 🎞️    | Film Frames
 📽️    | Film Projector
-📺    | Television
 📷    | Camera, Photo
 📸    | Camera with Flash, Photo
 📹    | Video Camera
@@ -856,7 +871,6 @@
 💡    | Light Bulb
 🔦    | Flashlight, Torch
 🏮    | Red Paper Lantern
-📔    | Notebook with Decorative Cover
 📗    | Green Book
 📘    | Blue Book
 📙    | Orange Book
@@ -866,8 +880,6 @@
 📜    | Scroll
 📄    | Page Facing Up
 📰    | Newspaper
-🗞️    | Rolled-Up Newspaper
-📑    | Bookmark Tabs
 🔖    | Bookmark
 🏷️    | Label, Price Tag
 💴    | Yen Banknote
@@ -889,7 +901,6 @@
 📭    | Open Mailbox with Lowered Flag
 📮    | Postbox
 🗳️    | Ballot Box with Ballot
-✏️    | Pencil, Drawing, Graphite
 ✒️    | Black Nib, Ink
 🖋️    | Fountain Pen, Pen, Ink
 🖊️    | Pen
@@ -916,7 +927,6 @@
 ✂️    | Scissors, Cut
 🗃️    | Card File Box
 🗄️    | File Cabinet
-🗑️    | Wastebasket, Bin, Office trash
 🔒    | Locked
 🔓    | Unlocked
 🔏    | Locked with Pen
@@ -964,7 +974,6 @@
 🚰    | Potable Water
 💘    | Heart with Arrow
 💝    | Heart with Ribbon
-💖    | Sparkling Heart
 💗    | Growing Heart
 💓    | Beating Heart
 💞    | Revolving Hearts
@@ -1048,14 +1057,12 @@
 ↘    | Down-Right Arrow
 ⬇    | Down Arrow
 ↙    | Down-Left Arrow
-⬅    | Left Arrow
 ↖    | Up-Left Arrow
 ↕    | Up-Down Arrow
 ↔    | Left-Right Arrow
 ↩    | Right Arrow Curving Left
 ↪    | Left Arrow Curving Right
 ⤴    | Right Arrow Curving Up
-⤵    | Right Arrow Curving Down
 🔃    | Clockwise Vertical Arrows
 🔄    | Counterclockwise Arrows Button
 🔙    | Back Arrow
@@ -1066,7 +1073,6 @@
 🛐    | Place of Worship
 ⚛    | Atom Symbol
 🕉    | Om
-✡    | Star of David
 ☸    | Wheel of Dharma
 ☯    | Yin Yang
 ✝    | Latin Cross
@@ -1108,20 +1114,16 @@
 📳    | Vibration Mode
 📴    | Mobile Phone Off
 ✖    | Multiplication Sign
-➕    | Plus Sign
 ➖    | Minus Sign
 ➗    | Division Sign
 ♾    | Infinity
 ‼    | Double Exclamation Mark
 ⁉    | Exclamation Question Mark
-❔    | White Question Mark
 ❕    | White Exclamation Mark
-❗    | Exclamation Mark
 ♻️    | Recycling Symbol
 🔱    | Trident Emblem
 📛    | Name Badge
 ⭕    | Hollow Red Circle
-☑    | Check Box with Check
 ❎    | Cross Mark Button
 ➰    | Curly Loop
 ➿    | Double Curly Loop
@@ -1177,19 +1179,18 @@
 ⚪    | White Circle
 ⬛    | Black Large Square
 ⬜    | White Large Square
-◼    | Black Medium Square
-◻    | White Medium Square
+◼     | Black Medium Square
+◻     | White Medium Square
 ◾    | Black Medium-Small Square
 ◽    | White Medium-Small Square
-▪    | Black Small Square
-▫    | White Small Square
+▪     | Black Small Square
+▫     | White Small Square
 🔶    | Large Orange Diamond
 🔷    | Large Blue Diamond
 🔸    | Small Orange Diamond
 🔹    | Small Blue Diamond
 🔺    | Red Triangle Pointed Up
 🔻    | Red Triangle Pointed Down
-💠    | Diamond with a Dot
 🔳    | White Square Button
 🔲    | Black Square Button
 🏁    | Chequered Flag
@@ -1198,3 +1199,130 @@
 🏴    | Black Flag
 🏳️    | White Flag
 “”    | Small Quotes
+─     | box drawings light horizontal
+━     | box drawings heavy horizontal
+┃     | box drawings heavy vertical
+┄     | box drawings light triple dash horizontal
+┅     | box drawings heavy triple dash horizontal
+┆     | box drawings light triple dash vertical
+┇     | box drawings heavy triple dash vertical
+┈     | box drawings light quadruple dash horizontal
+┉     | box drawings heavy quadruple dash horizontal
+┊     | box drawings light quadruple dash vertical
+┋     | box drawings heavy quadruple dash vertical
+┌     | box drawings light down and right
+┍     | box drawings down light and right heavy
+┎     | box drawings down heavy and right light
+┏     | box drawings heavy down and right
+┐     | box drawings light down and left
+┑     | box drawings down light and left heavy
+┒     | box drawings down heavy and left light
+┓     | box drawings heavy down and left
+└     | box drawings light up and right
+┕     | box drawings up light and right heavy
+┖     | box drawings up heavy and right light
+┗     | box drawings heavy up and right
+┘     | box drawings light up and left
+┙     | box drawings up light and left heavy
+┚     | box drawings up heavy and left light
+┛     | box drawings heavy up and left
+├     | box drawings light vertical and right
+┝     | box drawings vertical light and right heavy
+┞     | box drawings up heavy and right down light
+┟     | box drawings down heavy and right up light
+┠     | box drawings vertical heavy and right light
+┡     | box drawings down light and right up heavy
+┢     | box drawings up light and right down heavy
+┣     | box drawings heavy vertical and right
+┤     | box drawings light vertical and left
+┥     | box drawings vertical light and left heavy
+┦     | box drawings up heavy and left down light
+┧     | box drawings down heavy and left up light
+┨     | box drawings vertical heavy and left light
+┩     | box drawings down light and left up heavy
+┪     | box drawings up light and left down heavy
+┫     | box drawings heavy vertical and left
+┬     | box drawings light down and horizontal
+┭     | box drawings left heavy and right down light
+┮     | box drawings right heavy and left down light
+┯     | box drawings down light and horizontal heavy
+┰     | box drawings down heavy and horizontal light
+┱     | box drawings right light and left down heavy
+┲     | box drawings left light and right down heavy
+┳     | box drawings heavy down and horizontal
+┴     | box drawings light up and horizontal
+┵     | box drawings left heavy and right up light
+┶     | box drawings right heavy and left up light
+┷     | box drawings up light and horizontal heavy
+┸     | box drawings up heavy and horizontal light
+┹     | box drawings right light and left up heavy
+┺     | box drawings left light and right up heavy
+┻     | box drawings heavy up and horizontal
+┼     | box drawings light vertical and horizontal
+┽     | box drawings left heavy and right vertical light
+┾     | box drawings right heavy and left vertical light
+┿     | box drawings vertical light and horizontal heavy
+╀     | box drawings up heavy and down horizontal light
+╁     | box drawings down heavy and up horizontal light
+╂     | box drawings vertical heavy and horizontal light
+╃     | box drawings left up heavy and right down light
+╄     | box drawings right up heavy and left down light
+╅     | box drawings left down heavy and right up light
+╆     | box drawings right down heavy and left up light
+╇     | box drawings down light and up horizontal heavy
+╈     | box drawings up light and down horizontal heavy
+╉     | box drawings right light and left vertical heavy
+╊     | box drawings left light and right vertical heavy
+╋     | box drawings heavy vertical and horizontal
+╌     | box drawings light double dash horizontal
+╍     | box drawings heavy double dash horizontal
+╎     | box drawings light double dash vertical
+╏     | box drawings heavy double dash vertical
+═     | box drawings double horizontal
+║     | box drawings double vertical
+╒     | box drawings down single and right double
+╓     | box drawings down double and right single
+╔     | box drawings double down and right
+╕     | box drawings down single and left double
+╖     | box drawings down double and left single
+╗     | box drawings double down and left
+╘     | box drawings up single and right double
+╙     | box drawings up double and right single
+╚     | box drawings double up and right
+╛     | box drawings up single and left double
+╜     | box drawings up double and left single
+╝     | box drawings double up and left
+╞     | box drawings vertical single and right double
+╟     | box drawings vertical double and right single
+╠     | box drawings double vertical and right
+╡     | box drawings vertical single and left double
+╢     | box drawings vertical double and left single
+╣     | box drawings double vertical and left
+╤     | box drawings down single and horizontal double
+╥     | box drawings down double and horizontal single
+╦     | box drawings double down and horizontal
+╧     | box drawings up single and horizontal double
+╨     | box drawings up double and horizontal single
+╩     | box drawings double up and horizontal
+╪     | box drawings vertical single and horizontal double
+╫     | box drawings vertical double and horizontal single
+╬     | box drawings double vertical and horizontal
+╭     | box drawings light arc down and right
+╮     | box drawings light arc down and left
+╯     | box drawings light arc up and left
+╰     | box drawings light arc up and right
+╱     | box drawings light diagonal upper right to lower left
+╲     | box drawings light diagonal upper left to lower right
+╳     | box drawings light diagonal cross
+╴     | box drawings light left
+╵     | box drawings light up
+╶     | box drawings light right
+╷     | box drawings light down
+╸     | box drawings heavy left
+╹     | box drawings heavy up
+╺     | box drawings heavy right
+╻     | box drawings heavy down
+╼     | box drawings light left and heavy right
+╽     | box drawings light up and heavy down
+╾     | box drawings heavy left and light right
+ 

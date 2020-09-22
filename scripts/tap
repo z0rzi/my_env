@@ -1,0 +1,84 @@
+#!/bin/bash
+
+_UP_='27 91 65'
+_DOWN_='27 91 66'
+_RIGHT_='27 91 67'
+_LEFT_='27 91 68'
+
+function analyzeSpecial() {
+    code=($@)
+
+    out='<'
+
+    if test ${#code[@]} -eq 6; then
+        case ${code[4]} in
+            "50") out+='S-' ;;
+            "51") out+='A-' ;;
+            "52") out+='SA-' ;;
+            "53") out+='C-' ;;
+            "54") out+='CS-' ;;
+            "55") out+='CA-' ;;
+            "56") out+='SCA-' ;;
+        esac
+
+        if [[ "${code[@]}" =~ 27\ 91\ 49\ 59\ 5.\ 70 ]]; then
+            code=(27 91 52 126)
+        elif [[ "${code[@]}" =~ 27\ 91\ 49\ 59\ 5.\ 72 ]]; then
+            code=(27 91 49 126)
+        elif [ ${code[2]} -eq 49 ] && [ ${code[3]} -eq 59 ]; then
+            code=(`awk '{printf "%d %d %d",$1,$2,$6}' <<< "${code[@]}"`)
+        elif [ ${code[3]} -eq 59 ]; then
+            code=(`awk '{printf "%d %d %d %d",$1,$2,$3,$6}' <<< "${code[@]}"`)
+        fi
+    fi
+
+    if test ${#code[@]} -eq 3; then
+        case ${code[2]} in
+            "65") out+='UP' ;;
+            "66") out+='DOWN' ;;
+            "67") out+='RIGHT' ;;
+            "68") out+='LEFT' ;;
+        esac
+    elif [ ${#code[@]} -eq 4 ] && [ ${code[3]} -eq 126 ] ; then
+        case ${code[2]} in
+            "51") out+='BS' ;;
+            "49") out+='HOME' ;;
+            "52") out+='END' ;;
+            "53") out+='PGUP' ;;
+            "54") out+='PGDOWN' ;;
+        esac
+    fi
+
+    out+='>'
+
+    printf $out | trim
+}
+
+function captureTap() {
+    code=''
+    cara=' '
+
+    read -n1 cara
+    while test ${#cara} -ne 0; do
+        code+=" `printf '%d' \'$cara`"
+
+        read -n1 -t .01 cara
+    done
+
+    # Trimming...
+    code=`trim <<< $code`
+
+    if [ "$code" = "127" ]; then
+        echo "<BS>"
+    elif [ "$code" = "27 127" ]; then
+        echo "<A-BS>"
+    elif [ "$code" = "8" ]; then
+        echo "<C-BS>"
+    elif [[ $code =~ ^27 ]]; then
+        analyzeSpecial $code
+    else
+        awk '{printf "%c",$1}' <<< $code | trim
+    fi
+}
+
+captureTap
