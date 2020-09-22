@@ -791,145 +791,6 @@
         autocmd StdinReadPre * let s:std_in=1
         nmap s <plug>(easymotion-overwin-f2)
 
-    " NerdTree
-        " let g:NERDTreeIgnore = ['\.class$', '\.log']
-        " " autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
-        " autocmd StdinReadPre * let s:std_in=1
-        " " autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
-        " autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'cd '.argv()[0] | endif
-        " let g:NERDTreeDirArrowExpandable = '┆'
-        " let g:NERDTreeDirArrowCollapsible = '🢆'
-        " let g:NERDTreeMapQuit = '<ESC>'
-        " let g:NERDTreeQuitOnOpen = 0
-        " let g:NERDChristmasTree = 1
-        " " let g:NERDTreeMinimalUI = 1
-        " let g:NERDTreeWinPos = "left"
-        " let g:NERDTreeWinSize = 30
-
-        " function! GetOpenedBuffers()
-        "     return filter(range(1, bufnr('$')), 'buflisted(v:val)')
-        " endfunction
-        " function! NtIsOpened()
-        "     return g:NERDTree.IsOpen()
-        " endfunction
-        " function! CursorInNt()
-        "     if bufname() =~ 'NERD_tree_\d'
-        "         return 1
-        "     endif
-        "     let bufnr = 0
-        "     while bufnr < bufnr('$')
-        "         let bufnr += 1
-        "         if getbufvar(bufnr, 'NERDTree', {}) != {}
-        "             if bufnr == bufnr()
-        "                 return 1
-        "             endif
-        "         endif
-        "     endwhile
-        "     return 0
-        " endfunction
-        " function! OnNtEnter()
-        "     if winnr("$") == 1
-        "         let buffs = filter(GetOpenedBuffers(), 'v:val != '.g:Nt_LastLeftBuffer)
-        "         if len(buffs) > 0
-        "             exe "b".buffs[0]
-        "             NERDTreeFind
-        "             exe "norm! \<C-w>w"
-        "         else
-        "             quit
-        "         endif
-        "     else
-        "         if winwidth(win_getid()) < g:NERDTreeWinSize
-        "             exe "vertical resize " . g:NERDTreeWinSize
-        "         endif
-        "     endif
-        "     return
-        " endfunction
-        " function! OnNtLeave()
-        "     return
-        " endfunction
-        " function! OnFileEnter()
-        "     if ! NtIsOpened() | return | endif
-
-        "     let win = win_getid()
-        "     NERDTreeFind
-        "     call win_gotoid(win)
-        " endfunction
-        " function! OnFileleave()
-        " endfunction
-        " function! NtBuffEnter()
-        "     if exists('g:Nt_operating') && g:Nt_operating == 1 | return | endif
-        "     if exists('g:Nt_lastOpe') && g:Nt_lastOpe == 'BuffIn' | return | endif
-        "     let g:Nt_lastOpe = 'BuffIn'
-        "     let g:Nt_operating = 1
-        "     if CursorInNt()
-        "         call OnNtEnter()
-        "     elseif CursorInFileWindow()
-        "         call OnFileEnter()
-        "     endif
-        "     let g:Nt_operating = 0
-        " endfunction
-        " function! NtBuffLeave()
-        "     if exists('g:Nt_operating') && g:Nt_operating == 1 | return | endif
-        "     if exists('g:Nt_lastOpe') && g:Nt_lastOpe == 'BuffOut' | return | endif
-        "     let g:Nt_lastOpe = 'BuffOut'
-        "     let g:Nt_operating = 1
-        "     let g:Nt_LastLeftBuffer = bufnr()
-        "     if CursorInNt()
-        "         call OnNtLeave()
-        "     elseif CursorInFileWindow()
-        "         call OnFileleave()
-        "     endif
-        "     let g:Nt_operating = 0
-        " endfunction
-        " autocmd BufEnter,WinEnter * call NtBuffEnter()
-        " autocmd BufLeave,WinLeave * call NtBuffLeave()
-
-        " nmap <LEADER>6 :NERDTreeClose<CR>:let @f="<C-r>%"<CR>:NERDTreeVCS<CR>:NERDTreeFind <C-r>f<CR>
-        " nmap <LEADER>5 :NERDTreeFind<CR>
-
-        " autocmd filetype nerdtree set tabstop=2 shiftwidth=2 noexpandtab
-
-        " " simple click
-        " let NERDTreeMouseMode=3
-
-        " NERDTree File highlighting
-        function! NERDTreeHighlightFile(extension, link)
-            exec 'autocmd filetype coc-explorer highlight link ' . a:extension .' '.a:link
-            exec 'autocmd filetype coc-explorer syn match ' . a:extension .' #^\%\(\W\|M\)*\ze\w.*'. a:extension .'\>#'
-        endfunction
-        autocmd filetype coc-explorer highlight link folders GruvboxGrayItalic
-        autocmd filetype coc-explorer syn match folders #^\W*.*#
-
-        call NERDTreeHighlightFile('txt', 'GruvboxBlue')
-        call NERDTreeHighlightFile('md',  'GruvboxBlue')
-        call NERDTreeHighlightFile('css', 'GruvboxBlue')
-        call NERDTreeHighlightFile('vim', 'GruvboxBlue')
-
-        call NERDTreeHighlightFile('ini',        'GruvboxAqua')
-        call NERDTreeHighlightFile('sh',        'GruvboxAqua')
-        call NERDTreeHighlightFile('gql',        'GruvboxAqua')
-        call NERDTreeHighlightFile('yaml',       'GruvboxAqua')
-        call NERDTreeHighlightFile('yml',        'GruvboxAqua')
-        call NERDTreeHighlightFile('config',     'GruvboxAqua')
-        call NERDTreeHighlightFile('conf',       'GruvboxAqua')
-        call NERDTreeHighlightFile('Dockerfile', 'GruvboxAqua')
-
-        call NERDTreeHighlightFile('json', 'GruvboxYellow')
-        call NERDTreeHighlightFile('csv',  'GruvboxYellow')
-
-        call NERDTreeHighlightFile('html', 'GruvboxPurple')
-        call NERDTreeHighlightFile('php',  'GruvboxPurple')
-
-        call NERDTreeHighlightFile('png', 'GruvboxGray')
-        call NERDTreeHighlightFile('jpg',  'GruvboxGray')
-        call NERDTreeHighlightFile('jpeg',  'GruvboxGray')
-
-        call NERDTreeHighlightFile('py',     'GruvboxRed')
-        call NERDTreeHighlightFile('coffee', 'GruvboxRed')
-        call NERDTreeHighlightFile('js',     'GruvboxRed')
-        call NERDTreeHighlightFile('ts',     'GruvboxRed')
-        call NERDTreeHighlightFile('vue',     'GruvboxRed')
-
     " FZF
         let g:fzf_history_dir = '~/.local/share/fzf-history'
         let g:fzf_nvim_statusline = 0 " disable statusline overwriting
@@ -1028,11 +889,6 @@
             " Fuzzy search
             Plugin 'junegunn/fzf'
             Plugin 'junegunn/fzf.vim'
-
-            " tree file explorer
-            " Plugin 'scrooloose/nerdtree'
-            " Plugin 'Xuyuanp/nerdtree-git-plugin'
-
 
             " Buffer stuff
             " Plugin 'taohexxx/lightline-buffer'
@@ -1328,10 +1184,6 @@
 
             nnoremap <leader>t :Tabular /
             vnoremap <leader>t :Tabular /
-
-        " NerdTree toggle
-            " nnoremap <LEADER>f <CMD>NERDTreeToggle<CR>
-            " nnoremap <F2> <CMD>NERDTreeToggle<CR>
 
         " FZF
             nnoremap <C-p> <CMD>call FZFFindFile()<CR>
