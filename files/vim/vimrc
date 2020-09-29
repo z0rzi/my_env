@@ -118,6 +118,71 @@
 " 
 " FUNCTIONS
 " 
+    function! DoAtEach(macro, range)
+        let save = winsaveview()
+        let count = 0
+        if a:range < 0
+            let searchSave = @/
+            call setpos('.', [0, 1, 1, 0])
+            while search(@/, 'W')
+                let count += 1
+
+                exe "exe \"norm! " . substitute(a:macro, '<[a-zA-Z-]\+>\|"', '\\&', 'gi') . "\""
+
+                let @/ = searchSave
+
+                if count > 2000
+                    break
+                endif
+            endwhile
+        else
+            call setpos('.', getpos("'<"))
+            let botline = line("'>")
+            while line('.') <= botline
+
+                exe "exe \"norm! ^" . substitute(a:macro, '<[a-zA-Z-]\+>\|"', '\\&', 'gi') . "\""
+                norm!j
+
+                let count += 1
+                if count > 2000
+                    break
+                endif
+            endwhile
+            " norm!gv
+        endif
+
+        call winrestview(save)
+    endfunction
+    command! -range -nargs=+  MacroToAll call DoAtEach('<args>', '<count>')
+    command! -range -nargs=+  M call DoAtEach('<args>', '<count>')
+
+    function! ParseErrorLine(errLine)
+        let data = split(a:errLine, ':')
+        let filename = remove(data, 0)
+        if len(data) > 0
+            let line = remove(data, 0)
+        else
+            let line = 1
+        endif
+        if len(data) > 0
+            let column = remove(data, 0)
+        else
+            let column = 1
+        endif
+        exe "edit ".filename
+        call cursor(line, column)
+        filetype detect
+        redraw!
+    endfunction
+    command! -nargs=+  Err call ParseErrorLine('<args>')
+    nnoremap <LEADER><LEADER> :Err<SPACE>
+
+    function HandleSignal()
+        let message = readfile('/tmp/vim_sig.txt')
+        call ParseErrorLine(message[0])
+    endfunction
+
+    autocmd Signal SIGUSR1 call HandleSignal()
 
     function! ComparePositions(pos1, pos2)
         if a:pos1[0] < a:pos2[0]
@@ -366,35 +431,141 @@
         return ''
     endfunction
 
-    function! SelectSmallestRangePossible(external)
-        let lineCopy = getline('.')
-        let curPos = col('.')
-
-        let lineCopy = lineCopy[:curPos-2] . '@' . lineCopy[curPos-1] . '@' . lineCopy[curPos:]
-
-        " echo lineCopy
-        let lineCopy = substitute(lineCopy, '[^"[\](){}@<>`'."'".']', '', 'g')
-
-        let i=0
-        while lineCopy =~ '{}\|\[\]\|()\|""\|<>\|``\|'."''"
-            let lineCopy = substitute(lineCopy, '{}\|\[\]\|()\|""\|``\|<>\|'."''", '', 'g')
-            if i>10
+    function! CountBefore(rx, until_pos)
+        let save = winsaveview()
+        let count=0
+        while search(a:rx, 'Wb', a:until_pos[0])
+            if col('.') > a:until_pos[1]
+                let count += 1
+            else
                 break
             endif
         endwhile
-        let lineCopy = substitute(lineCopy, '@@', '@', 'g')
+        call winrestview(save)
+        return count
+    endfunction
 
-        let cara = matchstr(lineCopy, '.\ze@[^@]*$')
+    function! FindNextCouple(couple, reverse)
+        if a:reverse && CursorOnMatch(a:couple[0]) || ! a:reverse && CursorOnMatch(a:couple[1])
+            let pos = getpos('.')[1:2]
+            return pos
+        endif
+        let save = winsaveview()
+        let stack = 0
+        if a:reverse
+            let flags = 'Wb'
+        else
+            let flags = 'W'
+        endif
+        while search(a:couple[0].'\|'.a:couple[1], flags)
+            if CursorOnMatch(a:couple[0])
+                let stack += 1
+            else
+                let stack -= 1
+            endif
+            if a:reverse && stack > 0 || !a:reverse && stack < 0
+                break
+            endif
+        endwhile
+        let pos = getpos('.')[1:2]
+        call winrestview(save)
+        return pos
+    endfunction
 
-        if cara == ''
+    function! FindSmallestRangePossible(in)
+        let couples = [
+                    \   ['['         , ']'         , 1],
+                    \   ['<'         , '>'         , 1],
+                    \   ['{'         , '}'         , 1],
+                    \   ['('         , ')'         , 1],
+                    \   ['\/\*'      , '\*\/'        , 1],
+                    \   ['"'         , '"'         , 0],
+                    \   ["'"         , "'"         , 0],
+                    \   ['[^`]`[^`]' , '[^`]`[^`]' , 1],
+                    \   ['`'         , '`'         , 1],
+                    \ ]
+        let best_before = [0, 0]
+        let best_after = [0, 0]
+        let best_couple = []
+
+        let save = winsaveview()
+        for couple in couples
+            let [start, end, wraps] = couple
+            let before = searchpos(start, 'Wbnc')
+            let after = searchpos(end, 'Wnce')
+            
+            if before == [0, 0] || after == [0, 0]
+                continue
+            endif
+
+            if before == after
+                let limit_line = 0
+                if !wraps | let limit_line = line('.') | endif
+                if CountBefore(start, [limit_line, 0]) % 2 == 0
+                    call setpos('.', [0, line('.'), col('.')+1, 0])
+                else
+                    call setpos('.', [0, line('.'), col('.')-1, 0])
+                endif
+                let before = searchpos(start, 'Wbnc')
+                let after = searchpos(end, 'Wnce')
+            endif
+
+            if best_before == [0, 0] || best_after == [0, 0] || ( 
+                \   ComparePositions(best_before, before)>0
+                \   && ComparePositions(after, best_after)>0
+                \ )
+                if start == end
+                    let limit_line = 0
+                    if !wraps | let limit_line = line('.') | endif
+                    if CountBefore(start, [limit_line, 0]) % 2 == 0
+                        continue
+                    endif
+                else
+                    let _before = FindNextCouple(couple, 1)
+                    let _after = FindNextCouple(couple, 0)
+                    if _before == before
+                        let after = _after
+                    elseif _after == after
+                        let before = _before
+                    else
+                        continue
+                    endif
+                endif
+                let best_before = before
+                let best_after = after
+                let best_couple = couple
+            endif
+            call winrestview(save)
+        endfor
+
+        if best_before == [0, 0] || best_after == [0, 0]
+            return [0]
+        endif
+
+        if (a:in)
+            call setpos('.', [0] + best_before + [0])
+            call search(best_couple[0], 'ecW')
+            call search('\s*[^[:blank:]]\|^')
+            let best_before = getpos('.')[1:2]
+
+            call setpos('.', [0] + best_after + [0])
+            call search(best_couple[1], 'bcW')
+            call search('[^[:blank:]]\s*\|$', 'be')
+            let best_after = getpos('.')[1:2]
+            call winrestview(save)
+        endif
+
+        return [best_before, best_after, best_couple]
+    endfunction
+
+    function! SelectSmallestRangePossible(external)
+        let res = FindSmallestRangePossible(! a:external )
+        if res == [0]
             return
         endif
-
-        let cmd = "normal! vi" . cara
-        if a:external
-            let cmd = cmd . 'loho'
-        endif
-        execute cmd
+        call setpos("'<", [0] + res[0] + [0])
+        call setpos("'>", [0] + res[1] + [0])
+        norm!gv
     endfunction
 
     function! VimToGrepRegex(str)
@@ -453,18 +624,18 @@
 
         let previewLines = string(float2nr(&lines * 0.4))
 
-        let ignoredFilesStr = ''
-        for f in g:ignoredFiles
-            let ignoredFilesStr .= ' ! -name "' . f . '"'
-        endfor
+        " let ignoredFilesStr = ''
+        " for f in g:ignoredFiles
+        "     let ignoredFilesStr .= ' ! -name "' . f . '"'
+        " endfor
 
-        let ignoredDirsStr = ''
-        for d in g:ignoredDirs
-            let ignoredDirsStr .= ' ! -path "*/' . d . '/*"'
-        endfor
+        " let ignoredDirsStr = ''
+        " for d in g:ignoredDirs
+        "     let ignoredDirsStr .= ' ! -path "*/' . d . '/*"'
+        " endfor
 
-        let cmd = 'grep -Isnr ' . grepArgs . ' --color=always "' . grepStr . '" $(ls --color=never -t $(find . -type f  ' . ignoredFilesStr . ' ' . ignoredDirsStr . ') 2> /dev/null )'
         " let preview = '"echo {} | awk -F: ''{printf(\"sed -n %d,%dp %s\",(\$2>'.previewLines.'?\$2-'.previewLines.':1), \$2+'.previewLines.', \$1)}'' | xargs -I% bash -c \"%\" | highlight --syntax (echo \"{}\" | sed -e \"s/:.*\\$//g\") -O ansi | grep -C 100 --color=always \"' . grepStr . '\" "'
+        let cmd = 'grep-r "' . grepStr . '" ' . grepArgs
         let preview = '"preview.sh {} '.previewLines.' | grep -C 100 --color=always \"'.grepStr.'\""'
         call fzf#run({'source': cmd, 'sink': function('s:FZFOpenVimOutput'), 'options': '-e --no-sort --ansi --multi --sync --preview=' . preview , 'down':'40%' })
     endfunction
@@ -730,6 +901,30 @@
     " Vim LightLine
 
         " use lightline-buffer in lightline
+        " let g:lightline = {
+        "             \ 'tabline': {
+        "             \   'left': [ [ 'bufferinfo' ],
+        "             \             [ 'separator' ],
+        "             \             [ 'bufferbefore', 'buffercurrent', 'bufferafter' ], ],
+        "             \   'right': [ [ 'close' ], ],
+        "             \ },
+        "             \ 'component_expand': {
+        "             \   'buffercurrent': 'lightline#buffer#buffercurrent',
+        "             \   'bufferbefore': 'lightline#buffer#bufferbefore',
+        "             \   'bufferafter': 'lightline#buffer#bufferafter',
+        "             \ },
+        "             \ 'component_type': {
+        "             \   'buffercurrent': 'tabsel',
+        "             \   'bufferbefore': 'raw',
+        "             \   'bufferafter': 'raw',
+        "             \ },
+        "             \ 'component_function': {
+        "             \   'bufferinfo': 'lightline#buffer#bufferinfo',
+        "             \ },
+        "             \ 'component': {
+        "             \   'separator': '',
+        "             \ },
+        "             \ }
         let g:lightline = {
             \ 'colorscheme': 'powerline',
             \ 'active': {
@@ -753,9 +948,48 @@
             \ },
         \ }
 
+        " NERDTree File highlighting
+        function! ExplorerHighlight(extension, link, all)
+            exec 'autocmd filetype coc-explorer highlight link ' . a:extension .' '.a:link
+            if a:all
+                exec 'autocmd filetype coc-explorer syn match ' . a:extension .' #^\W*\zs\w.*'. a:extension .'\>\s\+#'
+            else
+                exec 'autocmd filetype coc-explorer syn match ' . a:extension .' #^\W*\w.*\zs'. a:extension .'\>\ze\s\+#'
+            endif
+        endfunction
+
+        call ExplorerHighlight('txt', 'GruvboxBlue', 0)
+        call ExplorerHighlight('md',  'GruvboxBlue', 0)
+        " call ExplorerHighlight('css', 'GruvboxBlue', 0)
+
+        call ExplorerHighlight('lock',    'GruvboxBlackItalic', 1)
+        call ExplorerHighlight('conf',    'GruvboxBlackItalic', 1)
+        call ExplorerHighlight('config',  'GruvboxBlackItalic', 1)
+        call ExplorerHighlight('gql',     'GruvboxBlackItalic', 1)
+        call ExplorerHighlight('ini',     'GruvboxBlackItalic', 1)
+        call ExplorerHighlight('css',     'GruvboxBlackItalic', 1)
+        call ExplorerHighlight('json',    'GruvboxBlackItalic', 1)
+        call ExplorerHighlight('spec.ts', 'GruvboxBlackItalic', 1)
+        call ExplorerHighlight('ico',     'GruvboxBlackItalic', 1)
+
+        call ExplorerHighlight('csv',  'GruvboxYellow', 0)
+
+        call ExplorerHighlight('yaml',       'GruvboxAqua', 0)
+        call ExplorerHighlight('yml',        'GruvboxAqua', 0)
+        call ExplorerHighlight('Dockerfile', 'GruvboxAqua', 0)
+
+        call ExplorerHighlight('html', 'GruvboxPurple', 0)
+        call ExplorerHighlight('php',  'GruvboxPurple', 0)
+
+        call ExplorerHighlight('py',     'GruvboxRed', 0)
+        call ExplorerHighlight('coffee', 'GruvboxRed', 0)
+        call ExplorerHighlight('js',     'GruvboxRed', 0)
+        call ExplorerHighlight('ts',     'GruvboxRed', 0)
+
         let g:lightline.component_raw = {'buffers': 1}
         let g:lightline#bufferline#enable_devicons = 1
         let g:lightline#bufferline#clickable = 1
+        " let g:lightline#bufferline#reverse_buffers = 1
 
         let g:lightline.separator = {
             \   'left': '', 'right': ''
@@ -816,7 +1050,7 @@
         " Gotta go fast!
         " 
             " move lightning fast
-            Plugin 'easymotion/vim-easymotion'
+            " Plugin 'easymotion/vim-easymotion'
 
             " indent range
             Plugin 'vim-indent-object'
@@ -834,9 +1068,6 @@
                 " Snippets
                 Plugin 'sirver/UltiSnips'
             endif
-
-
-            Plugin 'christoomey/vim-tmux-navigator'
 
         " 
         " Pretty editor
@@ -861,9 +1092,13 @@
             " Plugin 'leafOfTree/vim-vue-plugin'
 
             " React
-                Plugin 'pangloss/vim-javascript'
-                Plugin 'peitalin/vim-jsx-typescript'
-                Plugin 'styled-components/vim-styled-components', { 'branch': 'main' }
+            Plugin 'pangloss/vim-javascript'
+            Plugin 'peitalin/vim-jsx-typescript'
+            Plugin 'styled-components/vim-styled-components', { 'branch': 'main' }
+
+            " Angular
+            Plugin 'burnettk/vim-angular'
+            Plugin 'othree/javascript-libraries-syntax.vim'
 
             " Typescript
             Plugin 'leafgarland/typescript-vim'
@@ -878,7 +1113,7 @@
         " Others
         " 
             " Vim Blames
-            Plugin 'zivyangll/git-blame.vim'
+            " Plugin 'zivyangll/git-blame.vim'
 
             " visual GIT modifs
             Plugin 'airblade/vim-gitgutter'
@@ -892,17 +1127,13 @@
 
             " Buffer stuff
             " Plugin 'taohexxx/lightline-buffer'
-            Plugin 'mengelbrecht/lightline-bufferline'
+            Plugin 'z0rzi/lightline-bufferline'
             
 
             " Linting
             " Plugin 'dense-analysis/ale' " Requires eslint to work (pacman -S eslint)
 
             Plugin 'neoclide/coc.nvim', {'branch': 'release'}
-
-            " Windows resizing
-            " Plugin 'roman/golden-ratio'
-            " Plugin 'zhaocai/GoldenView.Vim'
 
 
         " 
@@ -1200,11 +1431,16 @@
 
     " Buffer related maps
         " Buffers navigation 
-            nnoremap <Tab> <CMD>bnext<CR>
-            nnoremap <S-Tab> <CMD>bprev<CR>
+            " nnoremap <Tab> <CMD>bnext<CR>
+            " nnoremap <S-Tab> <CMD>bprev<CR>
+            nnoremap <Tab> <CMD>call lightline#bufferline#next()<CR>
+            nnoremap <S-Tab> <CMD>call lightline#bufferline#prev()<CR>
+            " nnoremap <Tab> <CMD>b#<CR>
+            " nnoremap <S-Tab> <CMD>:Buffers<CR>
 
         " Buffer management
-            nnoremap <LEADER>q <CMD>bprev<BAR>bd#<CR>
+            nnoremap <LEADER>q <CMD>call lightline#bufferline#remove()<CR>
+            " nnoremap <LEADER>q <CMD>bprev<BAR>bd#<CR>
             nnoremap <LEADER>Q <CMD>bd<CR>
 
     " New Ideas
@@ -1224,9 +1460,6 @@
             inoremap )) (<CMD>call SmartJumpToEnd()<CR><RIGHT>)
             inoremap ]] [<CMD>call SmartJumpToEnd()<CR><RIGHT>]
             inoremap }} {<CMD>call SmartJumpToEnd()<CR><RIGHT>}
-            inoremap )<TAB> (<CMD>call SmartJumpToEnd()<CR><RIGHT>)
-            inoremap ]<TAB> [<CMD>call SmartJumpToEnd()<CR><RIGHT>]
-            inoremap }<TAB> {<CMD>call SmartJumpToEnd()<CR><RIGHT>}
 
         " Backspace selector
             function! BSOperator()
@@ -1364,6 +1597,7 @@
         autocmd BufNewFile,BufRead *.coffee set filetype=coffee
         autocmd BufNewFile,BufRead *.jrl set filetype=journal
         autocmd BufNewFile,BufRead *.nim set filetype=nim
+        autocmd BufNewFile,BufRead Jenkinsfile set filetype=groovy
 
     " Highlight current selection
         let g:selMatches = ''
@@ -1408,67 +1642,3 @@
         iab \\> ⤷
         iab \! ⚠
 
-function! DoAtEach(macro, range)
-    let save = winsaveview()
-    let count = 0
-    if a:range < 0
-        call setpos('.', [0, 1, 1, 0])
-        while search(@/, 'W')
-            let count += 1
-
-            exe "exe \"norm! " . substitute(a:macro, '<[a-zA-Z-]\+>\|"', '\\&', 'gi') . "\""
-
-            if count > 2000
-                break
-            endif
-        endwhile
-    else
-        call setpos('.', getpos("'<"))
-        let botline = line("'>")
-        while line('.') <= botline
-
-            exe "exe \"norm! ^" . substitute(a:macro, '<[a-zA-Z-]\+>\|"', '\\&', 'gi') . "\""
-            norm!j
-
-            let count += 1
-            if count > 2000
-                break
-            endif
-        endwhile
-        " norm!gv
-    endif
-
-    call winrestview(save)
-endfunction
-command! -range -nargs=+  MacroToAll call DoAtEach('<args>', '<count>')
-command! -range -nargs=+  M call DoAtEach('<args>', '<count>')
-
-
-
-function! ParseErrorLine(errLine)
-    let data = split(a:errLine, ':')
-    let filename = remove(data, 0)
-    if len(data) > 0
-        let line = remove(data, 0)
-    else
-        let line = 1
-    endif
-    if len(data) > 0
-        let column = remove(data, 0)
-    else
-        let column = 1
-    endif
-    exe "edit ".filename
-    call cursor(line, column)
-    filetype detect
-    redraw!
-endfunction
-command! -nargs=+  Err call ParseErrorLine('<args>')
-nnoremap <LEADER><LEADER> :Err<SPACE>
-
-function HandleSignal()
-    let message = readfile('/tmp/vim_sig.txt')
-    call ParseErrorLine(message[0])
-endfunction
-
-autocmd Signal SIGUSR1 call HandleSignal()

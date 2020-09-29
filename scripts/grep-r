@@ -1,0 +1,43 @@
+#!/bin/bash
+
+FILE_EXT_BLACKLIST='ico png jpg jpeg lock'
+DIR_BLACKLIST='.git node_modules target __pycache__ cache coverage dist'
+
+
+FORMATTED_DIR_BL="-name `sed -e 's/\s\+/ -o -name /g' <<< $DIR_BLACKLIST`"
+FORMATTED_FILE_BL="`sed -e 's/\s\([a-z]\+\)/ -o -name "*.\1"/g' -e 's/^[a-z]\+/ -name "*.&"/g' <<< $FILE_EXT_BLACKLIST`"
+
+if [ $# -eq 0 ]; then
+    echo "USAGE = 'grep-r REGEX [ paths ]'"
+    exit;
+fi
+
+rx=$1
+shift
+grep_opts=''
+paths=''
+while [ $# -gt 0 ]; do
+    if [[ $1 =~ ^- ]]; then
+        grep_opts="$grep_opts $1"
+    else
+        paths="$paths $1"
+    fi
+    shift
+done
+
+[ ! "$paths" ] && paths='./'
+
+function look {
+    for dir in "$@"; do
+        for file in `find $dir -maxdepth 1 -type f -size 1M -not \( $FORMATTED_FILE_BL \)`; do
+            local fileName=$(echo $file | tr '/' '\n' | tail -n1)
+            timeout -s SIGINT 1 grep $grep_opts -HIsnr --color=always "$rx" $file
+        done
+        for file in `find $dir -maxdepth 1 -type d -not \( -path "$dir" -o $FORMATTED_DIR_BL \)`; do
+            local fileName=$(echo $file | tr '/' '\n' | tail -n1)
+            look "$file/"
+        done
+    done
+}
+
+look $paths

@@ -4,7 +4,13 @@ while read line
     echo $line | read alias cmd
     if test -n "$alias"  -a -n "$cmd"
         alias "$alias" "$cmd"
-        eval "function \\\\$alias; bash -c \"$alias \$argv\"; end"
+        function \\$alias -V alias
+            set args ''
+            for arg in $argv;
+                set args "$args "(string replace -r -a "[[:space:]*\\\\]" '\\\\\\\\$0' $arg)
+            end
+            bash -c "$alias $args"
+        end
     end
 end < $HOME/.config/fish/aliases
 

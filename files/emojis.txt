@@ -1,6 +1,20 @@
-🧗    | Person Climbing
-👋    | Waving Hand
+⚠️    | Warning
+➡    | Right Arrow
+🙂    | Slightly Smiling Face, Happy, :)
 😞    | Disappointed Face, Sad, :(
+😓    | Downcast Face with Sweat, Sad, :(
+─     | box drawings light horizontal
+🔥    | On fire, Hot, +1
+🦎    | Lizard, Snake
+👋    | Waving Hand
+🚀    | Rocket
+✨    | Sparkles, Stars, Magic
+🎯    | Direct Hit, Target, Arrow, Goal
+🔬    | Microscope, Science, Labo, Experiment
+📕    | Closed Book
+🌟    | Glowing Star, Magic
+⭐    | Star, Magic
+🧗    | Person Climbing
 😂    | Face with Tears of Joy, XD, Happy
 😅    | Grinning Face with Sweat, ^^'
 🤔    | Thinking Face, Huuum
@@ -8,13 +22,8 @@
 ❝❞    | Fancy Quotes
 ✅    | Check Mark Button
 ✔️    | Check Mark, OK, Valid
-➡    | Right Arrow
 🙏    | Folded Hands, Thank you
-🙂    | Slightly Smiling Face, Happy, :)
-😓    | Downcast Face with Sweat, Sad, :(
 😐    | Neutral Face, :|
-⭐    | Star, Magic
-🌟    | Glowing Star, Magic
 ✡    | Star of David
 😃    | Grinning Face with Big Eyes, Happy, :D
 👍    | Thumbs Up, +1
@@ -28,7 +37,6 @@
 │     | box drawings light vertical
 🎉    | Party Popper
 🙃    | Upside-Down Face, Welp, (:
-🔬    | Microscope, Science, Labo, Experiment
 😘    | Face Blowing a Kiss, <3
 👌    | OK Hand
 ⛩️    | Shinto Shrine, Japan
@@ -102,19 +110,14 @@
 🌮    | Tacos, Food, Eating
 ❌    | Cross Mark
 😠    | Angry Face, Mad, >:(
-✨    | Sparkles, Stars, Magic
-🚀    | Rocket
 🔤    | Input Latin Letters
 📖    | Open Book
-🎯    | Direct Hit, Target, Arrow, Goal
 💾    | Floppy Disk, Data, Database
-📕    | Closed Book
 🍹    | Tropical Drink, Cocktail
 🔎    | Magnifying Glass Tilted Right, Zoom, Search
 ⌨️    | Keyboard
 💻    | Laptop
 👩‍🍳  | Woman Cook, Chef, Cuisine
-🔥    | On fire, Hot, +1
 〞〝  | High Quotes
 «»    | Classical double Quotes
 ❮❯    | Weird Quotes
@@ -163,7 +166,6 @@
 👉    | Backhand Index Pointing Right
 🏃    | Person Running
 🚧    | Construction
-⚠️    | Warning
 🔰    | Japanese Symbol for Beginner
 😁    | Beaming Face with Smiling Eyes, Happy, :D
 🏢    | Office Building
@@ -441,7 +443,6 @@
 🐸    | Frog, Toad
 🐊    | Crocodile
 🐢    | Turtle
-🦎    | Lizard, Snake
 🐍    | Snake, Lizard
 🐲    | Dragon Face, Dinosaur
 🐉    | Dragon, Dinosaur
@@ -1199,7 +1200,6 @@
 🏴    | Black Flag
 🏳️    | White Flag
 “”    | Small Quotes
-─     | box drawings light horizontal
 ━     | box drawings heavy horizontal
 ┃     | box drawings heavy vertical
 ┄     | box drawings light triple dash horizontal

@@ -11,14 +11,14 @@ function fish_prompt
     printf "\n $BACK╭─┥ $SHADOW"
     printf '%s' (echo -n (prompt_pwd))
 
-    set branch (git rev-parse --abbrev-ref HEAD 2> /dev/null)
+    set branch (git branch --show-current 2> /dev/null)
     if test "$branch" != ""
 
-        set changes (git diff 3> /dev/null)
+        # set changes (git diff 3> /dev/null)
 
-        if test "$changes" != ''
-            set branch "$branch~"
-        end
+        # if test "$changes" != ''
+        #     set branch "$branch~"
+        # end
 
         echo -en "$BACK $SEP $SHADOW $branch"
     end
