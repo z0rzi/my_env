@@ -1,9 +1,12 @@
 #!/bin/bash
 
 if [ $# -lt 1 ]; then
-    printf "\n\tUSAGE = 'record.sh (window|screen)'\n"
+    printf "\n\tUSAGE = 'record.sh (window|screen) [--showKeys]'\n"
 fi
 
+if [ "$2" = "--showKeys" ]; then
+    screenkey &
+fi
 if [ "$1" = "window" ]; then
 
     echo "Click on the window you want to record..."
@@ -29,3 +32,4 @@ elif [ "$1" = "screen" ]; then
         break;
     done <<< $(xrandr --listactivemonitors | awk '/[0-9]+: /{print $1, $3, $4}')
 fi
+killall screenkey 2> /dev/null

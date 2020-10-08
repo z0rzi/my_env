@@ -32,6 +32,23 @@ https.get('${1:http://my_link.com}', resp => {
 endsnippet
 
 
+snippet express_init "Creates an express server" b
+const express = require('express');
+const app = express();
+
+app.get('/users/:id(\\d+)', function (req, res) {
+   res.send('Hello ' + req.params.id);
+})
+
+var server = app.listen(8000, function () {
+   var host = server.address().address
+   var port = server.address().port
+   
+   console.log("Express server listening on http://%s:%s", host, port)
+})
+endsnippet
+
+
 snippet logObject "Logs an object" b
 console.log(require('util').inspect(${0:my_object}, /*show_hidden*/false, /*depth*/4, /*colorize*/true));
 endsnippet

@@ -10,6 +10,7 @@
     set breakindent
     set ruler
     set hidden
+    " set updatetime=1000
     set showtabline=2  " always show tabline
     set noshowmode
     set nobackup
@@ -55,6 +56,9 @@
 
     " Considering '-' as part of a word
         set iskeyword+=-
+
+    " Disable freaking sql completion
+        let g:omni_sql_no_default_maps = 1
 
     " change the leader key to <space>
         let g:mapleader = "\<Space>"
@@ -119,6 +123,7 @@
 " FUNCTIONS
 " 
     function! DoAtEach(macro, range)
+        echom a:macro
         let save = winsaveview()
         let count = 0
         if a:range < 0
@@ -127,11 +132,11 @@
             while search(@/, 'W')
                 let count += 1
 
-                exe "exe \"norm! " . substitute(a:macro, '<[a-zA-Z-]\+>\|"', '\\&', 'gi') . "\""
+                exe "exe \"norm! " . substitute(substitute(a:macro, '<>', '\<ESC>', 'g'), '<[a-zA-Z-]\+>\|"', '\\&', 'gi') . '"'
 
                 let @/ = searchSave
 
-                if count > 2000
+                if count > 200
                     break
                 endif
             endwhile
@@ -140,11 +145,13 @@
             let botline = line("'>")
             while line('.') <= botline
 
-                exe "exe \"norm! ^" . substitute(a:macro, '<[a-zA-Z-]\+>\|"', '\\&', 'gi') . "\""
-                norm!j
+                let col = col('.')
+                exe "exe \"norm! " . substitute(substitute(a:macro, '<>', '\<ESC>', 'g'), '<[a-zA-Z-]\+>\|"', '\\&', 'gi') . '"'
+                call setpos('.', [0, line('.')+1, col, 0])
+                " norm!j
 
                 let count += 1
-                if count > 2000
+                if count > 200
                     break
                 endif
             endwhile
@@ -153,8 +160,8 @@
 
         call winrestview(save)
     endfunction
-    command! -range -nargs=+  MacroToAll call DoAtEach('<args>', '<count>')
-    command! -range -nargs=+  M call DoAtEach('<args>', '<count>')
+    command! -range -nargs=+  MacroToAll call DoAtEach(<q-args>, '<count>')
+    command! -range -nargs=+  M call DoAtEach(<q-args>, '<count>')
 
     function! ParseErrorLine(errLine)
         let data = split(a:errLine, ':')
@@ -584,21 +591,8 @@
     endfunction
 
     function! FZFFindFile()
-        let ignoredFilesStr = ''
-        for f in g:ignoredFiles
-            let ignoredFilesStr .= ' ! -name "' . f . '"'
-        endfor
-
-        let ignoredDirsStr = ''
-        for d in g:ignoredDirs
-            let ignoredDirsStr .= ' ! -path "*/' . d . '/*"'
-        endfor
-
-        if expand('%:p') != ''
-            let ignoredDirsStr .= ' ! -path "*'.expand('%:p').'"'
-        endif
-
-        let cmd = 'ls --color=never -t $(find . -type f  ' . ignoredFilesStr . ' ' . ignoredDirsStr . ') 2> /dev/null'
+        " let cmd = 'ls --color=never -t $(find . -type f  ' . ignoredFilesStr . ' ' . ignoredDirsStr . ') 2> /dev/null'
+        let cmd = 'ls --color=never -t $(find-file . | head -n 50) 2> /dev/null'
         " silent! exe fzf#run({'source': cmd, 'sink': 'e', 'options': '-e -d/ -n-1 --history /home/zorzi/.local/share/fzf-history/FZF --multi --no-sort --preview="git diff --color=always {}" --sync', 'down':'40%'})
         silent! exe fzf#run({'source': cmd, 'sink': 'e', 'options': '-e --history /home/zorzi/.local/share/fzf-history/FZF --multi --no-sort --preview="git diff --color=always {}" --sync', 'down':'40%'})
     endfunction
@@ -742,6 +736,7 @@
             \   'javascript': {
             \     'l': "let",
             \     'c': "const",
+            \     'req': "require('')\<LEFT>\<LEFT>!",
             \     'aw': "await",
             \     'ii': "if(  )\<LEFT>\<LEFT>!",
             \     'ff': "\<ESC>:if match(getline(line('.')), ')$') != -1 \<BAR> call setline('.', getline('.') . ';') \<BAR> endif\<CR>a() => {\<CR>}\<C-o>O!",
@@ -774,8 +769,8 @@
             return !col || getline('.')[col - 1]  =~# '\s'
         endfunction
 
-        " Use <c-space> to trigger completion.
-        inoremap <silent><expr> <c-space> coc#refresh()
+        " Use <c-l> to trigger completion.
+        inoremap <silent><expr> <c-l> coc#refresh()
 
         " Use <cr> to confirm completion, `<C-g>u` means break undo chain at current
         " position. Coc only does snippet and additional edit on confirm.
@@ -804,8 +799,7 @@
             endif
         endfunction
 
-        " Highlight the symbol and its references when holding the cursor.
-        " autocmd CursorHold * silent call CocActionAsync('highlight')
+        " autocmd CursorHold * silent!SingleBlameLine
 
         " Symbol renaming.
         nmap <leader>rn <Plug>(coc-rename)
@@ -997,20 +991,11 @@
         let g:lightline.subseparator = {
             \   'left': '', 'right': '' 
           \}
-    " YouCompleteMe
-        set completeopt-=preview
-        let g:ycm_show_diagnostics_ui=0
-    " easy-motion
-        let g:EasyMotion_enter_jump_first=1
 
-    " auto-pairs
-        let g:AutoPairs={'(': ')', '[': ']', '{': '}',"'":"'",'"':'"', "`":"`", '```':'```', '"""':'"""', "'''":"'''", "<":">"}
-        let g:AutoPairsShortcutFastWrap = '<C-]>'
-        let g:AutoPairsFlyMode = 0
-        let g:AutoPairsMultilineClose = 0
-        " let g:AutoPairsShortcutToggle = "<M-l>"
-
-        au FileType php let b:AutoPairs = AutoPairsDefine({'<?' : '?>', '<?php': '?>'})
+    " Git blame line
+        let g:blameLineVirtualTextHighlight = 'GruvboxBlackItalic'
+        let g:blameLineVirtualTextPrefix = '  '
+        let g:blameLineGitFormat = '%an - %ar - %s | %h'
 
     " ultisnips
         let g:UltiSnipsSnippetDirectories  = [$HOME.'/.vim/UltiSnips']
@@ -1022,6 +1007,7 @@
         vnoremap <C-z> <CMD>call UltiSnips#JumpBackwards()<CR>
 
     " easy-motion
+        let g:EasyMotion_enter_jump_first=1
         autocmd StdinReadPre * let s:std_in=1
         nmap s <plug>(easymotion-overwin-f2)
 
@@ -1112,8 +1098,8 @@
         " 
         " Others
         " 
-            " Vim Blames
-            " Plugin 'zivyangll/git-blame.vim'
+            " Git
+            Plugin 'tveskag/nvim-blame-line'
 
             " visual GIT modifs
             Plugin 'airblade/vim-gitgutter'
@@ -1124,6 +1110,9 @@
             " Fuzzy search
             Plugin 'junegunn/fzf'
             Plugin 'junegunn/fzf.vim'
+
+            " React
+            Plugin 'MaxMEllon/vim-jsx-pretty'
 
             " Buffer stuff
             " Plugin 'taohexxx/lightline-buffer'
@@ -1155,7 +1144,7 @@
     " Basic Vim Shortcuts
         nnoremap >> i<C-t><ESC>
         nnoremap Y y$
-        nnoremap YY mmggyG`m
+        nnoremap YY <CMD>let v = winsaveview()<CR>ggyG<CMD>call winrestview(v)<CR>
         nnoremap vv v$h
         noremap <CR> %
         inoremap <F2> <ESC>
@@ -1166,6 +1155,7 @@
         " nnoremap / /\v
         vnoremap <CR> <CMD>if mode() == 'V' <BAR> call search('\%#.*\zs\([{[(][;:.,\\]*\<BAR>\/\*\+\)$') <BAR> endif<CR>%
 
+        vnoremap p <CMD>let save=@0<CR>p<CMD>let [@0, @", @+] = [save, save, save]<CR>
         vnoremap $ $h
         nnoremap - 2<C-y><C-g>
         nnoremap + 2<C-e><C-g>
@@ -1182,14 +1172,14 @@
         nmap <F5> <CMD>redraw!<CR><CMD>GitGutter<CR><CMD>set foldmethod=expr<CR>
 
         " Fast selection wrap
-            vnoremap "" c""<ESC>P
-            vnoremap '' c''<ESC>P
-            vnoremap {{ c{  }<ESC>hP
-            vnoremap }} c{}<ESC>P
-            vnoremap [[ c[  ]<ESC>hP
-            vnoremap ]] c[]<ESC>P
-            vnoremap (( c(  )<ESC>hP
-            vnoremap )) c()<ESC>P
+            vnoremap "" c""<ESC>Pgvlolo
+            vnoremap '' c''<ESC>Pgvlolo
+            vnoremap {{ c{  }<ESC>hPgvllollo
+            vnoremap }} c{}<ESC>Pgvlolo
+            vnoremap [[ c[  ]<ESC>hPgvllollo
+            vnoremap ]] c[]<ESC>Pgvlolo
+            vnoremap (( c(  )<ESC>hPgvllollo
+            vnoremap )) c()<ESC>Pgvlolo
             " vnoremap << c<  ><ESC>hP
             " vnoremap >> c<><ESC>P
 
@@ -1284,10 +1274,10 @@
             nnoremap <silent> <S-RIGHT> <CMD>call NextOccurence(1) <BAR> set hlsearch <CR>
 
         " Skip word by word with CTRL + direction
-            nnoremap <C-LEFT> <CMD>call search('\<\<BAR>\u\l\<BAR>_[a-z]\<BAR>\s\zs\S\<BAR>^', 'b')<CR>
-            nnoremap <C-RIGHT> <CMD>call search('\w\>\<BAR>\u\l\<BAR>_[a-z]\<BAR>\S\s\<BAR>$')<CR>
-            inoremap <C-LEFT> <CMD>call search('\<\<BAR>\u\l\<BAR>_[a-z]\<BAR>\s\zs\S\<BAR>^', 'b')<CR>
-            inoremap <C-RIGHT> <CMD>call search('\>\zs\<BAR>\u\l\<BAR>_[a-z]\<BAR>\S\zs\s\<BAR>$')<CR>
+            nnoremap <C-LEFT> <CMD>call search('\<\<BAR>\u\l\<BAR>_[a-z]\<BAR>\s\zs\S\<BAR>^', 'bW')<CR>
+            nnoremap <C-RIGHT> <CMD>call search('\w\>\<BAR>\u\l\<BAR>_[a-z]\<BAR>\S\s\<BAR>$', 'W')<CR>
+            inoremap <C-LEFT> <CMD>call search('\<\<BAR>\u\l\<BAR>_[a-z]\<BAR>\s\zs\S\<BAR>^', 'bW')<CR>
+            inoremap <C-RIGHT> <CMD>call search('\>\zs\<BAR>\u\l\<BAR>_[a-z]\<BAR>\S\zs\s\<BAR>$', 'W')<CR>
             nnoremap <CS-LEFT> B
             nnoremap <CS-RIGHT> E
             inoremap <CS-LEFT> <CMD>norm!B<CR>
@@ -1367,6 +1357,8 @@
             nnoremap <C-q> :CocAction<CR>
             nnoremap <S-q> :CocCommand<CR>
 
+            nnoremap <LEADER>= <CMD>call CocAction('format')<CR>
+
             " Tab to go through completion list
             inoremap <silent><expr> <TAB>
                   \ pumvisible() ? "\<C-n>":
@@ -1398,8 +1390,7 @@
             nnoremap <LEADER>gp <CMD>sil!GitGutterPrevHunk<CR>
             nnoremap <LEADER>gP <CMD>sil!GitGutterPreviewHunk<CR>
             nnoremap <LEADER>gh <CMD>sil!GitGutterLineHighlightsToggle<CR>
-            nnoremap <LEADER>gd <CMD>Gdiffsplit<CR>
-            nnoremap <LEADER>gb <CMD>GitBlame<CR>
+            nnoremap <LEADER>gb <CMD>SingleBlameLine<CR>
 
         " Tabular indenting
             nnoremap <leader>t= mm<CMD>Tabular /^[^=]*\zs=<CR>`m
@@ -1453,7 +1444,6 @@
             nnoremap <LEADER>a ea
             nnoremap <LEADER>E Ea
             nnoremap <LEADER>A Ea
-            nnoremap <LEADER>= f=a
             nnoremap <LEADER>. f.a
 
         " Double Tap shortcut
@@ -1517,7 +1507,6 @@
             inoremap ;a <C-o>A
             inoremap ;. <CMD>norm!$<CR><RIGHT>.
             inoremap ;, <C-o>A,
-            inoremap <C-SPACE> <RIGHT>
 
         " select multiple lines in a VSCode Style
             nnoremap <CS-DOWN> <C-v>j

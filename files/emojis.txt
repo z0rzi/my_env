@@ -1,8 +1,13 @@
+✔️    | Check Mark, OK, Valid
+❌    | Cross Mark
+✅    | Check Mark Button
+🥢    | Chopsticks, Chinese, Noodles
 ⚠️    | Warning
+😅    | Grinning Face with Sweat, ^^'
+😓    | Downcast Face with Sweat, Sad, :(
 ➡    | Right Arrow
 🙂    | Slightly Smiling Face, Happy, :)
 😞    | Disappointed Face, Sad, :(
-😓    | Downcast Face with Sweat, Sad, :(
 ─     | box drawings light horizontal
 🔥    | On fire, Hot, +1
 🦎    | Lizard, Snake
@@ -16,12 +21,9 @@
 ⭐    | Star, Magic
 🧗    | Person Climbing
 😂    | Face with Tears of Joy, XD, Happy
-😅    | Grinning Face with Sweat, ^^'
 🤔    | Thinking Face, Huuum
 💪    | Flexed Biceps, Power
 ❝❞    | Fancy Quotes
-✅    | Check Mark Button
-✔️    | Check Mark, OK, Valid
 🙏    | Folded Hands, Thank you
 😐    | Neutral Face, :|
 ✡    | Star of David
@@ -108,7 +110,6 @@
 ⚰️    | Coffin, deat, death, funerals
 🍷    | Wine Glass, France
 🌮    | Tacos, Food, Eating
-❌    | Cross Mark
 😠    | Angry Face, Mad, >:(
 🔤    | Input Latin Letters
 📖    | Open Book
@@ -615,7 +616,6 @@
 🍻    | Clinking Beer Mugs
 🥃    | Tumbler Glass
 🥤    | Cup with Straw
-🥢    | Chopsticks, Chinese, Noodles
 🍴    | Fork and Knife, Eat, Hungry
 🥄    | Spoon, Eat, Hungry
 🏇    | Horse Racing

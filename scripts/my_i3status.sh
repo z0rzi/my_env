@@ -16,7 +16,7 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
 #
 # DATA
 #
-    MODULES='ram swap cpu battery weather airplane docker time'
+    MODULES='ram swap cpu battery weather airplane docker lock time'
 
     ICON_CPU='🔥'
     ICON_SWAP='🍩'
@@ -30,6 +30,9 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
     ICON_BATTERY_20=''
     ICON_BATTERY_00=''
     ICON_BATTERY_CHARGING='⚡'
+
+    ICON_LOCK_OFF=''
+    ICON_LOCK_ON=''
     
     ICON_WEATHER_RAIN='🌧️'
     ICON_WEATHER_RAINSUN='🌦️ '
@@ -50,11 +53,16 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
     THRESHOLD_BATTERY_LOW=10
     THRESHOLD_BATTERY_HIGH=95
 
+    COLOR_DISABLED="#999999"
+
     COLOR_DOCKER_ON="#0399c4"
-    COLOR_DOCKER_OFF="#999999"
+    COLOR_DOCKER_OFF="$COLOR_DISABLED"
+
+    COLOR_LOCK_ON="#03c499"
+    COLOR_LOCK_OFF="$COLOR_DISABLED"
 
     COLOR_AIRPLANE_ON="#03c499"
-    COLOR_AIRPLANE_OFF="#999999"
+    COLOR_AIRPLANE_OFF="$COLOR_DISABLED"
 
     COLOR_BATTERY_HIGH="#27ae60"
     COLOR_BATTERY_LOW="#e74c3c"
@@ -64,15 +72,15 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
 #
 # HELPERS
 #
-    function trim() {
+    function trim {
         awk '/./ {gsub("^[[:blank:]]*|[[:blank:]]*$", ""); print}'
     }
 
-    function formatPercentage() {
+    function formatPercentage {
         sed -e 's/^0*\([0-9]\+\.\)/\1/' -e 's/\(\..\).*$/\1/' -e 's/\.0*$//' -e 's/\(\.[0-9]*[1-9]\)0*$/\1/' <<< "$1"
     }
 
-    function getPublicIP() {
+    function getPublicIP {
         if [ ! -f "/tmp/.pub_ip" ]; then
             curl ifconfig.me -o /tmp/.pub_ip
         fi
@@ -80,7 +88,7 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
         cat /tmp/.pub_ip | trim
     }
 
-    function getLatLng() {
+    function getLatLng {
         if [ ! -f "/tmp/.location" ]; then
             curl 'https://iplocation.com/' \
                 -o /tmp/.location \
@@ -100,38 +108,38 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
 #
 
     # CPU
-        function cpu_text() {
+        function cpu_text {
             # perc=`mpstat | tr ',' '.' | awk '/all/ { print 100.0 - $12 }'`
             perc=`iostat -syzc | sed '4p;d' | awk '{print 100.0 - $6}'`
             perc=`formatPercentage $perc`
             echo " $ICON_CPU$perc% "
         }
-        function cpu_click() {
+        function cpu_click {
             kitty -e htop
         }
 
     # RAM
-        function ram_text() {
+        function ram_text {
             ram=`free w | awk '/Mem/ {printf("%f", 100*$3/$2)}'`
             ram=`formatPercentage $ram`
             echo " $ICON_RAM$ram% "
         }
-        function ram_click() {
+        function ram_click {
             kitty -e htop
         }
 
     # SWAP
-        function swap_text() {
+        function swap_text {
             swap=`free w | awk '/Swap/ {printf("%.2f", 100*$3/$2)}' | sed 's/^0*|0$//g'`
             swap=`formatPercentage $swap`
             echo " $ICON_SWAP$swap% "
         }
-        function swap_click() {
+        function swap_click {
             kitty -e htop
         }
 
     # BATTERY
-        function battery_text() {
+        function battery_text {
             infos=`upower -i $(upower -e | grep 'BAT')`
 
             percentage=`awk '/percentage/ {print $2}' <<< $infos`
@@ -167,7 +175,7 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
 
             echo -n " $icon $percentage "
         }
-        function battery_color() {
+        function battery_color {
             infos=`upower -i $(upower -e | grep 'BAT')`
 
             percentage=`awk '/percentage/ {print $2}' <<< $infos`
@@ -185,19 +193,19 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
 
             printf "$color"
         }
-        function battery_click() {
+        function battery_click {
             kitty -e bash -c "upower -i `upower -e | grep 'BAT'` | less"
         }
 
     # TIME
-        function time_text() {
+        function time_text {
             time=`date +"%H:%M"`
             printf " $ICON_TIME$time "
         }
-        function time_color() {
+        function time_color {
             printf $COLOR_TIME
         }
-        function time_click() {
+        function time_click {
             if [ "$1" = "$CLICK_RIGHT" ]; then
                 export LC_TIME='en_US.UTF-8'
                 notify-send "`date +'%d / %m / %Y'`"  "`date +'%A %d of %B, %Y'`" -t 5000
@@ -207,27 +215,55 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
             $BROWSER "https://calendar.google.com/calendar/r" > /dev/null &
         }
 
+    # LOCK
+        function lock_is_on {
+            if [ ! -f "/tmp/.xautolock" ]; then
+                xautolock -enable
+                printf '1' > /tmp/.xautolock
+            fi
+            cat /tmp/.xautolock
+        }
+        function lock_text {
+            if [ "`lock_is_on`" ]; then
+                printf " $ICON_LOCK_ON "
+            else
+                printf " $ICON_LOCK_OFF "
+            fi
+        }
+        function lock_color {
+            [ "`lock_is_on`" ] && printf "$COLOR_LOCK_ON" || printf "$COLOR_LOCK_OFF"
+        }
+        function lock_click {
+            if [ "`lock_is_on`" ]; then
+                xautolock -disable
+                printf "" > /tmp/.xautolock
+            else
+                xautolock -enable
+                printf "1" > /tmp/.xautolock
+            fi
+        }
+
     # AIRPLANE
-        function airplane_text() {
+        function airplane_text {
             printf " $ICON_AIRPLANE "
         }
-        function airplane_color() {
+        function airplane_color {
             status=`$AIRPLANE_TOOL status`
             [ "$status" = "on" ] && printf "$COLOR_AIRPLANE_ON" || printf "$COLOR_AIRPLANE_OFF"
         }
-        function airplane_click() {
+        function airplane_click {
             gksu $AIRPLANE_TOOL toggle &> /dev/null
         }
 
     # DOCKER
-        function docker_text() {
+        function docker_text {
             printf " $ICON_DOCKER "
         }
-        function docker_color() {
+        function docker_color {
             systemctl status docker &> /dev/null
             [ $? -eq 0 ] && printf "$COLOR_DOCKER_ON" || printf "$COLOR_DOCKER_OFF"
         }
-        function docker_click() {
+        function docker_click {
             if [ "$1" = "$CLICK_RIGHT" ]; then
                 notify-send "Running containers:" "`docker ps`" -t 5000
                 return
@@ -237,7 +273,7 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
         }
 
     # WEATHER
-        function getWeather() {
+        function getWeather {
             now=`date +%y%m%d%H%M`
             if [ ! -f "/tmp/.weather_check_time" ] || [ ! -f "/tmp/.weather" ]; then
                 echo $now > /tmp/.weather_check_time
@@ -260,7 +296,7 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
             fi
             $JSON_PARSER "`cat /tmp/.weather`" "%(|temp|value) %(|weather_code|value) %(|sunrise|value) %(|sunset|value)" | trim
         }
-        function weather_getIcon() {
+        function weather_getIcon {
             case "$1" in
                 "rain" | "rain_heavy" | "freezing_rain" | "freezing_rain_light" | "freezing_rain_heavy" | "freezing_drizzle" | "drizzle")
                     icon=$ICON_WEATHER_RAIN
@@ -292,12 +328,12 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
             esac
             printf $icon
         }
-        function weather_text() {
+        function weather_text {
             read temp code _ <<< `getWeather`
             icon=`weather_getIcon $code`
             printf " $icon $temp° "
         }
-        function weather_click() {
+        function weather_click {
             if [ "$1" = "$CLICK_RIGHT" ]; then
                 read temp code raw_rise raw_set <<< `getWeather`
 

@@ -7,7 +7,12 @@ while read line
         function \\$alias -V alias
             set args ''
             for arg in $argv;
-                set args "$args "(string replace -r -a "[[:space:]*\\\\]" '\\\\\\\\$0' $arg)
+                set -l formatted_arg (string replace -r -a "[[:space:]*\\\\]" '\\\\\\\\$0' $arg)
+                if test -n formatted_arg
+                    set args "$args $arg"
+                else
+                    set args "$args $formatted_arg"
+                end
             end
             bash -c "$alias $args"
         end
@@ -15,7 +20,9 @@ while read line
 end < $HOME/.config/fish/aliases
 
 
-set PATH $PATH:$HOME/.my_env/scripts/:$HOME/.cargo/bin
+if ! string match -n "scripts" "$PATH"
+    set PATH $PATH:$HOME/.my_env/scripts/
+end
 
 # Launching TMUX
 if test ! "$TMUX"
@@ -27,12 +34,3 @@ if test ! "$TMUX"
         exec tmux
     end
 end
-
-# Displaying todo after noon!
-# set last_term_time (cat /tmp/last-term-time 2> /dev/null)
-# set noon (date +'%Y%m%d')"120000"
-# set this_term_time (date +"%Y%m%d%H%M%S")
-# if test \( -z "$last_term_time" \) -o \( "$last_term_time" -lt "$noon" -a "$this_term_time" -gt "$noon" \)
-#     todo
-# end
-# echo $this_term_time > /tmp/last-term-time

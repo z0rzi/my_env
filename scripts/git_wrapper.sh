@@ -40,27 +40,20 @@ elif [ "$1" = "rebase" ]; then
     fi
 
 elif [ "$1" = "difftool" ]; then
-    args="--dir-diff"
-    for arg in $@; do
-        if [[ ! $arg =~ ^[^:]+:.+$ ]]; then
-            continue
-        fi
-        file=`sed 's/^.*://g' <<< $arg`
-        [ -f "$gitPath/$file" ] && args=""
-    done
-    git "$@" "$args"
+    shift
+    git difftool --dir-diff --tool=meld "$@"
 
-    if [ $? -ne 0 ]; then
-        echo 'To configure your default merge/diff tool as meld:'
-        echo ''
-        echo 'git config --global diff.tool meld'
-        echo 'git config --global difftool.meld.path "/usr/bin/meld"'
-        echo 'git config --global difftool.prompt false'
-        echo ''
-        echo 'git config --global merge.tool meld'
-        echo 'git config --global mergetool.meld.path "/usr/bin/meld"'
-        echo 'git config --global mergetool.prompt false'
-    fi
+    # if [ $? -ne 0 ]; then
+        # echo 'To configure your default merge/diff tool as meld:'
+        # echo ''
+        # echo 'git config --global diff.tool meld'
+        # echo 'git config --global difftool.meld.path "/usr/bin/meld"'
+        # echo 'git config --global difftool.prompt false'
+        # echo ''
+        # echo 'git config --global merge.tool meld'
+        # echo 'git config --global mergetool.meld.path "/usr/bin/meld"'
+        # echo 'git config --global mergetool.prompt false'
+    # fi
 
 else
     git "$@"
