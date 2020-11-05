@@ -532,13 +532,18 @@ endif
 hi! link NonText GruvboxBg2
 hi! link SpecialKey GruvboxBg2
 
-call s:HL('Visual',    s:none,  s:bg3, s:invert_selection)
+call s:HL('Visual',    s:none,  s:bg1, s:invert_selection)
 hi! link VisualNOS Visual
 
 " call s:HL('Search',    s:yellow, s:bg0, s:inverse)
 " call s:HL('IncSearch', s:hls_cursor, s:bg0, s:inverse)
-hi Search gui=bold guibg=black guifg=lightblue cterm=bold ctermbg=black ctermfg=lightblue
-hi IncSearch gui=bold guibg=black guifg=lightblue cterm=bold ctermbg=black ctermfg=lightblue
+" hi Search gui=bold guibg=black guifg=lightblue cterm=bold ctermbg=black ctermfg=lightblue
+" hi IncSearch gui=bold guibg=black guifg=lightblue cterm=bold ctermbg=black ctermfg=lightblue
+" hi Search gui=bold guibg=black guifg=lightblue cterm=bold,underline ctermbg=s:yellow ctermfg=none
+" hi IncSearch gui=bold guibg=black guifg=lightblue cterm=bold,underline ctermbg=none ctermfg=none
+
+call s:HL('Search', s:blue, s:bg1, s:underline)
+call s:HL('IncSearch', s:blue, s:bg1, s:underline)
 
 call s:HL('Underlined', s:blue, s:none, s:underline)
 

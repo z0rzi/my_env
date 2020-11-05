@@ -29,4 +29,12 @@ fileLength=`wc -l < $filename`
 
 fileExt=`sed 's/^.*\.//g' <<< $filename`
 
-sed -n $((line-height/2)),$((line+height/2))p $filename | highlight --syntax "$fileExt" -O ansi
+fileLength=`wc -l < $filename`
+
+start=$((line-height/2))
+end=$((line+height/2))
+
+if [ $start -le 0 ]; then start=1; fi
+if [ $end -ge $fileLength ]; then end=$((fileLength-1)); fi
+
+sed -n ${start},${end}p $filename | highlight --syntax "$fileExt" -O ansi

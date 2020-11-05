@@ -14,6 +14,7 @@
       "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": true,
       "typescript.format.placeOpenBraceOnNewLineForControlBlocks": false,
       "typescript.format.placeOpenBraceOnNewLineForFunctions": false,
+      "typescript.format.insertSpaceBeforeAndAfterBinaryOperators": true,
       "typescript.format.enabled": true,
       "typescript.suggest.completeFunctionCalls": true,
 
@@ -46,6 +47,8 @@
       "eslint.options": {"useEslintrc": true},
 
       "explorer.icon.enableVimDevicons": true,
+      "explorer.icon.collapsed": "-",
+      "explorer.icon.expanded": "+",
       "explorer.previewAction.onHover": false,
 
       "explorer.file.column.indent.indentLine": true,
@@ -78,6 +81,8 @@
                   "open"
             ],
             "<cr>": ["expandable?", ["expanded?", "collapse", "expand"], "open"],
+            "<right>": ["expandable?", ["expanded?", "collapse", "expand"], "open"],
+            "<left>": "collapse",
             "e": "open",
             "s": "open:split",
             "E": "open:vsplit",

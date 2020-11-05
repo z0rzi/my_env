@@ -16,7 +16,7 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
 #
 # DATA
 #
-    MODULES='ram swap cpu battery weather airplane docker lock time'
+    MODULES='ram| swap| cpu| battery| weather| time| airplane docker monitor lock'
 
     ICON_CPU='🔥'
     ICON_SWAP='🍩'
@@ -49,6 +49,7 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
     ICON_WEATHER_NIGHT='🌌'
     ICON_WEATHER_MOON='🌘'
 
+    ICON_MONITOR=''
 
     THRESHOLD_BATTERY_LOW=10
     THRESHOLD_BATTERY_HIGH=95
@@ -215,6 +216,28 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
             $BROWSER "https://calendar.google.com/calendar/r" > /dev/null &
         }
 
+    # MONITOR
+        function monitor_text {
+            file='/tmp/.screenlayout'
+            last=`cat $file`
+            current=`$HOME.my_env/scripts/monitors.sh --get-hash 2> /dev/null`
+            if [ "$last" != "$current" ]; then
+                echo -n $current > $file
+                $HOME.my_env/scripts/monitors.sh > /dev/null 2>&1 
+            fi
+            printf " $ICON_MONITOR "
+        }
+        function monitor_color {
+            printf ""
+        }
+        function monitor_click {
+            $HOME.my_env/scripts/monitors.sh > /dev/null 2>&1
+
+            if [ $? -ne 0 ]; then
+                notify-send "No configuration file found"  "Run 'monitors.sh'" -t 5000
+            fi
+        }
+
     # LOCK
         function lock_is_on {
             if [ ! -f "/tmp/.xautolock" ]; then
@@ -358,9 +381,22 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
         json+=',['
 
         for module in $MODULES; do
+            if [[ "$module" =~ \|$ ]]; then
+                module=${module::-1}
+                sep=1
+            else
+                sep=0
+            fi
+            # echo ">>> $module"
             color=`${module}_color 2> /dev/null`
             text=`${module}_text 2> /dev/null`
-            json+='{"name":"'$module'", "color": "'$color'",   "full_text": "'$text'"},'
+            json+='{"name":"'$module'"'
+
+            if [ "$sep" -eq "0" ]; then
+                json+=', "separator": false, "separator_block_width": 0'
+            fi
+            
+            json+=', "color": "'$color'", "full_text": "'$text'"},'
         done
         json=${json::-1}
 

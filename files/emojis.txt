@@ -1,3 +1,14 @@
+¯\_(ツ)_/¯ | Shrug
+💩    | Pile of Poo, Caca
+👌    | OK Hand
+😤    | Face with Steam From Nose, Mad, Angry
+😂    | Face with Tears of Joy, XD, Happy
+👍    | Thumbs Up, +1
+❗    | Exclamation Mark
+😃    | Grinning Face with Big Eyes, Happy, :D
+➡    | Right Arrow
+👋    | Waving Hand
+🙌    | Raising Hands, Yay
 ✔️    | Check Mark, OK, Valid
 ❌    | Cross Mark
 ✅    | Check Mark Button
@@ -5,13 +16,11 @@
 ⚠️    | Warning
 😅    | Grinning Face with Sweat, ^^'
 😓    | Downcast Face with Sweat, Sad, :(
-➡    | Right Arrow
 🙂    | Slightly Smiling Face, Happy, :)
 😞    | Disappointed Face, Sad, :(
 ─     | box drawings light horizontal
 🔥    | On fire, Hot, +1
 🦎    | Lizard, Snake
-👋    | Waving Hand
 🚀    | Rocket
 ✨    | Sparkles, Stars, Magic
 🎯    | Direct Hit, Target, Arrow, Goal
@@ -20,27 +29,22 @@
 🌟    | Glowing Star, Magic
 ⭐    | Star, Magic
 🧗    | Person Climbing
-😂    | Face with Tears of Joy, XD, Happy
 🤔    | Thinking Face, Huuum
 💪    | Flexed Biceps, Power
 ❝❞    | Fancy Quotes
 🙏    | Folded Hands, Thank you
 😐    | Neutral Face, :|
 ✡    | Star of David
-😃    | Grinning Face with Big Eyes, Happy, :D
-👍    | Thumbs Up, +1
 💖    | Sparkling Heart
 😉    | Winking Face, ;)
 🤯    | Exploding Head, Mindblown
 🤐    | Zipper-Mouth Face
-🙌    | Raising Hands, Yay
 🍳    | Cooking
 😛    | Face with Tongue, :p
 │     | box drawings light vertical
 🎉    | Party Popper
 🙃    | Upside-Down Face, Welp, (:
 😘    | Face Blowing a Kiss, <3
-👌    | OK Hand
 ⛩️    | Shinto Shrine, Japan
 💙    | Blue Heart
 🏎️    | Racing Car
@@ -65,7 +69,6 @@
 😪    | Sleepy Face, Zzzzz
 😶    | Face Without Mouth, No mouth, :|
 🌈    | Rainbow
-😤    | Face with Steam From Nose, Mad, Angry
 🤑    | Money-Mouth Face
 😌    | Relieved Face, :)
 🐈    | Cat
@@ -79,7 +82,6 @@
 🗞️    | Rolled-Up Newspaper
 🍬    | Candy, Sweet
 ❔    | White Question Mark
-❗    | Exclamation Mark
 ❓    | Question Mark
 📂    | Open File Folder
 ➕    | Plus Sign
@@ -146,7 +148,6 @@
 🃏    | Joker
 🌝    | Full Moon Face
 🔩    | Nut and Bolt, DIY
-💩    | Pile of Poo, Caca
 💸    | Money with Wings
 👨    | Man
 👪    | Family

@@ -37,7 +37,8 @@
         bindsym Ctrl+$alt+t exec kitty
 
     # File explorer
-        bindsym $sup+e exec dolphin
+        # bindsym $sup+e exec dolphin
+        bindsym $sup+e exec kitty tmux new-session ranger
 
     # Screenshot
         bindsym --release $mod+Shift+s exec flameshot gui
@@ -161,17 +162,6 @@
     workspace $wsr5 output eDP-1 eDP-1-1
     
     # switch to workspace
-    bindsym $mod+1 workspace $wsl1
-    bindsym $mod+2 workspace $wsl2
-    bindsym $mod+3 workspace $wsl3
-    bindsym $mod+4 workspace $wsl4
-    bindsym $mod+5 workspace $wsl5
-    bindsym $mod+F1 workspace $wsr1
-    bindsym $mod+F2 workspace $wsr2
-    bindsym $mod+F3 workspace $wsr3
-    bindsym $mod+F4 workspace $wsr4
-    bindsym $mod+F5 workspace $wsr5
-
     bindsym $alt+z  workspace $wsl1
     bindsym $alt+a  workspace $wsl2
     bindsym $alt+q  workspace $wsl3
@@ -184,17 +174,6 @@
     bindsym $alt+F2 workspace $wsr5
     
     # Move to workspace with focused container
-    bindsym $mod+Shift+1 move container to workspace $wsl1; workspace $wsl1
-    bindsym $mod+Shift+2 move container to workspace $wsl2; workspace $wsl2
-    bindsym $mod+Shift+3 move container to workspace $wsl3; workspace $wsl3
-    bindsym $mod+Shift+4 move container to workspace $wsl4; workspace $wsl4
-    bindsym $mod+Shift+5 move container to workspace $wsl5; workspace $wsl5
-    bindsym $mod+Shift+F1 move container to workspace $wsr1; workspace $wsr1
-    bindsym $mod+Shift+F2 move container to workspace $wsr2; workspace $wsr2
-    bindsym $mod+Shift+F3 move container to workspace $wsr3; workspace $wsr3
-    bindsym $mod+Shift+F4 move container to workspace $wsr4; workspace $wsr4
-    bindsym $mod+Shift+F5 move container to workspace $wsr5; workspace $wsr5
-
     bindsym $alt+Shift+z  move container to workspace $wsl1; workspace $wsl1
     bindsym $alt+Shift+a  move container to workspace $wsl2; workspace $wsl2
     bindsym $alt+Shift+q  move container to workspace $wsl3; workspace $wsl3
@@ -206,10 +185,10 @@
     bindsym $alt+Shift+2  move container to workspace $wsr4; workspace $wsr4
     bindsym $alt+Shift+F2 move container to workspace $wsr5; workspace $wsr5
 
-    bindsym $alt+Shift+Up exec /home/zorzi/.my_env/scripts/change_workspace.sh up
-    bindsym $alt+Shift+Down exec /home/zorzi/.my_env/scripts/change_workspace.sh down
-    bindsym $alt+$mod+Shift+Up   move container to workspace next; workspace next
-    bindsym $alt+$mod+Shift+Down move container to workspace prev; workspace prev
+    # bindsym $alt+$mod+Up exec /home/zorzi/.my_env/scripts/change_workspace.sh up
+    # bindsym $alt+$mod+Down exec /home/zorzi/.my_env/scripts/change_workspace.sh down
+    # bindsym $alt+$mod+Shift+Up   move container to workspace next; workspace next
+    # bindsym $alt+$mod+Shift+Down move container to workspace prev; workspace prev
 
 #
 # STARTUP
@@ -231,7 +210,7 @@
     exec_always --no-startup-id fix_xcursor
     
     exec --no-startup-id bash -c "XMODIFIERS=@im=ibus && setxkbmap -option compose:rctrl"
-    exec --no-startup-id bash ~/.screenlayout/default.sh
+    exec --no-startup-id bash ~/.my_env/scripts/monitors.sh
     # exec --no-startup-id fcitx-autostart
     exec --no-startup-id bash -c "ibus-daemon -drx --panel /usr/lib/ibus/ibus-ui-gtk3 &"
     exec --no-startup-id bash -c "optimus-manager-qt &"

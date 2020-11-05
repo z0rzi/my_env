@@ -81,7 +81,7 @@
         let g:foldMode=1
         set foldlevelstart=99
         set foldmethod=expr
-        set foldexpr=FindFoldLevel(v:lnum)
+        set foldexpr=FoldLevel(v:lnum)
         set foldtext=NeatFoldText()
 
     " GruvBox config
@@ -182,7 +182,6 @@
         redraw!
     endfunction
     command! -nargs=+  Err call ParseErrorLine('<args>')
-    nnoremap <LEADER><LEADER> :Err<SPACE>
 
     function HandleSignal()
         let message = readfile('/tmp/vim_sig.txt')
@@ -376,43 +375,11 @@
         echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name" )')
     endfunction
 
-    function! FindFoldLevel(lnum)
-        if getline(a:lnum)=~'^$'
-            let i = 0
-            while 1
-                if ! (getline(a:lnum + i) =~ '^\s*$')
-                    return indent(a:lnum + i)
-                endif
-                let i += 1
-                if i > 10
-                    return -1
-                endif
-            endwhile
-        endif
-
-        let nextIndent = 0
-        let i = 0
-        while nextIndent == 0 && i <= 10
-            let i += 1
-            if ! (getline(a:lnum + i) =~ '^\s*$')
-                let nextIndent = indent(a:lnum + i)
-            endif
-        endwhile
-
-        if indent(a:lnum) < nextIndent
-            if g:foldMode == 0
-                return '>' . nextIndent
-            else
-                return indent(a:lnum)
-            endif
-        endif
-
-        " next line is a fold start
-        if indent(a:lnum) > indent(a:lnum + 1) && FindFoldLevel(a:lnum + 1) =~ '^>'
-            return '<' . indent(a:lnum)
-        endif
-
-        return indent(a:lnum)
+    function! FoldLevel(lnum)
+        return ( max([
+            \     indent(prevnonblank(a:lnum)),
+            \     indent(nextnonblank(a:lnum))
+            \ ]) / getbufvar('.', '&tabstop', 1) )
     endfunction
 
     function! NeatFoldText()
@@ -573,6 +540,9 @@
         call setpos("'<", [0] + res[0] + [0])
         call setpos("'>", [0] + res[1] + [0])
         norm!gv
+        if mode() == 'V'
+            norm!v
+        end
     endfunction
 
     function! VimToGrepRegex(str)
@@ -592,7 +562,7 @@
 
     function! FZFFindFile()
         " let cmd = 'ls --color=never -t $(find . -type f  ' . ignoredFilesStr . ' ' . ignoredDirsStr . ') 2> /dev/null'
-        let cmd = 'ls --color=never -t $(find-file . | head -n 50) 2> /dev/null'
+        let cmd = 'ls --color=never -t $(find-file .) 2> /dev/null'
         " silent! exe fzf#run({'source': cmd, 'sink': 'e', 'options': '-e -d/ -n-1 --history /home/zorzi/.local/share/fzf-history/FZF --multi --no-sort --preview="git diff --color=always {}" --sync', 'down':'40%'})
         silent! exe fzf#run({'source': cmd, 'sink': 'e', 'options': '-e --history /home/zorzi/.local/share/fzf-history/FZF --multi --no-sort --preview="git diff --color=always {}" --sync', 'down':'40%'})
     endfunction
@@ -729,18 +699,26 @@
             \ ['```', '```'],
             \ ]
 
+        " ^ at start of lhs to only work if match at start of line
+        " $ at end of lhs to only work if match at end of line
+        " \(...\) in lhs, and $1 in rhs to repeat capture or $& to repeat full match
         let g:smartHits_abbrevs = {
             \   'vim': {
-            \     'l': "let",
+            \     '^l': "let",
+            \   },
+            \   'html': {
+            \     '^\%(div\|span\|table\|h\d\)$': "<$&></$&>\<C-o>F<!",
+            \     '^\.\.\(\w\+\)$': "<div class=\"$1\"></div>\<C-o>F<!",
             \   },
             \   'javascript': {
             \     'l': "let",
             \     'c': "const",
-            \     'req': "require('')\<LEFT>\<LEFT>!",
+            \     '^ret$': "return",
+            \     'req$': "require('')\<LEFT>\<LEFT>!",
             \     'aw': "await",
-            \     'ii': "if(  )\<LEFT>\<LEFT>!",
+            \     '^ii': "if(  )\<LEFT>\<LEFT>!",
             \     'ff': "\<ESC>:if match(getline(line('.')), ')$') != -1 \<BAR> call setline('.', getline('.') . ';') \<BAR> endif\<CR>a() => {\<CR>}\<C-o>O!",
-            \     'tryc': "try {\<ESC>:call SmartJumpToEnd()\<CR>a} catch (err) {\<CR>}\<C-o>O\<SPACE>\<BS>\<C-o>z"
+            \     '^tryc$': "try {\<ESC>:call SmartJumpToEnd()\<CR>a} catch (err) {\<CR>}\<C-o>O\<SPACE>\<BS>\<C-o>z"
             \   },
             \   'javascriptreact': {
             \     '@inherit': 'javascript',
@@ -891,6 +869,9 @@
         let g:AleErrorHI = GetHighlightProps("ALEError")
         let g:AleWarningHI = GetHighlightProps("ALEWarning")
         let g:AleInfoHI = GetHighlightProps("ALEInfo")
+
+    " Typescript-vim
+        let g:typescript_indent_disable = 1
 
     " Vim LightLine
 
@@ -1084,7 +1065,7 @@
 
             " Angular
             Plugin 'burnettk/vim-angular'
-            Plugin 'othree/javascript-libraries-syntax.vim'
+            " Plugin 'othree/javascript-libraries-syntax.vim'
 
             " Typescript
             Plugin 'leafgarland/typescript-vim'
@@ -1149,7 +1130,8 @@
         noremap <CR> %
         inoremap <F2> <ESC>
         inoremap <C-x><C-l> <C-x><C-l>
-        " nnoremap S <CMD>call setline('.', repeat(' ', FindFoldLevel(line('.'))))<CR>A
+        inoremap <silent> <C-r>/ <C-r>=substitute(@/, '\\.', '', 'g')<CR>
+        " nnoremap S <CMD>call setline('.', repeat(' ', FoldLevel(line('.'))))<CR>A
 
         nnoremap <M-z> <C-w>w
         " nnoremap / /\v
@@ -1223,11 +1205,11 @@
             nmap <it vitVkoj<
 
         " Cool selection stuff
-            vnoremap <C-c> "ay:let @/ = escape(@a, "/\\^$*.[~") <BAR> call histadd('/', @a) <BAR> set hlsearch <CR>cgn
-            vnoremap <S-LEFT> "ay:let @/ = escape(@a, "/\\^$*.[~") <BAR> call histadd('/', @a)<CR>?<CR>
-            vnoremap <S-RIGHT> "ay:let @/ = escape(@a, "/\\^$*.[~") <BAR> call histadd('/', @a)<CR>/<CR>
-            vnoremap # "ay:let @/ = escape(@a, "/\\^$*.[~") <BAR> call histadd('/', @a)<CR>?<CR>
-            vnoremap * "ay:let @/ = escape(@a, "/\\^$*.[~") <BAR> call histadd('/', @a)<CR>/<CR>
+            vnoremap <C-c> "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/) <BAR> set hlsearch <CR>cgn
+            vnoremap <S-LEFT> "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/)<CR>?<CR>
+            vnoremap <S-RIGHT> "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/)<CR>/<CR>
+            vnoremap # "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/)<CR>?<CR>
+            vnoremap * "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/)<CR>/<CR>
 
         " Init folds
             function! FoldIfMakeSense(offset)
@@ -1591,12 +1573,19 @@
     " Highlight current selection
         let g:selMatches = ''
         hi SelectionOthers cterm=bold,underline ctermbg=NONE ctermfg=none
+        function! SelectionToRx(selText)
+            return substitute(escape(a:selText, '/\\^$*.[~'), '\%(\s\|\n\)\+', '\\%(\\s\\|\\n\\)\\+', 'g')
+        endfunction
         function! HighlightSel()
             sil!call matchdelete(g:selMatches)
             sil!exe "norm!\"aygv"
-            let g:selMatches = matchadd('SelectionOthers', substitute(escape(@a, '/\\^$*.[~'), '|', '\|', 'g'))
+            let g:selMatches = matchadd('SelectionOthers', SelectionToRx(@a))
         endfunction
         autocmd CursorMoved * if mode() == 'v' | call HighlightSel() | else | sil!call matchdelete(g:selMatches) | endif
+        " autocmd CursorMoved * if mode() == 'v' | call HighlightSel() | else | sil!call matchdelete(g:selMatches) | endif
+        " autocmd CursorMoved * if mode() == 'v' | call HighlightSel() | else | sil!call matchdelete(g:selMatches) | endif
+        " autocmd CursorMoved * if mode() == 'v' | call HighlightSel()  | else | sil!call matchdelete(g:selMatches) | endif
+        " autocmd CursorMoved * if mode() == 'v' | call HighlightSel() | else | sil!call matchdelete(g:selMatches) | endif
 
 " 
 " ABREVS

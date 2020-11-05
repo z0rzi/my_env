@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -lt 2 ]; then
-    echo "USAGE = '$0 <rule> <new dimensions> <input images>'"
+    echo "USAGE = '$0 [--overwrite||--replace] [-q|--quiet] <rule> <new dimensions> <input images>'"
     echo "rule can be:"
     echo "  --min"
     echo "      don't go over the given dimensions'"
@@ -10,18 +10,37 @@ if [ $# -lt 2 ]; then
     exit
 fi
 
-rule=$1
-shift
-dims=$1
-shift
+files=''
+rule=''
+overwrite=''
+dims=''
+quiet=''
+while [ $# -gt 0 ]; do
+    if [ -f "$1" ]; then
+        files=`printf "$files\n$1"`
+    elif [[ "$1" =~ ^--(min|max)$ ]]; then
+        rule="$1"
+        shift
+        if [[ "$1" =~ ^[0-9]+x[0-9]+$ ]]; then
+            dims="$1"
+        elif [[ "$1" =~ ^[0-9]+$ ]]; then
+            dims=$1"x"$1
+        fi
+    elif [ "$1" = "-q" ] || [ "$1" = "--quiet" ]; then
+        quiet='1'
+    elif [ "$1" = "--overwrite" ] || [ "$1" = "--replace" ]; then
+        overwrite='1'
+    fi
+    shift
+done
 
-if [ "$rule" != "--min" ] && [ "$rule" != "--max" ]; then
-    echo "rule should be --min or --max"
-    exit
+if [ ! "$rule" ]; then
+    echo "Rule should be --min or --max" > /dev/stderr
+    exit 1
 fi
-if [[ ! "$dims" =~ ^[0-9]+x[0-9]+$ ]]; then
-    echo "Dimension should look like '<width>x<height>'"
-    exit
+if [ ! "$dims" ]; then
+    echo "Dimension should look like '<width>x<height>' ( /\d+x\d+/ ) or '<width=height>' ( /\d+/ )" > /dev/stderr
+    exit 1
 fi
 
 X=`cut -dx -f1 <<< $dims`
@@ -29,17 +48,14 @@ Y=`cut -dx -f2 <<< $dims`
 
 ratio=$((X*100000/Y))
 
-while [ $# -gt 0 ]; do
-    if [ ! -f "$1" ]; then
-        echo "$1 not a file"
-        shift
+while read file; do
+    if [ ! -f "$file" ] || [[ ! "$file" =~ (\.[jJ][pP][eE]?[gG]|\.[pP][nN][gG])$ ]]; then
         continue 
     fi
 
-    old_size=`identify -format "%wx%h" $1`
+    old_size=`identify -format "%wx%h" "$file"`
 
-    oldX=`cut -dx -f1 <<< $old_size`
-    oldY=`cut -dx -f2 <<< $old_size`
+    read oldX oldY _ <<< `tr 'x' ' ' <<< "$old_size"`
 
     new_ratio=$((oldX*100000/oldY))
 
@@ -49,10 +65,27 @@ while [ $# -gt 0 ]; do
         [ "$rule" = "--min" ] && dims=$X"x10000000" || dims="10000000x"$Y
     fi
 
-    convert -resize $dims $1 res_$1
-    new_size=`identify -format "%wx%h" res_$1`
-    echo "$1 resized from $old_size to $new_size"
+    path=`sed -e 's/\(^.*\/\).*$/\1/' <<< "$file"`
+    [[ ! "$path" =~ /$ ]] && path=''
+    filename=${file:${#path}:${#file}}
+    newfile="${path}res_${filename}"
 
-    shift
-done
 
+    if [ $oldY -lt $Y ] || [ $oldX -lt $X ]; then
+        # no image bigger than origin
+        cp "$file" "$newfile"
+    else
+        convert -resize $dims "$file" "$newfile"
+    fi
+
+    if [ ! "$quiet" ]; then
+        new_size=`identify -format "%wx%h" "$newfile"`
+        echo "$file resized from $old_size to $new_size"
+    fi
+    if [ "$overwrite" ]; then
+        mv "$newfile" "$file"
+    fi
+
+    # deleting cache...
+    # rm /tmp/magick*
+done <<< "$files"

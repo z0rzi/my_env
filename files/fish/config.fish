@@ -24,6 +24,7 @@ if ! string match -n "scripts" "$PATH"
     set PATH $PATH:$HOME/.my_env/scripts/
 end
 
+[ -n "$TMUX" ] && export TERM=tmux-256color
 # Launching TMUX
 if test ! "$TMUX"
     tmux has-session 2&> /dev/null

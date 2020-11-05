@@ -260,7 +260,9 @@ if version >= 508 || !exists("did_typescript_syn_inits")
   HiLink typescriptBraces Function
   HiLink typescriptParens Operator
   HiLink typescriptComment Comment
+  HiLink javascriptComment Comment
   HiLink typescriptLineComment Comment
+  HiLink javascriptLineComment Comment
   HiLink typescriptRefComment Include
   HiLink typescriptRefS String
   HiLink typescriptRefD String

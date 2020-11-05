@@ -33,13 +33,13 @@ function parseArgs() {
 parseArgs $@
 
 case "$to_setup" in
-    "all" | "bashrc")
+    "bashrc")
         echo "Starting bashrc setup..."
         ln -s $path/bashrc $HOME/.bashrc
         echo "bashrc setup completed"
         ;;
 
-    "all" | "vscode")
+    "vscode")
         echo "Starting VScode setup..."
 
         ln -s $path/files/VScode ~/.config/Code\ -\ OSS/User
@@ -49,7 +49,7 @@ case "$to_setup" in
         echo "VScode setup completed"
         ;;
 
-    "all" | "apache")
+    "apache")
         echo "Starting Apache setup..."
         echo
         echo "executing the following command as root:"
@@ -62,7 +62,7 @@ case "$to_setup" in
         ;;
 
 
-    "all" | "dbeaver")
+    "dbeaver")
         echo "Starting DBeaver setup..."
 
         mv $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/data-sources.json.backup       $HOME/.local/share/DBeaverData/workspace6/General/.dbeaver/.data-sources.json.backup
@@ -80,7 +80,7 @@ case "$to_setup" in
         echo "DBeaver setup completed"
         ;;
 
-    "all" | "vim")
+    "vim")
         echo "Starting VIM setup..."
 
         mv $HOME/.vim $HOME/..vim
@@ -100,7 +100,7 @@ case "$to_setup" in
         echo "VIM setup completed"
         ;;
 
-    "all" | "fish")
+    "fish")
         echo "Starting FISH setup..."
 
         ln -fs $path/files/fish $HOME/.config/fish
@@ -108,7 +108,7 @@ case "$to_setup" in
         echo "FISH setup completed"
         ;;
 
-    "all" | "kitty")
+    "kitty")
         echo "Starting KITTY setup..."
 
         mkdir -p $HOME/.config/kitty
@@ -116,6 +116,25 @@ case "$to_setup" in
 
         echo "KITTY setup completed"
         ;;
+
+    "ranger")
+        echo "Starting Ranger setup..."
+
+        mkdir -p $HOME/.config/ranger/
+        ln -fs $path/files/ranger/ranger.conf $HOME/.config/ranger/ranger.conf
+
+        echo "Ranger setup completed"
+        ;;
+
+    "tmux")
+        echo "Starting tmux setup..."
+
+        mv $HOME/.tmux.conf $HOME/..tmux.conf
+        ln -fs $path/files/tmux/.tmux.conf $HOME/.tmux.conf
+
+        echo "tmux setup completed"
+        ;;
+
     *)
         errorMessage
         ;;
