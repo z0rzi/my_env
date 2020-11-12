@@ -1,0 +1,23 @@
+
+snippet select "select query" b
+SELECT ${2:*} FROM ${1:tbl};
+endsnippet
+
+snippet delete "delete query" b
+DELETE FROM ${1:tbl} WHERE $0;
+endsnippet
+
+snippet update "update query" b
+UPDATE ${1:tbl} SET ${2:row} = $0;
+endsnippet
+
+snippet insert "insert rows" b
+INSERT INTO ${1:tbl} (${2:rows}) VALUES
+    (${2/([^ ,]+)(,|$)/'$1'$2/g}),
+    (${2/([^ ,]+)(,|$)/'$1'$2/g});
+endsnippet
+
+snippet chnge_type "Change the type of a column" b
+ALTER TABLE ${1:tbl}
+ALTER COLUMN ${2:column} TYPE ${3:Type};
+endsnippet

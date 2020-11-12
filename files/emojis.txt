@@ -1,22 +1,29 @@
+😓    | Downcast Face with Sweat, Sad, :(
+😛    | Face with Tongue, :p
+💪    | Flexed Biceps, Power
+🤔    | Thinking Face, Huuum
 ¯\_(ツ)_/¯ | Shrug
+👋    | Waving Hand
+🎉    | Party Popper
+👍    | Thumbs Up, +1
+😅    | Grinning Face with Sweat, ^^'
+🤷    | Person Shrugging, Welp
+😂    | Face with Tears of Joy, XD, Happy
+🙂    | Slightly Smiling Face, Happy, :)
+😁    | Beaming Face with Smiling Eyes, Happy, :D
+😉    | Winking Face, ;)
+😃    | Grinning Face with Big Eyes, Happy, :D
 💩    | Pile of Poo, Caca
 👌    | OK Hand
 😤    | Face with Steam From Nose, Mad, Angry
-😂    | Face with Tears of Joy, XD, Happy
-👍    | Thumbs Up, +1
 ❗    | Exclamation Mark
-😃    | Grinning Face with Big Eyes, Happy, :D
 ➡    | Right Arrow
-👋    | Waving Hand
 🙌    | Raising Hands, Yay
 ✔️    | Check Mark, OK, Valid
 ❌    | Cross Mark
 ✅    | Check Mark Button
 🥢    | Chopsticks, Chinese, Noodles
 ⚠️    | Warning
-😅    | Grinning Face with Sweat, ^^'
-😓    | Downcast Face with Sweat, Sad, :(
-🙂    | Slightly Smiling Face, Happy, :)
 😞    | Disappointed Face, Sad, :(
 ─     | box drawings light horizontal
 🔥    | On fire, Hot, +1
@@ -29,20 +36,15 @@
 🌟    | Glowing Star, Magic
 ⭐    | Star, Magic
 🧗    | Person Climbing
-🤔    | Thinking Face, Huuum
-💪    | Flexed Biceps, Power
 ❝❞    | Fancy Quotes
 🙏    | Folded Hands, Thank you
 😐    | Neutral Face, :|
 ✡    | Star of David
 💖    | Sparkling Heart
-😉    | Winking Face, ;)
 🤯    | Exploding Head, Mindblown
 🤐    | Zipper-Mouth Face
 🍳    | Cooking
-😛    | Face with Tongue, :p
 │     | box drawings light vertical
-🎉    | Party Popper
 🙃    | Upside-Down Face, Welp, (:
 😘    | Face Blowing a Kiss, <3
 ⛩️    | Shinto Shrine, Japan
@@ -63,7 +65,6 @@
 ✏️    | Pencil, Drawing, Graphite
 😕    | Confused Face, Sad, :(
 👀    | Eyes, Look
-🤷    | Person Shrugging, Welp
 🍨    | Ice Cream, Fat
 🍪    | Cookie, Fat
 😪    | Sleepy Face, Zzzzz
@@ -169,7 +170,6 @@
 🏃    | Person Running
 🚧    | Construction
 🔰    | Japanese Symbol for Beginner
-😁    | Beaming Face with Smiling Eyes, Happy, :D
 🏢    | Office Building
 😟    | Worried Face
 ☹️    | Frowning Face, :(

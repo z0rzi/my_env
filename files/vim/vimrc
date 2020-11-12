@@ -183,7 +183,7 @@
     endfunction
     command! -nargs=+  Err call ParseErrorLine('<args>')
 
-    function HandleSignal()
+    function! HandleSignal()
         let message = readfile('/tmp/vim_sig.txt')
         call ParseErrorLine(message[0])
     endfunction
@@ -376,10 +376,11 @@
     endfunction
 
     function! FoldLevel(lnum)
-        return ( max([
-            \     indent(prevnonblank(a:lnum)),
-            \     indent(nextnonblank(a:lnum))
-            \ ]) / getbufvar('.', '&tabstop', 1) )
+        return indent(nextnonblank(a:lnum)) / getbufvar('.', '&tabstop', 1)
+        " return ( max([
+        "     \     indent(prevnonblank(a:lnum)),
+        "     \     indent(nextnonblank(a:lnum))
+        "     \ ]) / getbufvar('.', '&tabstop', 1) )
     endfunction
 
     function! NeatFoldText()
@@ -713,6 +714,7 @@
             \   'javascript': {
             \     'l': "let",
             \     'c': "const",
+            \     'prom': "new Promise((resolve, reject) => {})\<LEFT>\<LEFT>!",
             \     '^ret$': "return",
             \     'req$': "require('')\<LEFT>\<LEFT>!",
             \     'aw': "await",
@@ -733,6 +735,11 @@
             \   },
             \   'vue': {
             \     '@inherit': 'typescript',
+            \   },
+            \   'sql': {
+            \     'sel': 'SELECT * FROM',
+            \     'upd': 'UPDATE tbl SET row = ""',
+            \     'del': 'DELETE FROM',
             \   },
             \ }
 
@@ -1131,7 +1138,6 @@
         inoremap <F2> <ESC>
         inoremap <C-x><C-l> <C-x><C-l>
         inoremap <silent> <C-r>/ <C-r>=substitute(@/, '\\.', '', 'g')<CR>
-        " nnoremap S <CMD>call setline('.', repeat(' ', FoldLevel(line('.'))))<CR>A
 
         nnoremap <M-z> <C-w>w
         " nnoremap / /\v
@@ -1569,6 +1575,9 @@
         autocmd BufNewFile,BufRead *.jrl set filetype=journal
         autocmd BufNewFile,BufRead *.nim set filetype=nim
         autocmd BufNewFile,BufRead Jenkinsfile set filetype=groovy
+
+    " SQL watch
+        autocmd BufWritePost *.sql sil!exe "exe '!echo ' . line('.') .' > /tmp/.vim-line'"
 
     " Highlight current selection
         let g:selMatches = ''

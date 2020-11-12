@@ -53,8 +53,12 @@ snippet logObject "Logs an object" b
 console.log(require('util').inspect(${0:my_object}, /*show_hidden*/false, /*depth*/4, /*colorize*/true));
 endsnippet
 
+snippet logg "Logs a message" b
+console.log($0);
+endsnippet
+
 snippet log "Logs a message" b
-console.log(${1:{'${2/^(.*\.)?(\w+)(\(.*\))?$/$2/}': ${0:${2:var}}}});
+console.log('${1/^(?:.*\.)?(\w*)(\(.*)?$/$1/}', $1)
 endsnippet
 
 snippet err "Logs an error" b
