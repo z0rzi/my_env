@@ -1,23 +1,40 @@
-😃    | Grinning Face with Big Eyes, Happy, :D
+🙃    | Upside-Down Face, Welp, (:
+😔    | Pensive Face, Dissapointed
+🤷    | Person Shrugging, Welp
+😕    | Confused Face, Sad, :(
 😅    | Grinning Face with Sweat, ^^'
+😓    | Downcast Face with Sweat, Sad, :(
+😐    | Neutral Face, :|
+🙄    | Face with Rolling Eyes, Yeeeeah, Right
+😃    | Grinning Face with Big Eyes, Happy, :D
+😛    | Face with Tongue, :p
+¯\_(ツ)_/¯ | Shrug
+😂    | Face with Tears of Joy, XD, Happy
+📢    | Loudspeaker
+🤐    | Zipper-Mouth Face, :|
+🙂    | Slightly Smiling Face, Happy, :)
+👍    | Thumbs Up, +1
+🤔    | Thinking Face, Huuum
+💩    | Pile of Poo, Caca
+👌    | OK Hand
+👋    | Waving Hand
+😶    | Face Without Mouth, No mouth, :|
+😑    | Expressionless face, :|
+🖕    | Middle Finger, Hand
+🛌    | Person in Bed
+🎉    | Party Popper
+😴    | Sleeping Face, Zzzzz
+🗑️    | Wastebasket, Bin, Office trash
+❌    | Cross Mark
+😄    | Grinning Face with Smiling Eyes, Happy, :D
+📎    | Paperclip
+✅    | Check Mark Button
+✔️    | Check Mark, OK, Valid
+➡    | Right Arrow
 🎯    | Direct Hit, Target, Arrow, Goal
 ℹ    | Information
 ⚠️    | Warning
-👌    | OK Hand
-👍    | Thumbs Up, +1
-🎉    | Party Popper
-😂    | Face with Tears of Joy, XD, Happy
 😀    | Grinning Face, Happy, :D
-¯\_(ツ)_/¯ | Shrug
-🤐    | Zipper-Mouth Face
-👋    | Waving Hand
-❌    | Cross Mark
-😶    | Face Without Mouth, No mouth, :|
-😓    | Downcast Face with Sweat, Sad, :(
-🙄    | Face with Rolling Eyes, Yeeeeah, Right
-🤔    | Thinking Face, Huuum
-😐    | Neutral Face, :|
-🙃    | Upside-Down Face, Welp, (:
 💰    | Money Bag
 😝    | Squinting Face with Tongue, :p
 🎄    | Christmas Tree, Sapling
@@ -33,16 +50,11 @@
 ─     | box drawings light horizontal
 😜    | Winking Face with Tongue, :p
 👨‍🍳  | Man Cook, Chef, Cuisine
-✔️    | Check Mark, OK, Valid
-🙂    | Slightly Smiling Face, Happy, :)
 💾    | Floppy Disk, Data, Database
-✅    | Check Mark Button
 🙏    | Folded Hands, Thank you
 🍹    | Tropical Drink, Cocktail
 ❝❞    | Fancy Quotes
 🦴    | Bone, Dog
-😄    | Grinning Face with Smiling Eyes, Happy, :D
-😛    | Face with Tongue, :p
 💼    | Briefcase, Work
 ❗    | Exclamation Mark
 🎥    | Movie Camera
@@ -52,11 +64,8 @@
 📆    | Tear-Off Calendar
 🍳    | Cooking
 💪    | Flexed Biceps, Power
-🤷    | Person Shrugging, Welp
 😉    | Winking Face, ;)
-💩    | Pile of Poo, Caca
 😤    | Face with Steam From Nose, Mad, Angry
-➡    | Right Arrow
 🙌    | Raising Hands, Yay
 🥢    | Chopsticks, Chinese, Noodles
 😞    | Disappointed Face, Sad, :(
@@ -80,7 +89,6 @@
 📔    | Notebook with Decorative Cover
 🌲    | Evergreen Tree
 💠    | Diamond with a Dot
-🖕    | Middle Finger, Hand
 ⬅     | Left Arrow
 ⤵     | Right Arrow Curving Down
 📑    | Bookmark Tabs
@@ -88,7 +96,6 @@
 👎    | Thumbs Down, Hand, -1
 👏    | Clapping Hands
 ✏️    | Pencil, Drawing, Graphite
-😕    | Confused Face, Sad, :(
 👀    | Eyes, Look
 🍨    | Ice Cream, Fat
 🍪    | Cookie, Fat
@@ -100,7 +107,6 @@
 👇    | Backhand Index Pointing Down, Hand
 🍽️    | Fork and Knife with Plate, Eat, Hungry
 🍑    | Peach
-😔    | Pensive Face, Dissapointed
 🗞️    | Rolled-Up Newspaper
 🍬    | Candy, Sweet
 ❔    | White Question Mark
@@ -109,10 +115,8 @@
 ➕    | Plus Sign
 🌊    | Water Wave, Surf
 📺    | Television
-🛌    | Person in Bed
 ☑    | Check Box with Check
 🤗    | Hugging Face
-🗑️    | Wastebasket, Bin, Office trash
 🛸    | Flying Saucer
 🦋    | Butterfly
 😍    | Smiling Face with Heart-Eyes, <3
@@ -206,7 +210,6 @@
 😏    | Smirking Face
 😒    | Unamused Face, :(
 🤥    | Lying Face, Sad
-😴    | Sleeping Face, Zzzzz
 😷    | Face with Medical Mask, Sick
 🤒    | Face with Thermometer, Sick
 🤕    | Face with Head-Bandage, Sick
@@ -924,7 +927,6 @@
 📋    | Clipboard
 📌    | Pushpin
 📍    | Round Pushpin
-📎    | Paperclip
 🖇️    | Linked Paperclips
 📏    | Straight Ruler
 📐    | Triangular Ruler
@@ -1033,7 +1035,6 @@
 🔈    | Speaker Low Volume
 🔉    | Speaker Medium Volume
 🔊    | Speaker High Volume
-📢    | Loudspeaker
 📣    | Megaphone
 📯    | Postal Horn
 🔕    | Bell with Slash

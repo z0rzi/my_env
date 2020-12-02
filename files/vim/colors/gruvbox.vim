@@ -1011,9 +1011,11 @@ hi! link vimContinue GruvboxFg3
 " }}}
 " REGEX: {{{
   hi! link RegexMult GruvboxRed
+  hi! link RegexQuantity GruvboxRed
   hi! link RegexOneOf GruvboxOrange
   hi! link RegexBraces GruvboxAquaItalic
   hi! link RegexNonCapt GruvboxGrayItalic
+  hi! link RegexLookAhead GruvboxAqua
   hi! link RegexSpecial GruvboxPurple
   hi! link RegexVerySpecial GruvboxBlueBold
   hi! link RegexNamedCapt GruvboxGray

@@ -7,7 +7,19 @@
       "diagnostic.hintSign": "",
       "diagnostic.messageDelay": 1000,
       "diagnostic.format": "[%severity] %message",
+
+      "angular.trace.server": "off",
+      "angular.log": "off",
+      "suggest.floatEnable": true,
+      "suggest.disableMenuShortcut": true,
+
+      "angular.enable-experimental-ivy-prompt": false,
+
+      "pyright.enable": true,
+      "python.linting.enabled": true,
+
       "tsserver.enableJavascript": true,
+      "typescript.suggest.enabled": true,
       "typescript.suggest.autoImports": true,
       "typescript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": true,
       "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis": false,
@@ -31,15 +43,6 @@
       "suggest.localityBonus": true,
       "suggest.fixInsertedWord": true,
       "suggest.triggerAfterInsertEnter": true,
-      "eslint.enable": true,
-      "eslint.autoFix": true,
-      "eslint.filetypes": [
-            "typescript",
-            "typescriptreact",
-            "vue",
-            "javascript",
-            "javascriptreact"
-      ],
       "eslint.autoFixOnSave": false,
       "eslint.codeAction.showDocumentation": {
             "enable": true
@@ -49,19 +52,41 @@
       "eslint.options": {
             "useEslintrc": true
       },
+      "explorer.mouseMode": "singleclick",
       "explorer.icon.enableVimDevicons": true,
+      "explorer.position": "left",
+      "explorer.activeMode": true,
+      "explorer.quitOnOpen": false,
+      "explorer.file.autoReveal": true,
       "explorer.icon.collapsed": "-",
       "explorer.icon.expanded": "+",
       "explorer.previewAction.onHover": false,
       "explorer.file.column.indent.indentLine": true,
-      "explorer.file.column.git.icon.mixed": "✸",
-      "explorer.file.column.git.icon.modified": "✸",
-      "explorer.file.column.git.icon.added": "+",
-      "explorer.file.column.git.icon.deleted": "-",
-      "explorer.file.column.git.icon.renamed": "↷",
-      "explorer.file.column.git.icon.untracked": "+",
-      "explorer.file.column.git.icon.ignored": ".",
-      "explorer.keyMappings": {
+      "explorer.git.enable": true,
+      "explorer.git.icon.status.mixed": "✸",
+      "explorer.git.icon.status.modified": "✸",
+      "explorer.git.icon.status.added": "+",
+      "explorer.git.icon.status.deleted": "-",
+      "explorer.git.icon.status.renamed": "↷",
+      "explorer.git.icon.status.untracked": "+",
+      "explorer.git.icon.status.ignored": ".",
+      "explorer.openAction.select.filter": {
+            "buftypes": [
+                  "terminal",
+                  "nofile"
+            ],
+            "filetypes": [
+                  "vista_kind",
+                  "qf"
+            ],
+            "floatingWindows": true,
+            "sources": {
+                  "buffer": {
+                        "buftypes": []
+                  }
+            }
+      },
+      "explorer.keyMappings.global": {
             "i": false,
             "gk": "expandablePrev",
             "gj": "expandableNext",
@@ -161,17 +186,12 @@
                         "rust"
                   ]
             },
-            "python": {
-                  "command": "python",
-                  "filetypes": [
-                        "python"
-                  ]
-            },
             "vue": {
                   "command": "vls",
                   "filetypes": [
                         "vue"
                   ]
             }
-      }
+      },
+      "angular.experimental-ivy": true
 }

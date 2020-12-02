@@ -1,0 +1,15 @@
+snippet init "Initialize the dockerfile" b
+FROM node:14-alpine
+
+RUN mkdir /app
+COPY . /app/
+RUN npm install
+
+ENV PATH /app/node_modules/.bin:$PATH
+
+WORKDIR /app
+
+EXPOSE 8000
+
+CMD ["npm", "run-script", "start-prod"]
+endsnippet

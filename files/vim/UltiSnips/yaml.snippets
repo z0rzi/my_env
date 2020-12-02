@@ -1,0 +1,42 @@
+snippet docker_compose_init "Initialize a docker compose file" b
+version: "3.3"
+
+services:
+  # Some service based on a dockerfile
+  some_service:
+    build:
+      context: ./folder # directory where the dockerfile is
+      args:
+        - ARG_USED_IN_DOCKERFILE=1234
+    environment:
+      - PORT=8800
+      - IP=0.0.0.0
+    volumes:
+      - vol0:/dist/
+    working_dir: /app # Directory inside the container
+    command: cp -r /app/dist/ /
+
+  # Some service built on the spot
+  database:
+    image: postgres
+    restart: always # unless-stopped || never
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      PGDATA: /data/postgres
+    volumes:
+      - pgdata:/data/postgres
+    ports:
+      - 5444:5432
+    networks:
+      - main
+    restart: always
+
+networks:
+  main:
+
+volumes:
+  vol0:
+  pgdata:
+    external: true # created by user
+endsnippet

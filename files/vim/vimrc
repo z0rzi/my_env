@@ -15,7 +15,7 @@
     set noshowmode
     set nobackup
     set nowritebackup
-    " set updatetime=130
+    set updatetime=1000
     set shortmess+=c
     set signcolumn=yes
     " set termguicolors  " Increases the saturation
@@ -65,9 +65,6 @@
     " Don't conceal markdown
         let g:vim_markdown_conceal_code_blocks=0
         let g:vim_markdown_conceal=0
-    " Ignored files ( formated in bash style, like in the `ls` command )
-        let g:ignoredDirs = [ 'target', '__pycache__', '.git', 'cache', 'node_modules', 'coverage', 'dist' ]
-        let g:ignoredFiles = [ '*.log', '*.class', 'tags', '*.lock' ]
 
 " 
 " LOOKS AND FEEL
@@ -78,7 +75,6 @@
         set listchars=tab:.\ , list
 
     " Folding
-        let g:foldMode=1
         set foldlevelstart=99
         set foldmethod=expr
         set foldexpr=FoldLevel(v:lnum)
@@ -122,7 +118,81 @@
 " 
 " FUNCTIONS
 " 
+    let g:mappings = {}
+    function! UpdateMappings()
+        if ! exists('g:mappings') | let g:mappings = {} | endif
+        for mode in keys(g:mappings)
+            for cmd in keys(g:mappings[mode])
+                " Destroying existing mappings
+                let old_map = maparg(cmd, mode)
+                if old_map != ''
+                    sil!exe mode[0]."unmap ".cmd
+                    sil!exe mode[0]."unmap <buffer> ".cmd
+                endif
 
+                let escaped_cmd = substitute(cmd, '<', '</', 'g')
+                " Setting up new mapping
+                if match(mode, '^i') >= 0
+                    exe mode."map <silent> ".cmd." <C-r>=ExeMap('".mode."', '".escaped_cmd."')<CR>"
+                else
+                    exe mode."map <silent> ".cmd." <CMD>call ExeMap('".mode."', '".escaped_cmd."')<CR>"
+                endif
+            endfor
+        endfor
+    endfunction
+    function! AddMapping(mode, cmd, code)
+        if ! exists('g:mappings')               | let g:mappings = {}                | endif
+        if ! has_key(g:mappings, a:mode)        | let g:mappings[a:mode] = {}        | endif
+        if ! has_key(g:mappings[a:mode], a:cmd) | let g:mappings[a:mode][a:cmd] = [] | endif
+        call add(g:mappings[a:mode][a:cmd], a:code)
+    endfunction
+    function! ExeMap(mode, cmd, ...)
+        if ! has_key(g:mappings, a:mode)
+            return ''
+        endif
+        let cmd = substitute(a:cmd, "</", "<", "g")
+        if ! has_key(g:mappings[a:mode], cmd)
+            return ''
+        endif
+        let codes = g:mappings[a:mode][cmd]
+        if match(a:mode, '^i') >= 0
+            " insert mode
+
+            let cnt_per_cmd = get(a:, 2, 0)
+
+            if len(codes) <= cnt_per_cmd
+                return RepairSpecial(cmd)
+            endif
+
+            let cara = eval(codes[cnt_per_cmd])
+            let cara = substitute(cara, " ", "<SPACE>", "g")
+
+            if cara == cmd
+                let cnt_per_cmd += 1
+            else
+                let cnt_per_cmd = 0
+            endif
+
+            let cnt_total = get(a:, 1, 0)
+            if cnt_total < 10
+                let res = ExeMap(a:mode, substitute(cara, '<', '</', 'g'), cnt_total+1, cnt_per_cmd)
+                if res != ''
+                    return RepairSpecial(res)
+                endif
+            endif
+            return RepairSpecial(cara)
+        else
+            for code in codes
+                exe code
+            endfor
+            return ''
+        endif
+    endfunction
+    function! RepairSpecial(str)
+        let str = substitute(a:str, '<', '\\<', 'g')
+        let str = substitute(str, '"', '\\"', 'g')
+        return eval('"'.str.'"')
+    endfunction
     function! RestrictSearch(flag)
         let cursearch = @/
         let save = winsaveview()
@@ -160,8 +230,9 @@
         call winrestview(save)
 
         let @/ = '\%>'.start.'l\%<'.end.'l'.search
-        call histadd('/', @/)
+        " call histadd('/', @/)
     endfunction
+
     function! DoAtEach(macro, range)
         echom a:macro
         let save = winsaveview()
@@ -169,21 +240,29 @@
         let searchSave = @/
         let selSave = [ getpos("'<"), getpos("'>") ]
         if a:range < 0
+            " Match mode
             call setpos('.', [0, 1, 1, 0])
-            while search(@/, 'W')
-                let count += 1
 
+            " Counting number of matches
+            let matchnr = 0
+            while search(@/, 'W') | let matchnr += 1 | endwhile
+            call setpos('.', [0, 1, 1, 0])
+            call search(@/, 'W')
+            exe "norm!\<BS>"
+            let @/ = substitute(@/, '\\%[<>]\d\+l', '', 'g')
+            let searchSave = @/
+
+            while search(@/, 'W') && matchnr > 0
                 exe "exe \"norm! " . substitute(substitute(a:macro, '<>', '\<ESC>', 'g'), '<[a-zA-Z-]\+>\|"', '\\&', 'gi') . '"'
 
                 let @/ = searchSave
                 call setpos("'<", selSave[0])
                 call setpos("'>", selSave[1])
 
-                if count > 200
-                    break
-                endif
+                let matchnr -= 1
             endwhile
         else
+            " Visual Mode
             call setpos('.', getpos("'<"))
             let botline = line("'>")
             while line('.') <= botline
@@ -233,13 +312,6 @@
     endfunction
     command! -nargs=+  Err call ParseErrorLine('<args>')
 
-    function! HandleSignal()
-        let message = readfile('/tmp/vim_sig.txt')
-        call ParseErrorLine(message[0])
-    endfunction
-
-    autocmd Signal SIGUSR1 call HandleSignal()
-
     function! ComparePositions(pos1, pos2)
         if a:pos1[0] < a:pos2[0]
             return 1
@@ -278,39 +350,6 @@
 
         call setpos('.', curpos)
         return 1
-    endfunction
-    function! MoveFaster(num, count)
-        let g:num = a:num
-        let g:count = a:count
-        if a:count > 0
-            if a:num < 0
-                let curline = line('.')
-                call setpos('.', [0, 2*curline - a:count, col('.'), 0])
-            elseif a:num > 0
-                call setpos('.', [0, a:count, col('.'), 0])
-            endif
-        endif
-        let b:tap = getbufvar(bufnr(), 'tap', 0)
-        let lastTap = b:tap
-        if a:num > 0
-            let out = "\<DOWN>"
-        elseif a:num < 0
-            let out = "\<UP>"
-        endif
-
-        if a:num > 0 && lastTap > 0 || a:num < 0 && lastTap < 0
-            let out = repeat(out, abs(lastTap))
-
-            if abs(b:tap) < 2
-                let b:tap = lastTap + a:num
-            endif
-        elseif b:tap != 0
-            let b:tap = 0
-        else
-            let b:tap = lastTap + a:num
-        endif
-
-        exe "norm!".out
     endfunction
 
     function! EOL()
@@ -401,10 +440,6 @@
 
     function! FoldLevel(lnum)
         return indent(nextnonblank(a:lnum)) / getbufvar('.', '&tabstop', 1)
-        " return ( max([
-        "     \     indent(prevnonblank(a:lnum)),
-        "     \     indent(nextnonblank(a:lnum))
-        "     \ ]) / getbufvar('.', '&tabstop', 1) )
     endfunction
 
     function! NeatFoldText()
@@ -577,56 +612,34 @@
 
         let rx = substitute(rx, '\\<\|\\>','\\b', 'g')
 
-        if rx =~ '^\\c'
-            let rx = substitute(rx, '^\\c','', '')
+        if rx =~ '\\c'
+            let rx = substitute(rx, '\\c','', '')
             let gargs .= " -i"
         endif
 
         return [rx, gargs]
     endfunction
 
+    let s:fzf_options = '-e ' .
+                \ '--history /home/zorzi/.local/share/fzf-history/FZF' .
+                \ '--algo=v1 ' .
+                \ '--keep-right ' .
+                \ '--multi ' .
+                \ '--no-sort ' .
+                \ '--preview="bash -c \"[ \\\"\\\$(git ls-files -m {})\\\" ] && flag=-d; bat --color always \\\$flag {} | tail -n+2\"" ' .
+                \ '--preview-window="right:50%:rounded:nowrap:nofollow:nocycle:nohidden" ' .
+                \ '--sync'
+                " \ '--preview="[ \"$(git ls-files -m ''{}'')\" ] && bash -c \"bat -d --color always {} | tail -n+2\" || bat {}" ' .
+                " \ '--preview="git diff --color=always {} | sed -e \"1,5d\" -e \"s/^\s\+//g\" | diff-so-fancy" ' .
     function! FZFFindFile()
-        " let cmd = 'ls --color=never -t $(find . -type f  ' . ignoredFilesStr . ' ' . ignoredDirsStr . ') 2> /dev/null'
-        let cmd = 'ls --color=never -t $(find-file .) 2> /dev/null'
-        " silent! exe fzf#run({'source': cmd, 'sink': 'e', 'options': '-e -d/ -n-1 --history /home/zorzi/.local/share/fzf-history/FZF --multi --no-sort --preview="git diff --color=always {}" --sync', 'down':'40%'})
-        silent! exe fzf#run({'source': cmd, 'sink': 'e', 'options': '-e --history /home/zorzi/.local/share/fzf-history/FZF --multi --no-sort --preview="git diff --color=always {}" --sync', 'down':'40%'})
+        let cmd = 'ls --color=never -t $(rg . --files) 2> /dev/null'
+        silent! exe fzf#run({'source': cmd, 'sink': 'e', 'options': s:fzf_options, 'down':'40%'})
     endfunction
     function! s:FZFOpenVimOutput(str)
         let thefile = matchstr(a:str, '^.\{-\}\ze:')
         let theline = matchstr(a:str, '^.\{-\}:\zs\d\+\ze:')
         silent! exe 'edit ' . fnameescape(thefile)
         echo cursor(theline,0)
-    endfunction
-    function! FZFFindWordUnderCursor()
-        set hlsearch
-        let @/ = expand("<cword>")
-        call FZFFind(expand("<cword>"))
-    endfunction
-    function! FZFFindWord()
-        call inputsave()
-        let str = input('> ')
-        call inputrestore()
-        call FZFFind(str)
-    endfunction
-    function! FZFFind(str)
-        let [grepStr, grepArgs] = VimToGrepRegex(a:str)
-
-        let previewLines = string(float2nr(&lines * 0.4))
-
-        " let ignoredFilesStr = ''
-        " for f in g:ignoredFiles
-        "     let ignoredFilesStr .= ' ! -name "' . f . '"'
-        " endfor
-
-        " let ignoredDirsStr = ''
-        " for d in g:ignoredDirs
-        "     let ignoredDirsStr .= ' ! -path "*/' . d . '/*"'
-        " endfor
-
-        " let preview = '"echo {} | awk -F: ''{printf(\"sed -n %d,%dp %s\",(\$2>'.previewLines.'?\$2-'.previewLines.':1), \$2+'.previewLines.', \$1)}'' | xargs -I% bash -c \"%\" | highlight --syntax (echo \"{}\" | sed -e \"s/:.*\\$//g\") -O ansi | grep -C 100 --color=always \"' . grepStr . '\" "'
-        let cmd = 'grep-r "' . grepStr . '" ' . grepArgs
-        let preview = '"preview.sh {} '.previewLines.' | grep -C 100 --color=always \"'.grepStr.'\""'
-        call fzf#run({'source': cmd, 'sink': function('s:FZFOpenVimOutput'), 'options': '-e --no-sort --ansi --multi --sync --preview=' . preview , 'down':'40%' })
     endfunction
     function! s:FZFPrintUnicode(line)
         let cara = matchstr( a:line, '\S\ze\s' )
@@ -637,7 +650,7 @@
     endfunction
     function! FZFUnicode()
         let cmd = 'cat $HOME/.vim/customFiles/unicode_chars.txt'
-        call fzf#run({'source': cmd, 'sink': function('s:FZFPrintUnicode'), 'options': '-e --no-sort --ansi', 'down':'40%' })
+        call fzf#run({'source': cmd, 'sink': function('s:FZFPrintUnicode'), 'options': '-e --algo=v1 --no-sort --ansi', 'down':'40%' })
     endfunction
 
     " Save current view settings on a per-window, per-buffer basis.
@@ -680,30 +693,6 @@
                     \ 'bg': synIDattr(grpID, "bg"),
                     \ 'base': base
                     \ }
-    endfunction
-
-    function! ALEToggleHighlights(flag)
-        if a:flag == 0
-            hi clear ALEError
-            hi clear ALEWarning
-            hi clear ALEInfo
-        else
-            let grps = [g:AleErrorHI, g:AleWarningHI, g:AleInfoHI]
-
-            for grp in grps
-                let cmd = 'hi '.grp['name'].' '
-                if len(grp['fg']) > 0
-                    let cmd .= 'ctermfg='.grp['fg'].' '
-                endif
-                if len(grp['bg']) > 0
-                    let cmd .= 'ctermbg='.grp['bg'].' '
-                endif
-                if len(grp['base']) > 0
-                    let cmd .= 'cterm='.grp['base'].' '
-                endif
-                exe cmd
-            endfor
-        endif
     endfunction
 
     function! FloatingMessage(message)
@@ -805,42 +794,14 @@
 " 
 " PLUGINS CONFIG
 " 
-    " Ale Linting
-        let g:ale_fixers = {
-                    \ 'typescript': ['prettier'],
-                    \ 'javascript': ['prettier'],
-                    \ 'python': ['autopep8']
-                    \ }
-
-        let g:ale_linters = {
-                    \ 'python': ['pyls']
-                    \ }
-                    " \ 'typescript': ['eslint'],
-                    " \ 'javascript': ['eslint'],
-                    " \ 'rust': ['rust-analyzer'],
-
-        let g:ale_enabled = 0
-        autocmd! BufNewFile,BufRead *.py let g:ale_enabled = 1
-        " let g:ale_sign_error = '✘'
-        " let g:ale_sign_warning = '⚠'
-        let g:ale_sign_error = ''
-        let g:ale_sign_warning = ''
-        au! InsertEnter * call ALEToggleHighlights(0)
-        au! InsertLeave * call ALEToggleHighlights(1)
-
-        let g:ale_lint_on_text_changed = 'never'
-        let g:ale_lint_on_insert_leave = 1
-        let g:ale_lint_on_enter = 1
-        let g:ale_completion_enabled = 1
-        
-        let g:AleErrorHI = GetHighlightProps("ALEError")
-        let g:AleWarningHI = GetHighlightProps("ALEWarning")
-        let g:AleInfoHI = GetHighlightProps("ALEInfo")
-
-    " Goyo
-        nnoremap <LEADER><BS> <CMD>Goyo<CR>
-
     " smartHits
+        let g:smartHits_should_setup_maps = 0
+
+        call AddMapping('i', '<SPACE>', 'smartHits#smartSpace()')
+        call AddMapping('i', '<CR>', 'smartHits#smartCR()')
+        call AddMapping('i', '<BS>', 'smartHits#smartBS()')
+        call AddMapping('i', '<C-]>', 'smartHits#skip()')
+
         let g:smartHits_pairs = [
             \ ['(', ')'],
             \ ['[', ']'],
@@ -862,9 +823,12 @@
             \   'html': {
             \     '^\%(div\|span\|table\|h\d\)$': "<$&></$&>\<C-o>F<!",
             \     '^\.\.\([[:alnum:]-]\+\)$': "<div class=\"$1\"></div>\<C-o>F<!",
+            \     '\[\([[:alnum:]-]\+\)\]\@=': "\<DEL>[$1]=\"\"\<LEFT>!",
             \   },
             \   'javascript': {
             \     'l': "let",
+            \     '^iff': "if () {\<CR>}<UP><ESC>f(a!",
+            \     '^forr': "for () {\<CR>}<UP><ESC>f(a!",
             \     'c': "const",
             \     'prom': "new Promise((resolve, reject) => {})\<LEFT>\<LEFT>!",
             \     '^ret$': "return",
@@ -901,7 +865,7 @@
 
     " indentLine
         let g:indentLine_char = '┆'
-
+    
     " CoC
         let g:coc_snippet_next = "<C-x>"
         let g:coc_snippet_prev = "<C-z>"
@@ -910,21 +874,26 @@
             return !col || getline('.')[col - 1]  =~# '\s'
         endfunction
 
-        " Use <c-l> to trigger completion.
-        inoremap <silent><expr> <c-l> coc#refresh()
+        function! SmartPumComplete(str)
+            if ! coc#_selected() || ! pumvisible()
+                return a:str
+            endif
+            let infos = complete_info()
+            let selected = get(infos, 'selected', 0)
+            let items = get(infos, 'items', [])
+            if selected < -1 | return "\<C-y>" | endif
+            if selected == -1 || selected >= len(items)
+                return a:str
+            endif
+            let item = items[selected]
+            if get(item, 'word', '') != get(item, 'abbr', '')
+                return "\<C-y>"
+            endif
+            return a:str
+        endfunction
 
-        " Use <cr> to confirm completion, `<C-g>u` means break undo chain at current
-        " position. Coc only does snippet and additional edit on confirm.
-        if has('patch8.1.1068')
-            " Use `complete_info` if your (Neo)Vim version supports it.
-            inoremap <expr> <C-x> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
-        else
-            imap <expr> <C-x> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
-        endif
-
-        " GoTo code navigation.
-        " nmap <silent> <C-]> <Plug>(coc-definition)
-        " nmap <silent> gd <Plug>(coc-type-definition)
+        call AddMapping('i', "<SPACE>", 'SmartPumComplete("<SPACE>")')
+        call AddMapping('i', "<CR>", 'SmartPumComplete("<CR>")')
         nmap <silent> <C-]> <Plug>(coc-implementation)
         nmap <silent> <F12> <Plug>(coc-references)
 
@@ -977,7 +946,7 @@
         " provide custom statusline: lightline.vim, vim-airline.
         set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 
-    " Coc Tree
+    " Coc Explorer
         let g:coc_explorer_global_presets = {
                     \   '.vim': {
                     \      'root-uri': '~/.vim',
@@ -1005,9 +974,6 @@
                     \ }
 
         autocmd! FileType coc-explorer set conceallevel=0
-
-    " Typescript-vim
-        let g:typescript_indent_disable = 1
 
     " Vim LightLine
         let g:lightline = {
@@ -1083,24 +1049,16 @@
             \   'left': '', 'right': '' 
           \}
 
-    " Git blame line
-        let g:blameLineVirtualTextHighlight = 'GruvboxBlackItalic'
-        let g:blameLineVirtualTextPrefix = '  '
-        let g:blameLineGitFormat = '%an - %ar - %s | %h'
-
     " ultisnips
         let g:UltiSnipsSnippetDirectories  = [$HOME.'/.vim/UltiSnips']
         let g:UltiSnipsExpandTrigger       = "<C-l>"
+        call AddMapping('i', '<C-l>', 'UltiSnips#ExpandSnippet()')
+        " inoremap <C-l> <CMD>call UltiSnips#ExpandSnippet()<CR>
         inoremap <C-SPACE> <C-x>
         inoremap <C-x> <CMD>call UltiSnips#JumpForwards()<CR>
         inoremap <C-z> <CMD>call UltiSnips#JumpBackwards()<CR>
         vnoremap <C-x> <CMD>call UltiSnips#JumpForwards()<CR>
         vnoremap <C-z> <CMD>call UltiSnips#JumpBackwards()<CR>
-
-    " easy-motion
-        let g:EasyMotion_enter_jump_first=1
-        autocmd StdinReadPre * let s:std_in=1
-        nmap s <plug>(easymotion-overwin-f2)
 
     " FZF
         let g:fzf_history_dir = '~/.local/share/fzf-history'
@@ -1116,6 +1074,77 @@
         let g:gitgutter_sign_removed_above_and_below = '▎'
         let g:gitgutter_sign_removed_first_line = '▎'
 
+    " Minimap
+        let g:minimap_auto_start = 1
+        nnoremap <F4> <CMD>call minimap#vim#HighlightSearch()<CR>
+
+    " Import Cost
+        let g:import_cost_show_gzipped = 0
+
+    " Visual Multi
+        let g:VM_mouse_mappings   = 0
+        let g:VM_theme            = 'iceblue'
+        let g:VM_custom_motions  = {'<C-up>': "k", '<C-right>': "l", '<C-down>': "j", '<C-left>': "h"}
+
+        let g:VM_maps = {}
+        let g:VM_maps["Reselect Last"] = 'gs'
+        let g:VM_maps["Add Cursor At Pos"] = ''
+        let g:VM_maps["Add Cursor At Word"] = ''
+        let g:VM_maps["Start Regex Search"] = ''
+        let g:VM_maps["Select All"] = ''
+        let g:VM_maps["Add Cursor Down"] = 's<DOWN>'
+        let g:VM_maps["Add Cursor Up"] = 's<UP>'
+        let g:VM_maps["Visual Regex"] = ''
+        let g:VM_maps["Visual All"] = ''  
+        let g:VM_maps["Visual Add"] = ''  
+        let g:VM_maps["Visual Find"] = ''
+        let g:VM_maps["Visual Cursors"] = ''  
+        let g:VM_maps["Find Under"] = ''
+        let g:VM_maps["Duplication"] = 'Z'
+        " When in search mode
+            let g:VM_maps["Find Next"] = '<C-n>'
+            let g:VM_maps["Find Previous"] = '<CS-n>'
+            " let g:VM_maps["Goto Next"] = ''
+            " let g:VM_maps["Goto Previous"] = ''
+
+        let g:VM_maps["Slash Search"] = 's/'
+        let g:VM_maps["Find Subword Under"] = ''
+        let g:VM_maps["Select Cursor Down"] = ''
+        let g:VM_maps["Select Cursor Up"] = ''
+        let g:VM_maps["Select j"] = ''
+        let g:VM_maps["Select l"] = ''
+        let g:VM_maps["Select k"] = ''
+        let g:VM_maps["Select h"] = ''
+        let g:VM_maps["Select w"] = ''
+        let g:VM_maps["Select b"] = ''
+        let g:VM_maps["Select E"] = ''
+        let g:VM_maps["Select BBW"] = ''
+        let g:VM_maps["Mouse Cursor"] = ''
+        let g:VM_maps["Mouse Word"] = ''
+        let g:VM_maps["Mouse Column"] = ''
+        let g:VM_maps["Select Operator"] = 'v'
+        
+        fun! CursOnMatches() abort
+            let v = winsaveview()
+            
+            call setpos('.', [0, 1, 1, 0])
+
+            let s = @/
+
+            while search(s, 'W')
+                call vm#commands#add_cursor_at_pos(0)
+            endwhile
+
+            call winrestview(v)
+        endfun
+        
+        fun! MultiCursorOn() abort
+            if !exists('g:Vm.buffer')
+                return 0
+            endif
+            return g:Vm.buffer
+        endfun
+
 " 
 " PLUGINS
 " 
@@ -1126,14 +1155,9 @@
         " 
         " Gotta go fast!
         " 
-            " move lightning fast
-            " Plugin 'easymotion/vim-easymotion'
-
             " indent range
             Plugin 'vim-indent-object'
-
-            " fast close pairs
-            " Plugin 'jiangmiao/auto-pairs'
+            Plugin 'mg979/vim-visual-multi'
 
             " Fast surround shortcuts
             Plugin 'tpope/vim-surround'
@@ -1149,6 +1173,9 @@
         " 
         " Pretty editor
         " 
+            " minimap
+            Plugin 'z0rzi/minimap.vim'
+
             " visual indents
             Plugin 'Yggdroot/indentLine'
 
@@ -1158,36 +1185,10 @@
             " Line on the bottom of the screen
             Plugin 'itchyny/lightline.vim'
 
-            " Distraction free
-            Plugin 'junegunn/goyo.vim'
-
         " 
         " Language specific
         " 
-            " Vue
-            " Plugin 'darthmall/vim-vue'
-            " Plugin 'leafOfTree/vim-vue-plugin'
-
-            " React
-            Plugin 'pangloss/vim-javascript'
-            Plugin 'peitalin/vim-jsx-typescript'
-            Plugin 'styled-components/vim-styled-components', { 'branch': 'main' }
-
-            " Angular
-            Plugin 'burnettk/vim-angular'
-            " Plugin 'othree/javascript-libraries-syntax.vim'
-
-            " Typescript
-            Plugin 'leafgarland/typescript-vim'
-
-            " Rust
-            Plugin 'rust-lang/rust.vim'
-
-            " nim
-            Plugin 'alaviss/nim.nvim'
-
-            " python
-            Plugin 'dense-analysis/ale'
+            Plugin 'yardnsm/vim-import-cost', { 'do': 'npm install' }
 
         " 
         " Others
@@ -1195,32 +1196,24 @@
             " visual GIT modifs
             Plugin 'airblade/vim-gitgutter'
 
-            " align everything!
-            Plugin 'godlygeek/tabular'
-
             " Fuzzy search
             Plugin 'junegunn/fzf'
             Plugin 'junegunn/fzf.vim'
 
             " React
-            Plugin 'MaxMEllon/vim-jsx-pretty'
+            " Plugin 'MaxMEllon/vim-jsx-pretty'
 
             " Buffer stuff
-            " Plugin 'taohexxx/lightline-buffer'
             Plugin 'z0rzi/lightline-bufferline'
 
-            Plugin 'neoclide/coc.nvim', {'branch': 'release'}
+            Plugin 'neoclide/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
 
         " 
         " My plugins!
         " 
             Plugin 'z0rzi/vim-adaptive-indent'
-            " Plugin 'z0rzi/vim-super-macro'
             Plugin 'z0rzi/vim-zorzi-smoothie'
-            Plugin 'z0rzi/vim-glorious-commentary'
-            Plugin 'z0rzi/vim-auto-regex'
             Plugin 'z0rzi/vim-smart-hits'
-            Plugin 'z0rzi/vim-detect-style'
 
     call vundle#end()
 
@@ -1232,7 +1225,7 @@
         nnoremap Y y$
         nnoremap YY <CMD>let v = winsaveview()<CR>ggyG<CMD>call winrestview(v)<CR>
         nnoremap vv v$h
-        noremap <CR> %
+        noremap <CR> <CMD>exe "norm %"<CR>
         inoremap <F2> <ESC>
         inoremap <C-x><C-l> <C-x><C-l>
         inoremap <silent> <C-r>/ <C-r>=substitute(@/, '\\.', '', 'g')<CR>
@@ -1241,10 +1234,6 @@
         inoremap <DOWN> <C-G>U<DOWN>
         inoremap <UP> <C-G>U<UP>
 
-
-
-        nnoremap <M-z> <C-w>w
-        " nnoremap / /\v
         vnoremap <CR> <CMD>if mode() == 'V' <BAR> call search('\%#.*\zs\([{[(][;:.,\\]*\<BAR>\/\*\+\)$') <BAR> endif<CR>%
 
         vnoremap p <CMD>let save=@0<CR>p<CMD>let [@0, @", @+] = [save, save, save]<CR>
@@ -1254,8 +1243,8 @@
         vnoremap g= c<C-r>=<C-r>+<CR><ESC>
         nnoremap g= Vc<C-r>=<C-r>+<CR><ESC>
         inoremap \'e é
-        nnoremap cb xmj<CMD>call search('\<', 'b')<CR>c`j
-        nnoremap db xmj<CMD>call search('\<', 'b')<CR>d`j
+        nnoremap cb vbc
+        nnoremap db vbd
 
 
         " nnoremap <F3> :set hlsearch!<CR>
@@ -1273,11 +1262,9 @@
             vnoremap ]] c[]<ESC>Pgvlolo
             vnoremap (( c(  )<ESC>hPgvllollo
             vnoremap )) c()<ESC>Pgvlolo
-            " vnoremap << c<  ><ESC>hP
-            " vnoremap >> c<><ESC>P
 
         " no yank delete
-            nnoremap <leader> "_
+            nnoremap \ "_
 
         " no include newline
             nnoremap 'd ^D
@@ -1291,9 +1278,11 @@
 
         " move lines
             nnoremap <C-j> <CMD>m+1<CR>
-            nnoremap <C-down> <CMD>m+1<CR>
             nnoremap <C-k> <CMD>m-2<CR>
-            nnoremap <C-up> <CMD>m-2<CR>
+            nnoremap <C-up>   <CMD>if MultiCursorOn()<BAR>exe "norm k"<BAR>else<BAR>m-2<BAR>endif<CR>
+            nnoremap <C-down> <CMD>if MultiCursorOn()<BAR>exe "norm j"<BAR>else<BAR>m+1<BAR>endif<CR>
+            " nnoremap <C-down> <CMD>m+1<CR>
+            " nnoremap <C-up> <CMD>m-2<CR>
             vnoremap <C-up> :<C-u>exe (line("'<")-1) . " m " . line("'>")<CR>gv
             vnoremap <C-down> :<C-u>exe (line("'>")+1) . " m " . (line("'<") - 1)<CR>gv
             vnoremap <C-right> dpgvlolo
@@ -1307,8 +1296,8 @@
             nnoremap <silent> zx <CMD>co +0<CR>
 
         " Easy search n replace
-            " nnoremap <C-c> <CMD>let @/="\\<".expand("<cword>")."\\>"<CR>lNcgn
             nnoremap <C-c> <CMD>if CursorOnMatch(@/) <BAR> exe "norm!lN" <BAR> else <BAR> let @/="\\<".expand("<cword>")."\\>" <BAR> endif<CR>cgn
+            nnoremap <C-d> <CMD>if CursorOnMatch(@/) <BAR> exe "norm!lN" <BAR> else <BAR> let @/="\\<".expand("<cword>")."\\>" <BAR> endif<CR>dgn
 
         " Better ranges for XML
             nmap >it vitVkoj>
@@ -1317,10 +1306,34 @@
 
         " Cool selection stuff
             vnoremap <C-c> "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/) <BAR> set hlsearch <CR>cgn
-            vnoremap <S-LEFT> "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/)<CR>?<CR>
-            vnoremap <S-RIGHT> "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/)<CR>/<CR>
-            vnoremap # "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/)<CR>?<CR>
-            vnoremap * "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/)<CR>/<CR>
+            function! ToNextOccurence(backward)
+                if mode() == 'n'
+                    call RestrictSearch(0)
+                    if ! CursorOnMatch(@/)
+                        let @/ = '\<'.expand('<cword>').'\>'
+                    endif
+                    if a:backward | call search(@/, 'bc') | endif
+                else
+                    norm! "ay
+                    let @/ = SelectionToRx(@a)
+                endif
+                let @/ = @/
+                let flags = ''
+                if !exists('s:minimap_search') | let s:minimap_search = '' | endif
+                if s:minimap_search != @/
+                    let s:minimap_search = @/
+                    call minimap#vim#HighlightSearch()
+                endif
+                if a:backward | let flags .= 'b' | endif
+                call search(@/, flags)
+                call histadd('/', @/)
+            endfunction
+            vnoremap <S-LEFT> <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
+            vnoremap <S-RIGHT> <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
+            nnoremap <silent> <S-LEFT> <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
+            nnoremap <silent> <S-RIGHT> <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
+            vnoremap # <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
+            vnoremap * <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
             nmap <CS-Right> <CMD>call RestrictSearch(1)<CR>
             nmap <CS-Left> <CMD>call RestrictSearch(-1)<CR>
 
@@ -1350,30 +1363,21 @@
         " fast exact search
             nnoremap <leader>/ /\<\><LEFT><LEFT>
 
-        " go to next/previous match under cursor
-            function! NextOccurence(way)
-                call RestrictSearch(0)
-                if ! CursorOnMatch(@/)
-                    let @/ = '\<'.expand('<cword>').'\>'
+        " Skip word by word with CTRL + direction
+            function! CtrlMove(direction)
+                if a:direction == 'left'
+                    call search('\<\|\u\l\|_[a-z]\|\s\zs\S\|^', 'bW')
                 else
-                    let @/ = @/
-                endif
-                call histadd('/', @/)
-                call search(@/, 'bc')
-                if a:way > 0
-                    norm!n
-                else
-                    norm!N
+                    call search('\w\>\|\u\l\|_[a-z]\|\S\s\|$', 'W')
+                    if mode()[0] == 'i'
+                        call setpos('.', [0, line('.'), col('.')+1, 0])
+                    endif
                 endif
             endfunction
-            nnoremap <silent> <S-LEFT> <CMD>call NextOccurence(-1) <BAR> set hlsearch <CR>
-            nnoremap <silent> <S-RIGHT> <CMD>call NextOccurence(1) <BAR> set hlsearch <CR>
-
-        " Skip word by word with CTRL + direction
-            nnoremap <C-LEFT> <CMD>call search('\<\<BAR>\u\l\<BAR>_[a-z]\<BAR>\s\zs\S\<BAR>^', 'bW')<CR>
-            nnoremap <C-RIGHT> <CMD>call search('\w\>\<BAR>\u\l\<BAR>_[a-z]\<BAR>\S\s\<BAR>$', 'W')<CR>
-            inoremap <C-LEFT> <CMD>call search('\<\<BAR>\u\l\<BAR>_[a-z]\<BAR>\s\zs\S\<BAR>^', 'bW')<CR>
-            inoremap <C-RIGHT> <CMD>call search('\>\zs\<BAR>\u\l\<BAR>_[a-z]\<BAR>\S\zs\s\<BAR>$', 'W')<CR>
+            nnoremap <C-LEFT>  <CMD>call CtrlMove('left')<CR>
+            nnoremap <C-RIGHT> <CMD>call CtrlMove('right')<CR>
+            inoremap <C-LEFT> <CMD>call CtrlMove('left')<CR>
+            inoremap <C-RIGHT> <CMD>call CtrlMove('right')<CR>
 
         " go to end of paragraph
             function! IndentJump(direction)
@@ -1431,8 +1435,74 @@
 
     " Plugin related maps
         " CoC
-            " nnoremap <C-f> :CocSearch 
-            " nnoremap <C-f><C-f> :CocSearch \b<C-r>=expand('<cword>')<CR>\b
+            function! OpenCocSearch()
+                if GoToCocSearch() == 0
+                    return
+                endif
+                let linecnt = line('.')
+                while linecnt > 0 && match(getline(linecnt), '^　.*$') < 0
+                    let linecnt -= 1
+                endwhile
+                let filename = substitute(getline(linecnt), '^[[:blank:]　]\+', '', '')
+                sil! call KillCocSearch()
+                exe "edit " . filename
+                call search(@/)
+            endfunction
+            function GoToCocSearch()
+                if match(bufname(), '^__coc_refactor') >= 0
+                    return 1
+                endif
+                let bufcnt = 1
+                while bufcnt <= bufnr('$')
+                    if bufexists(bufcnt) && match(bufname(bufcnt), '^__coc_refactor') >= 0
+                        let winsids = win_findbuf(bufcnt)
+                        for winid in winsids
+                            echom winid
+                            call win_gotoid(winid)
+                            return 1
+                        endfor
+                    endif
+                    let bufcnt += 1
+                endwhile
+                return 0
+            endfunction
+            function! KillCocSearch()
+                if GoToCocSearch() > 0
+                    if ! &mod
+                        wincmd q
+                    else
+                        echom "Can't close: modifs not saved!"
+                    endif
+                endif
+                aug killSearch
+                    autocmd!
+                aug END
+            endfunction
+            function! SetupCocSearchListeners()
+                nnoremap <buffer> <ESC> :call KillCocSearch()<CR>
+                nnoremap <buffer> q :call KillCocSearch()<CR>
+                nnoremap <buffer> <CR> :call OpenCocSearch()<CR>
+            endfunction
+            function! CocSearch2(str)
+                if ! len(a:str)
+                    call inputsave()
+                    let str = input('> ')
+                    call inputrestore()
+                else
+                    let str = a:str
+                endif
+                if !len(str) | return | endif
+                let @/ = '\%(^　.*\)\@<!' . str
+                let [grepstr, grepargs] = VimToGrepRegex(str)
+                aug killSearch
+                    autocmd!
+                    autocmd BufEnter,BufReadPost,CursorMoved * if match(bufname(), '^__coc_refactor') == 0 | call SetupCocSearchListeners() | endif
+                aug END
+                exe 'CocSearch ' . escape(grepstr, ' ') . ' ' . grepargs
+            endfunction
+            command! -nargs=? CocSearch2 call CocSearch2(<q-args>)
+            nnoremap <C-f> :CocSearch2<CR>
+            nnoremap <C-s> :CocSearch2 \<<C-r>=expand('<cword>')<CR>\><CR>
 
             nnoremap <C-q> :CocAction<CR>
             nnoremap <S-q> :CocCommand<CR>
@@ -1445,8 +1515,6 @@
                   \ <SID>check_back_space() ? "\<TAB>":
                   \ coc#refresh()
             inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
-
-            inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 
             nnoremap <F2> :CocCommand explorer<CR>
 
@@ -1461,12 +1529,38 @@
 
         " Git stuff
             " Plugin: GitGutter
+            function! GitGutterStageSelection(line_start, line_end)
+                let view = winsaveview()
+                
+                let curline = a:line_start - 1
+                call setpos('.', [0, curline, 1, 0])
+
+                while 1
+                    sil! GitGutterNextHunk
+                    if curline == line('.') || line('.') > a:line_end
+                        break
+                    endif
+                    let curline = line('.')
+                    sil! GitGutterStageHunk
+                sil! GitGutter
+                endwhile
+
+                " call winrestview(view)
+                sil! GitGutter
+            endfunction
+            command -range GitGutterStageSelection call GitGutterStageSelection(<line1>, <line2>)
+            vnoremap <LEADER>ga :GitGutterStageSelection<CR>
+
+            nnoremap <LEADER>gs <CMD>call system('git reset ' . @%) <BAR> GitGutter<CR>
+            nnoremap <LEADER>gr <CMD>call system('git reset ' . @%) <BAR> GitGutter<CR>
+            nnoremap <LEADER>ga <CMD>sil!GitGutterStageHunk<CR>
             nnoremap <LEADER>gu <CMD>sil!GitGutterUndoHunk<CR>
             nnoremap <LEADER>gn <CMD>sil!GitGutterNextHunk<CR>
             nnoremap <LEADER>gp <CMD>sil!GitGutterPrevHunk<CR>
             nnoremap <LEADER>gP <CMD>sil!GitGutterPreviewHunk<CR>
             nnoremap <LEADER>gh <CMD>sil!GitGutterLineHighlightsToggle<CR>
             nnoremap <LEADER>gb <CMD>call GitBlame()<CR>
+            nnoremap <LEADER>gD <CMD>call system('git difftool ' . @%) <BAR> GitGutter<CR><CR>
 
         " Tabular indenting
             nnoremap <leader>t= mm<CMD>Tabular /^[^=]*\zs=<CR>`m
@@ -1485,16 +1579,19 @@
 
         " FZF
             nnoremap <C-p> <CMD>call FZFFindFile()<CR>
-            " nnoremap <CS-f> <CMD>call FZFFindWordUnderCursor()<CR>
-            nnoremap <C-s> <CMD>call FZFFindWordUnderCursor()<CR>
-            nnoremap <C-f> <CMD>call FZFFindWord()<CR>
             nnoremap <LEADER>u <CMD>call FZFUnicode()<CR>
-
 
         " Commentary
             nnoremap  <CMD>Commentary<CR>
             inoremap  <CMD>Commentary<CR>
             vnoremap  :Commentary<CR>gv
+
+        " Multi cursors
+            nnoremap s/ :call CursOnMatches()<CR>
+            vnoremap s :call vm#commands#visual_cursors()<CR>
+            nnoremap ss :call vm#commands#add_cursor_at_pos(0)<CR>
+            nnoremap sp :call vm#commands#seek_up()<CR>
+            nnoremap sn :call vm#commands#seek_down()<CR>
 
     " Buffer related maps
         " Buffers navigation 
@@ -1545,7 +1642,7 @@
         " Paste selector
             nnoremap >p mm`[>`]`m
             nnoremap <p mm`[<`]`m
-            nnoremap dp '[d']
+            " nnoremap dp '[d']
             nnoremap =p mm`[=`]`m
 
         " Easy delete until...
@@ -1661,8 +1758,6 @@
     " refreshing file when modified outside of vim
         autocmd BufEnter * checktime
         autocmd FocusGained * checktime
-        " autocmd InsertLeave * GitGutter
-        " autocmd TextChanged * GitGutter
         autocmd BufWritePost * GitGutter
 
     " Unsupported files formats
@@ -1676,21 +1771,42 @@
         autocmd BufNewFile,BufRead *.nim set filetype=nim
         autocmd BufNewFile,BufRead Jenkinsfile set filetype=groovy
 
-    " SQL watch
-        autocmd BufWritePost *.sql sil!exe "exe '!echo ' . line('.') .' > /tmp/.vim-line'"
+    " Update custom mappings after everything else has been done
+        autocmd VimEnter * call UpdateMappings()
 
     " Highlight current selection
-        let g:selMatches = ''
+        let s:last_mode = 'n'
+        let s:sel_matches = ''
         hi SelectionOthers cterm=bold,underline ctermbg=NONE ctermfg=none
         function! SelectionToRx(selText)
             return substitute(escape(a:selText, '/\\^$*.[~'), '\%(\s\|\n\)\+', '\\%(\\s\\|\\n\\)\\+', 'g')
         endfunction
         function! HighlightSel()
-            sil!call matchdelete(g:selMatches)
+            sil!call matchdelete(s:sel_matches)
             sil!exe "norm!\"aygv"
-            let g:selMatches = matchadd('SelectionOthers', SelectionToRx(@a))
+            let s:sel_matches = matchadd('SelectionOthers', SelectionToRx(@a))
         endfunction
-        autocmd CursorMoved * if mode() == 'v' | call HighlightSel() | else | sil!call matchdelete(g:selMatches) | endif
+        function EnterVisual()
+            aug VisualHi
+                autocmd!
+                autocmd CursorMoved * call HighlightSel()
+            aug END
+        endfunction
+        function LeaveVisual()
+            sil!call matchdelete(s:sel_matches)
+            aug VisualHi
+                autocmd!
+            aug END
+        endfunction
+        function ModeChanged()
+            let curmode = mode()
+            let s:last_mode = curmode
+
+            if curmode == 'v'     | call EnterVisual()
+            elseif curmode == 'n' | call LeaveVisual()
+            endif
+        endfunction
+        autocmd CursorMoved * if mode() != s:last_mode | call ModeChanged() | endif
 
 " 
 " ABREVS
@@ -1777,3 +1893,6 @@ inoremap <silent> <S-UP> <C-r>=CopyWord(-1, 0)<CR>
 inoremap <silent> <S-DOWN> <C-r>=CopyWord(1, 0)<CR>
 inoremap <silent> <CS-UP> <C-r>=CopyWord(-1, 1)<CR>
 inoremap <silent> <CS-DOWN> <C-r>=CopyWord(1, 1)<CR>
+
+
+

@@ -121,7 +121,7 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
 
     # RAM
         function ram_text {
-            ram=`free w | awk '/Mem/ {printf("%f", 100*$3/$2)}'`
+            ram=`free | awk '/Mem/ {printf("%.2f", 100*$3/$2)}'`
             ram=`formatPercentage $ram`
             echo " $ICON_RAM$ram% "
         }
@@ -131,7 +131,7 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
 
     # SWAP
         function swap_text {
-            swap=`free w | awk '/Swap/ {printf("%.2f", 100*$3/$2)}' | sed 's/^0*|0$//g'`
+            swap=`free | awk '/Swap/ {printf("%.2f", 100*$3/$2)}' | sed 's/^0*|0$//g'`
             swap=`formatPercentage $swap`
             echo " $ICON_SWAP$swap% "
         }
@@ -224,6 +224,8 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
             if [ "$last" != "$current" ]; then
                 echo -n $current > $file
                 $HOME.my_env/scripts/monitors.js > /dev/null 2>&1 
+                alias=`$HOME.my_env/scripts/monitors.js --get-alias`
+                notify-send "Connected to '$alias'"
             fi
             printf " $ICON_MONITOR "
         }
@@ -232,6 +234,8 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
         }
         function monitor_click {
             $HOME.my_env/scripts/monitors.js > /dev/null 2>&1
+            alias=`$HOME.my_env/scripts/monitors.js --get-alias`
+            notify-send "Connected to '$alias'"
         }
 
     # LOCK

@@ -1,8 +1,4 @@
 #!/bin/bash
-WRITER='/tmp/.ds.sh'
-LOG='/tmp/.ds.log'
-FRAGMENT='/tmp/.ds.frag'
-CURL_LOG='/tmp/curl_logs.tmp'
 [ "$EDITOR" ] && editor=$EDITOR || editor="/usr/bin/nvim"
 
 unlimited_retries=""
@@ -19,6 +15,12 @@ while [ $# -gt 0 ]; do
     fi
     shift
 done
+
+HASH=`sed -s 's/[^a-zA-Z]\+/_/g' <<< "$OUTPUT"`
+WRITER="/tmp/.ds-${HASH}.sh"
+LOG="/tmp/.ds-${HASH}.log"
+FRAGMENT="/tmp/.ds-${HASH}.frag"
+CURL_LOG="/tmp/curl_logs-${HASH}.tmp"
 
 if [ ! "$OUTPUT" ]; then
     echo "USAGE = 'download_streaming.sh <OUTPUT_FILE_NAME> [-ur | --unlimited-retries]'"

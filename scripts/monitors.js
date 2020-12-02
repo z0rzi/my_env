@@ -135,10 +135,12 @@ class Monitor {
             config[this.hash] = {};
 
         config[this.hash] = {
+            alias: config[this.hash].alias || 'New monitor',
             side: config[this.hash].side || 'same',
             primary: config[this.hash].primary || false,
             dimensions: config[this.hash].dimensions || '',
-            sound: config[this.hash].sound || false
+            sound: config[this.hash].sound || false,
+            cmd: config[this.hash].cmd || ''
         };
 
         this.config = config[this.hash];
@@ -183,6 +185,9 @@ class Monitor {
      * Runs the commands to setup the configuration for this monitor.
      */
     async executeConfig() {
+        if (this.config.cmd)
+            return cmd(this.config.cmd)
+
         let command = 'xrandr ';
         if (this.isLaptop()) {
             command += `--output ${ await this.getXrandrName() } --auto --primary --rotate normal `
@@ -278,8 +283,14 @@ getMonitors()
             process.exit(0);
         }
 
+        if (args.includes('--get-alias')) {
+            console.log(monitor.config.alias)
+            process.exit(0);
+        }
+
         if (args.includes('--edit')) {
             console.log('The current configuration is the 1st one in the config file.');
+            console.log('If the dimensions are messed up, you can use the "monitors_rescale.sh" script.');
             console.log('Here are the available dimensions: ');
             console.log(await monitor.getModes());
             cmd(`kitty nvim ${CONF_FILE} &`)

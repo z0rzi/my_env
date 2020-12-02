@@ -12,10 +12,10 @@ fi
 
 if ! ( [ "$addr" ] && [ "$port" ] ); then
     echo "USAGE = $0 <address>:<port>"
-    exit
+    exit 1
 fi
 
 
 (echo >/dev/tcp/$addr/$port) &> /dev/null \
-    && echo "Open" \
-    || echo "Close"
+    && echo "Open" && exit 0 \
+    || echo "Close" && exit 1

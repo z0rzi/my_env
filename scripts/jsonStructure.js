@@ -12,8 +12,9 @@ if (!process.argv.length) {
 
 const beautify = process.argv.indexOf('--beautify') >= 0;
 const tsCompatible = process.argv.indexOf('--ts') >= 0;
-
-const MAX_ARR_SIZE = 20;
+let MAX_ARR_SIZE = 20;
+if (process.argv.indexOf('--full') >= 0)
+    MAX_ARR_SIZE = 10000;
 
 
 function getType(obj) {
@@ -110,7 +111,7 @@ function error(message) {
     console.error(message);
 
     console.log('');
-    console.log('USAGE = jsonStructure.js <file> [--beautify] [--ts]');
+    console.log('USAGE = jsonStructure.js <file> [--beautify] [--ts] [--full]');
     console.log('');
     process.exit(1);
 }

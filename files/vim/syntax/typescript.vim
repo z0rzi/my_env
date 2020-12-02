@@ -73,13 +73,16 @@ syn match typescriptNumber "-\=\<0[bB][01][01_]*\>" display
 syn match typescriptNumber "-\=\<0[oO]\o[0-7_]*\>" display
 syn region typescriptRegexpString start=+/[^/*]+me=e-1 skip=+\\\\\|\\/+ end=+/[gi]\{0,2\}\s*$+ end=+/[gi]\{0,2\}\s*[;.,)\]}]+me=e-1 contains=@htmlPreproc oneline
 
-syn match RegexBraces "\([^\\]\(\\\\\)*\)\@<=[()]" containedin=typescriptRegexpString
-syn match RegexMult "\([^\\]\(\\\\\)*\)\@<=\([?*+|]\|{[[0-9,]]\{-}}\)" containedin=typescriptRegexpString
-syn match RegexOneOf "\([^\\]\(\\\\\)*\)\@<=\[.\{-}\([^\\]\(\\\\\)*\)\@<=\]" containedin=typescriptRegexpString
-syn match RegexNonCapt "\(\([^\\]\(\\\\\)*\)\@<=(\)\@<=?:" containedin=typescriptRegexpString
-syn match RegexNamedCapt "\(\([^\\]\(\\\\\)*\)\@<=(\)?<.\{-}>" containedin=typescriptRegexpString
-syn match RegexSpecial "\([^\\]\(\\\\\)*\)\@<=\\\w" containedin=typescriptRegexpString
-syn match RegexVerySpecial "\([^\\]\(\\\\\)*\)\@<=[$^]" containedin=typescriptRegexpString
+let no_bs = '\%([^\\]\%(\\\\\)*\)\@<='
+exe 'syn match RegexBraces +'.no_bs.'[()]+ containedin=typescriptRegexpString'
+exe 'syn match RegexMult +'.no_bs.'\%([?\+*|]\|{[[0-9,]]\{-}}\)+ containedin=typescriptRegexpString'
+exe 'syn match RegexQuantity +'.no_bs.'{\d\+\%(,\d\+\)\?}+ containedin=typescriptRegexpString'
+exe 'syn match RegexOneOf +'.no_bs.'\[.\{-}'.no_bs.'\]+ containedin=typescriptRegexpString'
+exe 'syn match RegexNonCapt +\%('.no_bs.'(\)\@<=?:+ containedin=typescriptRegexpString'
+exe 'syn match RegexLookAhead +\%('.no_bs.'(\)\@<=?<\?[=!]+ containedin=typescriptRegexpString'
+exe 'syn match RegexNamedCapt +\%('.no_bs.'(\)\@<=?[^/>]\+>+ containedin=typescriptRegexpString'
+exe 'syn match RegexSpecial +'.no_bs.'\\\w+ containedin=typescriptRegexpString'
+exe 'syn match RegexVerySpecial +'.no_bs.'[$^]+ containedin=typescriptRegexpString'
 
 " syntax match typescriptSpecial "\\\d\d\d\|\\x\x\{2\}\|\\u\x\{4\}\|\\."
 " syntax region typescriptStringD start=+"+ skip=+\\\\\|\\$"+ end=+"+ contains=typescriptSpecial,@htmlPreproc

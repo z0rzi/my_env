@@ -38,7 +38,7 @@
 
     # File explorer
         # bindsym $sup+e exec dolphin
-        bindsym $sup+e exec kitty -e tmux new-session ranger
+        bindsym $sup+e exec kitty -e ranger
 
     # Screenshot
         bindsym --release $mod+Shift+s exec flameshot gui
@@ -53,6 +53,11 @@
 
     # program launcher
         bindsym $alt+space exec --no-startup-id dmenu_recency
+
+    # Volume
+        bindsym XF86AudioRaiseVolume exec /home/zorzi/.my_env/scripts/sound.sh up
+        bindsym XF86AudioLowerVolume exec /home/zorzi/.my_env/scripts/sound.sh down
+        bindsym XF86AudioMute exec /home/zorzi/.my_env/scripts/sound.sh mute
 
     # change focus
         bindsym $mod+Left focus left
@@ -80,6 +85,7 @@
 
     # Keyboard layout
         bindsym Ctrl+Shift+k exec /home/zorzi/.my_env/scripts/switch_keyboard_layout.sh
+        bindsym Ctrl+Shift+l exec bash -c '[ -f "$HOME/.Xmodmap" ] && xmodmap $HOME/.Xmodmap && XMODIFIERS=@im=ibus setxkbmap -option compose:rctrl'
 
     # change borders
         # bindsym $mod+y border pixel 1

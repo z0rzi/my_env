@@ -4,6 +4,8 @@ minivim   nvim -u NONE
 tinyvim   nvim -u NONE
 vimtiny   nvim -u NONE
 
+office onlyoffice-desktopeditors
+
 r ranger .
 
 :h man
@@ -27,7 +29,9 @@ record_window recordmydesktop --s_quality -1 --fps 30 --windowid (xwininfo | awk
 
 tree tree -CF
 
-rm    gio trash
+trash    gio trash
+
+rm rm_wrapper.sh
 
 bye     exit
 byebye  shutdown now
@@ -40,7 +44,7 @@ lla   ls -la
 lls   clear;ls
 
 copy     xclip -sel clip
-ccat     pygmentize -g -O style=colorful,linenos=1
+cat      bat -pp
 docker   docker_wrapper.sh
 
 tandem  nohup $HOME/.applications/Tandemx86_641.5.0.AppImage --no-sandbox 2&> /dev/null & disown
@@ -55,7 +59,3 @@ mouse   kwriteconfig5 --file kcminputrc --group Mouse --key XLbInptMiddleEmulati
 color  grep -C 100000
 
 javac  javac -encoding ISO-8859-1 
-
-git    git_wrapper.sh
-
-javac  javac -encoding ISO-8859-1
