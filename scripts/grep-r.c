@@ -5,6 +5,64 @@
 #include <time.h>
 #include <sys/stat.h>
 
+#define LINE_LIMIT_LENGTH 200
+
+typedef struct MatchPosStruct {
+    char* str;
+    int strPos;
+    char* rx;
+} MatchPos;
+
+short isNum(char cara) {
+    return cara >= '0' && cara <= '9';
+}
+
+short isAlpha(char cara) {
+    return (cara >= 'a' && cara <= 'z')
+        || (cara >= 'A' && cara <= 'Z')
+        || cara == '_';
+}
+
+short isAlnum(char cara) {
+    return isAlpha(cara) || isNum(cara);
+}
+
+short matches(MatchPos* mp) {
+    int rxPos = 0;
+    int strPos = mp->strPos;
+    short ok = 0;
+
+    while (mp->rx[rxPos] != '\0') {
+        if (mp->rx[rxPos] == '\\') {
+            rxPos++;
+            switch (mp->rx[rxPos]) {
+                case 'b':
+                    strPos--;
+                    ok = (isAlnum(mp->str[strPos]) && !isAlnum(mp->str[strPos + 1]))
+                        || (!isAlnum(mp->str[strPos]) && isAlnum(mp->str[strPos + 1]));
+                    break;
+                case 'd':
+                    ok = isNum(mp->str[strPos]);
+                    break;
+                case '\\':
+                    ok = (mp->str[strPos] == '\\');
+                    break;
+                default:
+                    ok = (mp->str[strPos] == '\\');
+                    rxPos--;
+            }
+        } else {
+            ok = (mp->str[strPos] == mp->rx[rxPos]);
+        }
+
+        if (!ok) return 0;
+        strPos++;
+        rxPos++;
+    }
+
+    return 1;
+}
+
 void dir_contents(char* path, char* search) {
     DIR *dr = opendir(path); 
 
@@ -36,8 +94,9 @@ void dir_contents(char* path, char* search) {
                 if (strcmp(ext, ".ts")
                     && strcmp(ext, ".tsx")
                     && strcmp(ext, ".js")
-                    && strcmp(ext, ".html")
                     && strcmp(ext, ".jsx")
+                    && strcmp(ext, ".py")
+                    && strcmp(ext, ".html")
                     && strcmp(ext, ".scss")
                     && strcmp(ext, ".css")
                     && strcmp(ext, ".c")
@@ -47,46 +106,64 @@ void dir_contents(char* path, char* search) {
                     break;
                 }
 
-                char c[1];
+                char c;
                 FILE *fptr;
                 if ((fptr = fopen(newPath, "r")) == NULL)
                     break;
 
-                cnt = 10000;
-                int searchIdx = 0;
-                int lineCnt = 1;
-                int colCnt = 1;
-                char line[200];
-                while (fscanf(fptr, "%c", c) != EOF && cnt--) {
-                    if (c[0] == '\n') {
-                        lineCnt++;
-                        colCnt=1;
-                        continue;
-                    }
-                    if (c[0] == search[searchIdx]) {
-                        searchIdx++;
-                        if (searchIdx > 0 && search[searchIdx] == '\0') {
-                            if (colCnt < 200) line[colCnt - 1] = c[0];
-                            colCnt++;
-                            while (fscanf(fptr, "%c", c) != EOF && c[0] != '\n') {
-                                if (colCnt < 200) line[colCnt - 1] = c[0];
-                                colCnt++;
-                            }
-                            if (colCnt < 200)
-                                line[colCnt - 1] = '\0';
-                            printf("%s:%d:%d: %s\n", newPath, lineCnt, colCnt, line);
 
-                            searchIdx = 0;
-                            lineCnt++;
-                            colCnt=1;
-                            continue;
-                        }
-                    } else {
-                        searchIdx = 0;
+                MatchPos mp;
+
+                mp.str = (char*) malloc(LINE_LIMIT_LENGTH * sizeof(char));
+
+                mp.rx = search;
+                cnt = 100000;
+                int lineCnt = 0;
+                int strLenLimit = 0;
+                while (fscanf(fptr, "%c", &c) != EOF && cnt--) {
+                    lineCnt++;
+                    mp.strPos = 0;
+                    while (c != '\n' && c != EOF) {
+                        mp.str[mp.strPos] = c;
+                        mp.strPos++;
+                        fscanf(fptr, "%c", &c);
+                        if (mp.strPos >= LINE_LIMIT_LENGTH)
+                            break;
                     }
-                    if (colCnt < 200) line[colCnt - 1] = c[0];
-                    colCnt++;
+                    if (mp.strPos == 0) continue;
+                    strLenLimit = mp.strPos;
+                    mp.str[mp.strPos - 1] = '\0';
+                    mp.strPos = 0;
+
+                    while (++mp.strPos <= strLenLimit)
+                    if (matches(&mp)) {
+                        /* printf("%s\n", mp.str); */
+                        printf("%s:%d:%d: %s\n", newPath, lineCnt, mp.strPos, mp.str);
+                    }
+                    /*     if (search[mp.rxPos + 1] == '\0') { */
+                    /*         if (mp.strPos < 200) mp.str[mp.strPos - 1] = c[0]; */
+                    /*         mp.strPos++; */
+                    /*         while (fscanf(fptr, "%c", c) != EOF && c[0] != '\n') { */
+                    /*             if (mp.strPos < 200) mp.str[mp.strPos - 1] = c[0]; */
+                    /*             mp.strPos++; */
+                    /*         } */
+                    /*         if (mp.strPos < 200) */
+                    /*             mp.str[mp.strPos - 1] = '\0'; */
+                    /*         printf("%s:%d:%d: %s\n", newPath, lineCnt, mp.strPos, mp.str); */
+
+                    /*         mp.rxPos = 0; */
+                    /*         lineCnt++; */
+                    /*         mp.strPos=1; */
+                    /*         continue; */
+                    /*     } */
+                    /*     mp.rxPos++; */
+                    /* } else { */
+                    /*     mp.rxPos = 0; */
+                    /* } */
+                    /* if (mp.strPos < 200) mp.str[mp.strPos - 1] = c[0]; */
+                    /* mp.strPos++; */
                 }
+                free(mp.str);
                 fclose(fptr);
 
                 break;

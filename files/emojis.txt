@@ -1,26 +1,43 @@
-😅    | Grinning Face with Sweat, ^^'
-❌    | Cross Mark
-💰    | Money Bag
-🤐    | Zipper-Mouth Face
-👍    | Thumbs Up, +1
 ¯\_(ツ)_/¯ | Shrug
-🤔    | Thinking Face, Huuum
-😂    | Face with Tears of Joy, XD, Happy
-🙄    | Face with Rolling Eyes, Yeeeeah, Right
-🙏    | Folded Hands, Thank you
-✔️    | Check Mark, OK, Valid
-😁    | Beaming Face with Smiling Eyes, Happy, :D
+😅    | Grinning Face with Sweat, ^^'
+😃    | Grinning Face with Big Eyes, Happy, :D
+💰    | Money Bag
 😝    | Squinting Face with Tongue, :p
+👍    | Thumbs Up, +1
+😂    | Face with Tears of Joy, XD, Happy
+😓    | Downcast Face with Sweat, Sad, :(
+🎄    | Christmas Tree, Sapling
+😁    | Beaming Face with Smiling Eyes, Happy, :D
+🛍️    | Shopping Bags, Money
+🏝️    | Desert Island, Paradise, Beach, Palm tree
+🤤    | Drooling Face, bave
+€     | Euro Symbol
+🤐    | Zipper-Mouth Face
+💀    | Skull, Dead, Death
+😨    | Fearful Face, Scared, Wow, :o
+😀    | Grinning Face, Happy, :D
+🌏    | Globe Showing Asia-Australia
+🗺️    | World Map
+─     | box drawings light horizontal
+😜    | Winking Face with Tongue, :p
+👨‍🍳  | Man Cook, Chef, Cuisine
+✔️    | Check Mark, OK, Valid
+⚠️    | Warning
+🎉    | Party Popper
+🙃    | Upside-Down Face, Welp, (:
+❌    | Cross Mark
+🙄    | Face with Rolling Eyes, Yeeeeah, Right
+🙂    | Slightly Smiling Face, Happy, :)
+💾    | Floppy Disk, Data, Database
+✅    | Check Mark Button
+🤔    | Thinking Face, Huuum
+🙏    | Folded Hands, Thank you
 🍹    | Tropical Drink, Cocktail
 ❝❞    | Fancy Quotes
-🙂    | Slightly Smiling Face, Happy, :)
-🎉    | Party Popper
 👋    | Waving Hand
 🦴    | Bone, Dog
 👌    | OK Hand
-👨‍🍳  | Man Cook, Chef, Cuisine
 😄    | Grinning Face with Smiling Eyes, Happy, :D
-😃    | Grinning Face with Big Eyes, Happy, :D
 😛    | Face with Tongue, :p
 💼    | Briefcase, Work
 ❗    | Exclamation Mark
@@ -30,7 +47,6 @@
 ⏰    | Alarm Clock, Time
 📆    | Tear-Off Calendar
 🍳    | Cooking
-😓    | Downcast Face with Sweat, Sad, :(
 💪    | Flexed Biceps, Power
 🤷    | Person Shrugging, Welp
 😉    | Winking Face, ;)
@@ -38,11 +54,8 @@
 😤    | Face with Steam From Nose, Mad, Angry
 ➡    | Right Arrow
 🙌    | Raising Hands, Yay
-✅    | Check Mark Button
 🥢    | Chopsticks, Chinese, Noodles
-⚠️    | Warning
 😞    | Disappointed Face, Sad, :(
-─     | box drawings light horizontal
 🔥    | On fire, Hot, +1
 🦎    | Lizard, Snake
 🚀    | Rocket
@@ -58,7 +71,6 @@
 💖    | Sparkling Heart
 🤯    | Exploding Head, Mindblown
 │     | box drawings light vertical
-🙃    | Upside-Down Face, Welp, (:
 😘    | Face Blowing a Kiss, <3
 ⛩️    | Shinto Shrine, Japan
 💙    | Blue Heart
@@ -73,7 +85,6 @@
 🧠    | Brain, Clever, Smart
 👎    | Thumbs Down, Hand, -1
 👏    | Clapping Hands
-💀    | Skull, Dead, Death
 ✏️    | Pencil, Drawing, Graphite
 😕    | Confused Face, Sad, :(
 👀    | Eyes, Look
@@ -86,10 +97,8 @@
 😌    | Relieved Face, :)
 🐈    | Cat
 👇    | Backhand Index Pointing Down, Hand
-😀    | Grinning Face, Happy, :D
 🍽️    | Fork and Knife with Plate, Eat, Hungry
 🍑    | Peach
-🤤    | Drooling Face, bave
 😔    | Pensive Face, Dissapointed
 🗞️    | Rolled-Up Newspaper
 🍬    | Candy, Sweet
@@ -124,7 +133,6 @@
 😠    | Angry Face, Mad, >:(
 🔤    | Input Latin Letters
 📖    | Open Book
-💾    | Floppy Disk, Data, Database
 🔎    | Magnifying Glass Tilted Right, Zoom, Search
 ⌨️    | Keyboard
 💻    | Laptop
@@ -190,7 +198,6 @@
 😚    | Kissing Face with Closed Eyes
 😙    | Kissing Face with Smiling Eyes
 😋    | Face Savoring Food
-😜    | Winking Face with Tongue, :p
 🤪    | Zany Face, :p
 🤭    | Face with Hand Over Mouth
 🤫    | Shushing Face, Ssshhh
@@ -221,7 +228,6 @@
 🥺    | Pleading Face, Pity, Aaaaaww
 😦    | Frowning Face with Open Mouth, Unbeliveable, Wow, :o
 😧    | Anguished Face, :o
-😨    | Fearful Face, Scared, Wow, :o
 😥    | Sad but Relieved Face, :(
 😢    | Crying Face, Sad, :'(
 😭    | Loudly Crying Face, Sad, Tear, :'(
@@ -503,7 +509,6 @@
 🦑    | Squid
 🌍    | Globe Showing Europe-Africa
 🌎    | Globe Showing Americas
-🌏    | Globe Showing Asia-Australia
 🌐    | Globe with Meridians
 🌑    | New Moon
 🌒    | Waxing Crescent Moon
@@ -540,7 +545,6 @@
 ⛄    | Snowman Without Snow
 ☄️    | Comet, Super, Discovery
 💧    | Droplet, Water
-🎄    | Christmas Tree, Sapling
 🎋    | Tanabata Tree
 🎍    | Pine Decoration
 🍇    | Grapes
@@ -705,7 +709,6 @@
 🏕️    | Camping
 🏖️    | Beach with Umbrella, Sun, Hot, Hollidays
 🏜️    | Desert
-🏝️    | Desert Island, Paradise, Beach, Palm tree
 🏞️    | National Park, Green
 🏟️    | Stadium, Race, Competition
 🏛️    | Classical Building, Museum
@@ -813,7 +816,6 @@
 🛀    | Person Taking Bath
 🔪    | Kitchen Knife
 🏺    | Amphora
-🗺️    | World Map
 🧭    | Compass
 🧱    | Brick
 💈    | Barber Pole
@@ -843,7 +845,6 @@
 🖼️    | Framed Picture, Portrait
 🧵    | Thread
 🧶    | Yarn, Knitting, Cat
-🛍️    | Shopping Bags, Money
 📿    | Prayer Beads
 💎    | Gem Stone, Diamond
 📯    | Postal Horn

@@ -11,6 +11,9 @@ if (!process.argv.length) {
 }
 
 const beautify = process.argv.indexOf('--beautify') >= 0;
+const tsCompatible = process.argv.indexOf('--ts') >= 0;
+
+const MAX_ARR_SIZE = 20;
 
 
 function getType(obj) {
@@ -18,26 +21,34 @@ function getType(obj) {
         return 'Date';
     if (Array.isArray(obj))
         return 'Array';
-    if (typeof obj === 'string')
+    if (typeof obj === 'string') {
         if (!isNaN(new Date(obj).getTime()))
             return 'Date'
+        try {
+            JSON.parse(obj)
+            return 'json';
+        } catch (err) {
+        }
+    }
 
     return typeof obj;
 }
 
 function newline(lvl) {
     if (beautify)
-        return '\n'+'  '.repeat(lvl);
+        return '\n' + '  '.repeat(lvl);
     else
         return '';
 }
 
 function toTypescript(obj, idt = 0) {
-    if (getType(obj) === 'Array') {
-        const t = getType(obj[0]);
+    const objType = getType(obj);
+
+    if (objType === 'Array') {
+        const firstType = getType(obj[0]);
         const childs = [];
-        if (obj.every(elem => getType(elem) === t)) {
-            if (t !== 'object')
+        if (obj.every(elem => getType(elem) === firstType)) {
+            if (firstType !== 'object')
                 return `${ toTypescript(obj[0]) }[] /* x${ obj.length } */`
 
             // it's an object
@@ -57,35 +68,49 @@ function toTypescript(obj, idt = 0) {
 
             const str = keys.map(({ key, sure, type }) => (
                 key + (sure ? ': ' : '?: ') + type
-            )).join(',' + newline(idt+1))
+            )).join(',' + newline(idt + 1))
 
-            return `{${ newline(idt+1) + str + newline(idt) }}[] /* x${obj.length} */`;
+            return `{${ newline(idt + 1) + str + newline(idt) }}[] /* x${ obj.length } */`;
         } else {
+            // Different types in the array
             obj.forEach(elem => {
                 const str = toTypescript(elem, idt + 1);
                 if (!childs.includes(str))
                     childs.push(str);
             })
-            return `[(${ newline(idt+1) + childs.join(' | ') + newline(idt) })]`;
+            return `[(${ newline(idt + 1) + childs.join(' | ') + newline(idt) })]`;
         }
     }
-    if (getType(obj) === 'object') {
+    if (objType === 'object') {
         const out = []
-        for (const [key, val] of Object.entries(obj))
+        const entries = Object.entries(obj);
+        for (const [key, val] of entries.slice(0, MAX_ARR_SIZE))
             out.push(`${ key }: ${ toTypescript(val, idt + 1) }`);
-        return `{${ newline(idt + 1) + out.join(',' + newline(idt + 1)) + newline(idt) }}`;
+        return '{'
+            + newline(idt + 1)
+            + out.join(',' + newline(idt + 1))
+            + (entries.length > MAX_ARR_SIZE
+                ? newline(idt + 1) + '/* + ' + (entries.length - MAX_ARR_SIZE) + ' more */'
+                : ''
+            )
+            + newline(idt) + '}';
+    }
+    if (objType === 'json') {
+        if (tsCompatible) return 'string /* json */';
+        const js = JSON.parse(obj)
+        return `/* START_JSON_STR { */${ newline(idt + 1) + toTypescript(js, idt + 1) + newline(idt) }/* } END_JSON_STR */`;
     }
 
-    return getType(obj)
+    return objType
 }
 const file = process.argv[0];
 let data = '';
 
-function error(message) { 
+function error(message) {
     console.error(message);
 
     console.log('');
-    console.log('USAGE = jsonStructure.js <file> [--beautify]');
+    console.log('USAGE = jsonStructure.js <file> [--beautify] [--ts]');
     console.log('');
     process.exit(1);
 }
@@ -101,4 +126,6 @@ try {
     error('Couldn\'t parse the JSON...')
 }
 
-console.log(toTypescript(data));
+console.log(
+    'type A = ' + toTypescript(data)
+);

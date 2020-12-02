@@ -4,6 +4,8 @@ minivim   nvim -u NONE
 tinyvim   nvim -u NONE
 vimtiny   nvim -u NONE
 
+r ranger .
+
 :h man
 
 watch watch -t

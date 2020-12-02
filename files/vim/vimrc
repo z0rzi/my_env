@@ -201,7 +201,7 @@
                 call setpos("'>", selSave[1])
 
                 let count += 1
-                if count > 200
+                if count > 10000
                     break
                 endif
             endwhile
@@ -372,30 +372,10 @@
     endfunction
 
     function! MapToNextMove(cmd)
-        let cmd = substitute(a:cmd, '\[\[\(\w\+\)\]\]', '<\1>', 'g')
-        echo cmd
-        exe "noremap <RIGHT> ".cmd."<CMD>call UnmapMoves()<CR>"
-        exe "noremap <LEFT>  ".cmd."<CMD>call UnmapMoves()<CR>"
-        exe "noremap <DOWN>  ".cmd."<CMD>call UnmapMoves()<CR>"
-        exe "noremap <UP>    ".cmd."<CMD>call UnmapMoves()<CR>"
-        exe "noremap <ESC>   ".cmd."<CMD>call UnmapMoves()<CR>"
-        exe "inoremap <RIGHT> ".cmd."<CMD>call UnmapMoves()<CR>"
-        exe "inoremap <LEFT>  ".cmd."<CMD>call UnmapMoves()<CR>"
-        exe "inoremap <DOWN>  ".cmd."<CMD>call UnmapMoves()<CR>"
-        exe "inoremap <UP>    ".cmd."<CMD>call UnmapMoves()<CR>"
-        exe "inoremap <ESC>   ".cmd."<CMD>call UnmapMoves()<CR>"
-    endfunction
-    function! UnmapMoves()
-        unmap <RIGHT>
-        unmap <LEFT>
-        unmap <DOWN>
-        unmap <UP>
-        unmap <ESC>
-        iunmap <RIGHT>
-        iunmap <LEFT>
-        iunmap <DOWN>
-        iunmap <UP>
-        iunmap <ESC>
+        let cmd = escape(a:cmd, '\\"')
+        exe "aug nextmove \<BAR>" .
+                    \ "autocmd CursorMoved * :exe \"" . cmd . "\\<BAR> aug nextmove \\<BAR> au! \\<BAR> aug END \\<BAR> aug! nextmove\" \<BAR>"
+                    \ "aug END"
     endfunction
 
     function! DuplicateLines(type, ...)
@@ -503,7 +483,7 @@
                     \   ['<'         , '>'         , 1],
                     \   ['{'         , '}'         , 1],
                     \   ['('         , ')'         , 1],
-                    \   ['\/\*'      , '\*\/'        , 1],
+                    \   ['\/\*'      , '\*\/'      , 1],
                     \   ['"'         , '"'         , 0],
                     \   ["'"         , "'"         , 0],
                     \   ['[^`]`[^`]' , '[^`]`[^`]' , 1],
@@ -732,9 +712,131 @@
         endif
     endfunction
 
+    function! FloatingMessage(message)
+        let bufnr = nvim_create_buf(v:false, v:true)
+        call setbufvar(bufnr, '&signcolumn', 'no')
+
+        let message = ' -- ' . a:message
+
+        let winheight = 1
+        let winwidth = len(message)
+
+        let width = float2nr(winwidth - (winwidth*2/10))
+
+        let opts = {
+                    \ 'relative': 'cursor',
+                    \ 'row': 0,
+                    \ 'col': col('$') - col('.') + 4,
+                    \ 'focusable': 0,
+                    \ 'width': winwidth,
+                    \ 'height': 1,
+                    \ 'style': 'minimal'
+                    \ }
+
+        call appendbufline(bufnr, 0, message)
+
+        let winnr = nvim_open_win(bufnr, v:false, opts)
+
+        let props = GetHighlightProps('Normal')
+
+        exe "hi Pop cterm=italic ctermbg=" . props.bg . " ctermfg=245"
+        call setwinvar(winnr, '&winhighlight', 'NormalFloat:Pop')
+
+        call MapToNextMove('exe "norm!:bd!' . bufnr . '\<CR>"')
+    endfunction
+
+    function! GitBlame()
+        let line=line('.')
+        let cmd = 'git blame -p -L '.line.','.line.' '.expand('%')
+        let res = systemlist(cmd)
+
+        let author = ''
+        let summary = ''
+        let time = ''
+        for line in res
+            if match(line, 'author ') == 0
+                let author = substitute(line, '^\S*\s*', '', '')
+            endif
+            if match(line, 'summary ') == 0
+                let summary = substitute(line, '^\S*\s*', '', '')
+            endif
+            if match(line, 'author-time ') == 0
+                let time = substitute(line, '^\S*\s*', '', '')
+            endif
+        endfor
+
+        let time = EpochToRelative(time)
+
+        call FloatingMessage(author . ' ) ' . time . ' | ' . summary)
+    endfunction
+
+    function! EpochToRelative(epoch)
+        let time = system('date -d "@' . a:epoch . '" +"%Y %m %d %H %M %S"')
+        let [year, month, day, hour, minute, second] = split(time)
+        let time = {
+                    \ 'year': year,
+                    \ 'month': month,
+                    \ 'day': day,
+                    \ 'hour': hour,
+                    \ 'minute': minute,
+                    \ 'second': second,
+                    \ }
+
+        let now = system('date +"%Y %m %d %H %M %S"')
+        let [year, month, day, hour, minute, second] = split(now)
+        let now = {
+                    \ 'year': year,
+                    \ 'month': month,
+                    \ 'day': day,
+                    \ 'hour': hour,
+                    \ 'minute': minute,
+                    \ 'second': second,
+                    \ }
+
+        let labels = ['year', 'month', 'day', 'hour', 'minute', 'second']
+
+        let out = ''
+        for label in labels
+            let diff = now[label] - time[label]
+            if diff > 0
+                if diff > 1 | let label = label . 's' | endif
+                let out .= diff . ' ' . label . ' ago'
+                break
+            endif
+        endfor
+
+        return out
+    endfunction
+
 " 
 " PLUGINS CONFIG
 " 
+    " Ale Linting
+        let g:ale_fixers = {
+                    \ 'typescript': ['prettier'],
+                    \ 'javascript': ['prettier'],
+                    \ 'python': ['prettier']
+                    \ }
+
+        let g:ale_linters = {
+                    \ 'typescript': ['eslint'],
+                    \ 'javascript': ['eslint'],
+                    \ 'rust': ['rust-analyzer'],
+                    \ 'python': ['flake8']
+                    \ }
+                    " \ 'python': ['pylint', 'flake8']
+        let g:ale_enabled = 1
+        " let g:ale_sign_error = '✘'
+        " let g:ale_sign_warning = '⚠'
+        let g:ale_sign_error = ''
+        let g:ale_sign_warning = ''
+        au! InsertEnter * call ALEToggleHighlights(0)
+        au! InsertLeave * call ALEToggleHighlights(1)
+        
+        let g:AleErrorHI = GetHighlightProps("ALEError")
+        let g:AleWarningHI = GetHighlightProps("ALEWarning")
+        let g:AleInfoHI = GetHighlightProps("ALEInfo")
+
     " Goyo
         nnoremap <LEADER><BS> <CMD>Goyo<CR>
 
@@ -748,6 +850,7 @@
             \ ['''', ''''],
             \ ['"', '"'],
             \ ['```', '```'],
+            \ ['"""', '"""'],
             \ ]
 
         " ^ at start of lhs to only work if match at start of line
@@ -835,8 +938,6 @@
             endif
         endfunction
 
-        " autocmd CursorHold * silent!SingleBlameLine
-
         " Symbol renaming.
         nmap <leader>rn <Plug>(coc-rename)
 
@@ -903,61 +1004,10 @@
 
         autocmd! FileType coc-explorer set conceallevel=0
 
-    " Ale Linting
-        let g:ale_fixers = {
-                    \ 'typescript': ['prettier'],
-                    \ 'javascript': ['prettier'],
-                    \ 'python': []
-                    \ }
-
-        let g:ale_linters = {
-                    \ 'typescript': ['eslint'],
-                    \ 'javascript': ['eslint'],
-                    \ 'rust': ['rust-analyzer'],
-                    \ 'python': []
-                    \ }
-        let g:ale_enabled = 1
-        " let g:ale_sign_error = '✘'
-        " let g:ale_sign_warning = '⚠'
-        let g:ale_sign_error = ''
-        let g:ale_sign_warning = ''
-        au! InsertEnter * call ALEToggleHighlights(0)
-        au! InsertLeave * call ALEToggleHighlights(1)
-        
-        let g:AleErrorHI = GetHighlightProps("ALEError")
-        let g:AleWarningHI = GetHighlightProps("ALEWarning")
-        let g:AleInfoHI = GetHighlightProps("ALEInfo")
-
     " Typescript-vim
         let g:typescript_indent_disable = 1
 
     " Vim LightLine
-
-        " use lightline-buffer in lightline
-        " let g:lightline = {
-        "             \ 'tabline': {
-        "             \   'left': [ [ 'bufferinfo' ],
-        "             \             [ 'separator' ],
-        "             \             [ 'bufferbefore', 'buffercurrent', 'bufferafter' ], ],
-        "             \   'right': [ [ 'close' ], ],
-        "             \ },
-        "             \ 'component_expand': {
-        "             \   'buffercurrent': 'lightline#buffer#buffercurrent',
-        "             \   'bufferbefore': 'lightline#buffer#bufferbefore',
-        "             \   'bufferafter': 'lightline#buffer#bufferafter',
-        "             \ },
-        "             \ 'component_type': {
-        "             \   'buffercurrent': 'tabsel',
-        "             \   'bufferbefore': 'raw',
-        "             \   'bufferafter': 'raw',
-        "             \ },
-        "             \ 'component_function': {
-        "             \   'bufferinfo': 'lightline#buffer#bufferinfo',
-        "             \ },
-        "             \ 'component': {
-        "             \   'separator': '',
-        "             \ },
-        "             \ }
         let g:lightline = {
             \ 'colorscheme': 'powerline',
             \ 'active': {
@@ -1134,12 +1184,12 @@
             " nim
             Plugin 'alaviss/nim.nvim'
 
+            " python
+            Plugin 'dense-analysis/ale'
+
         " 
         " Others
         " 
-            " Git
-            Plugin 'tveskag/nvim-blame-line'
-
             " visual GIT modifs
             Plugin 'airblade/vim-gitgutter'
 
@@ -1156,13 +1206,8 @@
             " Buffer stuff
             " Plugin 'taohexxx/lightline-buffer'
             Plugin 'z0rzi/lightline-bufferline'
-            
-
-            " Linting
-            " Plugin 'dense-analysis/ale' " Requires eslint to work (pacman -S eslint)
 
             Plugin 'neoclide/coc.nvim', {'branch': 'release'}
-
 
         " 
         " My plugins!
@@ -1189,6 +1234,12 @@
         inoremap <F2> <ESC>
         inoremap <C-x><C-l> <C-x><C-l>
         inoremap <silent> <C-r>/ <C-r>=substitute(@/, '\\.', '', 'g')<CR>
+        inoremap <LEFT> <C-G>U<LEFT>
+        inoremap <RIGHT> <C-G>U<RIGHT>
+        inoremap <DOWN> <C-G>U<DOWN>
+        inoremap <UP> <C-G>U<UP>
+
+
 
         nnoremap <M-z> <C-w>w
         " nnoremap / /\v
@@ -1412,10 +1463,6 @@
             " use normal command like `<leader>xi(`
             " nmap <leader>x  <Plug>(coc-cursors-operator)
 
-        " Ale
-            nnoremap <LEADER>jn <CMD>ALENext<CR>
-            nnoremap <LEADER>jp <CMD>ALEPrevious<CR>
-
         " Git stuff
             " Plugin: GitGutter
             nnoremap <LEADER>gu <CMD>sil!GitGutterUndoHunk<CR>
@@ -1423,7 +1470,7 @@
             nnoremap <LEADER>gp <CMD>sil!GitGutterPrevHunk<CR>
             nnoremap <LEADER>gP <CMD>sil!GitGutterPreviewHunk<CR>
             nnoremap <LEADER>gh <CMD>sil!GitGutterLineHighlightsToggle<CR>
-            nnoremap <LEADER>gb <CMD>SingleBlameLine<CR>
+            nnoremap <LEADER>gb <CMD>call GitBlame()<CR>
 
         " Tabular indenting
             nnoremap <leader>t= mm<CMD>Tabular /^[^=]*\zs=<CR>`m
@@ -1622,6 +1669,8 @@
         autocmd BufNewFile,BufRead *.vue set filetype=vue
         autocmd BufNewFile,BufRead *.coffee set filetype=coffee
         autocmd BufNewFile,BufRead *.jrl set filetype=journal
+        autocmd BufNewFile,BufRead *.txt set filetype=txt
+        autocmd BufNewFile,BufRead *.snippets set filetype=snippets
         autocmd BufNewFile,BufRead *.nim set filetype=nim
         autocmd BufNewFile,BufRead Jenkinsfile set filetype=groovy
 
@@ -1640,10 +1689,6 @@
             let g:selMatches = matchadd('SelectionOthers', SelectionToRx(@a))
         endfunction
         autocmd CursorMoved * if mode() == 'v' | call HighlightSel() | else | sil!call matchdelete(g:selMatches) | endif
-        " autocmd CursorMoved * if mode() == 'v' | call HighlightSel() | else | sil!call matchdelete(g:selMatches) | endif
-        " autocmd CursorMoved * if mode() == 'v' | call HighlightSel() | else | sil!call matchdelete(g:selMatches) | endif
-        " autocmd CursorMoved * if mode() == 'v' | call HighlightSel()  | else | sil!call matchdelete(g:selMatches) | endif
-        " autocmd CursorMoved * if mode() == 'v' | call HighlightSel() | else | sil!call matchdelete(g:selMatches) | endif
 
 " 
 " ABREVS
@@ -1694,3 +1739,39 @@ function! WrapLine(num)
 endfunction
 
 nnoremap gqq <CMD>call WrapLine(81)<CR>
+
+
+function! CopyWord(lnum, full_line)
+    let lnum = line('.') + a:lnum
+
+    if lnum > line('$') | let lnum = line('$') | endif
+    if lnum < 0 | let lnum = 0 | endif
+
+    if a:lnum < 0
+        let lnum = prevnonblank(lnum)
+    else
+        let lnum = nextnonblank(lnum)
+    endif
+    let cnum = col('.')
+
+    let line = getline(lnum)
+
+    if a:full_line
+        call setline('.', getline(lnum))
+        call setpos('.', [0, line('.'), col('$'), 0])
+        return ''
+    endif
+
+    let cara = matchstr(line, '\%'.cnum.'c.')
+
+    if match(cara, '[a-zA-Z0-9_]') >= 0
+        return matchstr(line, '\%([^a-zA-Z0-9_]\|^\)[a-zA-Z0-9_]\{-}\zs\%'.cnum.'c[a-zA-Z0-9_]\{-}\ze\%([^a-zA-Z0-9_]\|$\)')
+    endif
+
+    return cara
+endfunction
+
+inoremap <silent> <S-UP> <C-r>=CopyWord(-1, 0)<CR>
+inoremap <silent> <S-DOWN> <C-r>=CopyWord(1, 0)<CR>
+inoremap <silent> <CS-UP> <C-r>=CopyWord(-1, 1)<CR>
+inoremap <silent> <CS-DOWN> <C-r>=CopyWord(1, 1)<CR>

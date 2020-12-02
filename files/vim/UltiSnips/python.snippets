@@ -1,7 +1,13 @@
 priority -50
 
-snippet "log loog" "Logs a message" b
-print(${1:var})
+snippet log "Logs a message" b
+print('$1', ${1:})
+endsnippet
+
+snippet time "Creates a timer" b
+import time
+start_time = time.perf_counter()
+print('time: ' + str(time.perf_counter() - start_time))
 endsnippet
 
 snippet file-write "Write inside a file" b

@@ -38,7 +38,7 @@
 
     # File explorer
         # bindsym $sup+e exec dolphin
-        bindsym $sup+e exec kitty tmux new-session ranger
+        bindsym $sup+e exec kitty -e tmux new-session ranger
 
     # Screenshot
         bindsym --release $mod+Shift+s exec flameshot gui

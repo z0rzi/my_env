@@ -15,7 +15,8 @@ for file in $files; do
     cp $file /tmp/back$rand/$path
 
     sedStr=`sed 's/\//\\\\\//g' <<< $1`
-    sed "s/$sedStr/$2/g" $file > /tmp/_.tmp && mv /tmp/_.tmp $file
+    sedRepl=`sed 's/\//\\\\\//g' <<< $2`
+    sed "s/$sedStr/$sedRepl/g" $file > /tmp/_.tmp && mv /tmp/_.tmp $file
 done
 
 echo

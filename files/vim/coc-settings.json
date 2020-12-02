@@ -6,7 +6,7 @@
       "diagnostic.infoSign": "",
       "diagnostic.hintSign": "",
       "diagnostic.messageDelay": 1000,
-
+      "diagnostic.format": "[%severity] %message",
       "tsserver.enableJavascript": true,
       "typescript.suggest.autoImports": true,
       "typescript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": true,
@@ -17,7 +17,6 @@
       "typescript.format.insertSpaceBeforeAndAfterBinaryOperators": true,
       "typescript.format.enabled": true,
       "typescript.suggest.completeFunctionCalls": true,
-
       "javascript.suggest.autoImports": true,
       "javascript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": true,
       "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis": false,
@@ -27,30 +26,33 @@
       "javascript.format.enabled": true,
       "javascript.suggest.completeFunctionCalls": true,
 
-      "diagnostic.format": "[%severity] %message",
-
       "suggest.autoTrigger": "always",
       "suggest.enablePreview": true,
       "suggest.localityBonus": true,
       "suggest.fixInsertedWord": true,
       "suggest.triggerAfterInsertEnter": true,
-
       "eslint.enable": true,
       "eslint.autoFix": true,
-      "eslint.filetypes": ["typescript", "typescriptreact", "vue", "javascript", "javascriptreact"],
+      "eslint.filetypes": [
+            "typescript",
+            "typescriptreact",
+            "vue",
+            "javascript",
+            "javascriptreact"
+      ],
       "eslint.autoFixOnSave": false,
       "eslint.codeAction.showDocumentation": {
-          "enable": true
+            "enable": true
       },
       "eslint.run": "onType",
       "eslint.packageManager": "yarn",
-      "eslint.options": {"useEslintrc": true},
-
+      "eslint.options": {
+            "useEslintrc": true
+      },
       "explorer.icon.enableVimDevicons": true,
       "explorer.icon.collapsed": "-",
       "explorer.icon.expanded": "+",
       "explorer.previewAction.onHover": false,
-
       "explorer.file.column.indent.indentLine": true,
       "explorer.file.column.git.icon.mixed": "✸",
       "explorer.file.column.git.icon.modified": "✸",
@@ -59,29 +61,55 @@
       "explorer.file.column.git.icon.renamed": "↷",
       "explorer.file.column.git.icon.untracked": "+",
       "explorer.file.column.git.icon.ignored": ".",
-
       "explorer.keyMappings": {
             "i": false,
-
             "gk": "expandablePrev",
             "gj": "expandableNext",
-
             "v": "toggleSelection",
             "m": "actionMenu",
-
             "x": "collapse",
-            "l": ["expandable?", "expand", "open"],
-            "J": ["toggleSelection", "nodeNext"],
-            "K": ["toggleSelection", "nodePrev"],
+            "l": [
+                  "expandable?",
+                  "expand",
+                  "open"
+            ],
+            "J": [
+                  "toggleSelection",
+                  "nodeNext"
+            ],
+            "K": [
+                  "toggleSelection",
+                  "nodePrev"
+            ],
             "gl": "expandRecursive",
             "gh": "collapseRecursive",
             "<2-LeftMouse>": [
                   "expandable?",
-                  ["expanded?", "collapse", "expand"],
+                  [
+                        "expanded?",
+                        "collapse",
+                        "expand"
+                  ],
                   "open"
             ],
-            "<cr>": ["expandable?", ["expanded?", "collapse", "expand"], "open"],
-            "<right>": ["expandable?", ["expanded?", "collapse", "expand"], "open"],
+            "<cr>": [
+                  "expandable?",
+                  [
+                        "expanded?",
+                        "collapse",
+                        "expand"
+                  ],
+                  "open"
+            ],
+            "<right>": [
+                  "expandable?",
+                  [
+                        "expanded?",
+                        "collapse",
+                        "expand"
+                  ],
+                  "open"
+            ],
             "<left>": "collapse",
             "e": "open",
             "s": "open:split",
@@ -89,7 +117,6 @@
             "t": "open:tab",
             "<bs>": "gotoParent",
             "gp": "preview:labeling",
-
             "Y": "copyFilepath",
             "y": "copyFile",
             "yy": "copyFile",
@@ -97,54 +124,54 @@
             "dd": "cutFile",
             "p": "pasteFile",
             "<del>": "delete",
-
             "a": "addFile",
             "A": "addDirectory",
             "r": "rename",
-
             ".": "toggleHidden",
             "R": "refresh",
-
             "?": "help",
             "q": "quit",
             "<esc>": "esc",
             "X": "systemExecute",
             "gd": "listDrive",
-
             "f": "search",
             "F": "searchRecursive",
             "S": "searchRecursive",
-
             "gf": "gotoSource:file",
             "gb": "gotoSource:buffer",
-
             "[[": "sourcePrev",
-                  "]]": "sourceNext",
-
-                  "[d": "diagnosticPrev",
-                        "]d": "diagnosticNext",
-
-                        "[c": "gitPrev",
-                              "]c": "gitNext",
-                              "<<": "gitStage",
-                              ">>": "gitUnstage"
+            "]]": "sourceNext",
+            "[d": "diagnosticPrev",
+            "]d": "diagnosticNext",
+            "[c": "gitPrev",
+            "]c": "gitNext",
+            "<<": "gitStage",
+            ">>": "gitUnstage"
       },
-
-      "vetur.format.enable": true,
-      "vetur.useWorkspaceDependencies": true,
-
       "languageserver": {
             "nim": {
                   "command": "nimlsp",
-                  "filetypes": ["nim"]
+                  "filetypes": [
+                        "nim"
+                  ]
             },
             "rust": {
                   "command": "rust-analyzer",
-                  "filetypes": ["rust"]
+                  "filetypes": [
+                        "rust"
+                  ]
+            },
+            "python": {
+                  "command": "python",
+                  "filetypes": [
+                        "python"
+                  ]
             },
             "vue": {
                   "command": "vls",
-                  "filetypes": ["vue"]
+                  "filetypes": [
+                        "vue"
+                  ]
             }
       }
 }
