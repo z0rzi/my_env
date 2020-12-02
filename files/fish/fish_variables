@@ -17,6 +17,7 @@ SETUVAR RED:\x5c033\x5b1\x3b31m
 SETUVAR SHADOW:\x5c033\x5b0\x3b37m
 SETUVAR SPARKLES:\u2728
 SETUVAR THUNDER:\u26a1
+SETUVAR XDG_CONFIG_HOME:/home/zorzi
 SETUVAR __fish_init_2_3_0:\x1d
 SETUVAR __fish_initialized:3100
 SETUVAR fish_color_autosuggestion:585858

@@ -62,7 +62,7 @@ console.log('${1/^(?:.*\.)?(\w*)(\(.*)?$/$1/}', $1)
 endsnippet
 
 snippet err "Logs an error" b
-console.error(${1:{'${2/^(.*\.)?(\w+)(\(.*\))?$/$2/}': ${0:${2:var}}}});
+console.error('${1/^(?:.*\.)?(\w*)(\(.*)?$/$1/}', $1)
 endsnippet
 
 snippet time "Sets up a timer" b

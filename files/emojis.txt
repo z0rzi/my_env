@@ -1,26 +1,43 @@
-😓    | Downcast Face with Sweat, Sad, :(
-😛    | Face with Tongue, :p
-💪    | Flexed Biceps, Power
-🤔    | Thinking Face, Huuum
-¯\_(ツ)_/¯ | Shrug
-👋    | Waving Hand
-🎉    | Party Popper
-👍    | Thumbs Up, +1
 😅    | Grinning Face with Sweat, ^^'
-🤷    | Person Shrugging, Welp
+❌    | Cross Mark
+💰    | Money Bag
+🤐    | Zipper-Mouth Face
+👍    | Thumbs Up, +1
+¯\_(ツ)_/¯ | Shrug
+🤔    | Thinking Face, Huuum
 😂    | Face with Tears of Joy, XD, Happy
-🙂    | Slightly Smiling Face, Happy, :)
+🙄    | Face with Rolling Eyes, Yeeeeah, Right
+🙏    | Folded Hands, Thank you
+✔️    | Check Mark, OK, Valid
 😁    | Beaming Face with Smiling Eyes, Happy, :D
-😉    | Winking Face, ;)
-😃    | Grinning Face with Big Eyes, Happy, :D
-💩    | Pile of Poo, Caca
+😝    | Squinting Face with Tongue, :p
+🍹    | Tropical Drink, Cocktail
+❝❞    | Fancy Quotes
+🙂    | Slightly Smiling Face, Happy, :)
+🎉    | Party Popper
+👋    | Waving Hand
+🦴    | Bone, Dog
 👌    | OK Hand
-😤    | Face with Steam From Nose, Mad, Angry
+👨‍🍳  | Man Cook, Chef, Cuisine
+😄    | Grinning Face with Smiling Eyes, Happy, :D
+😃    | Grinning Face with Big Eyes, Happy, :D
+😛    | Face with Tongue, :p
+💼    | Briefcase, Work
 ❗    | Exclamation Mark
+🎥    | Movie Camera
+🎁    | Wrapped Gift
+📅    | Calendar
+⏰    | Alarm Clock, Time
+📆    | Tear-Off Calendar
+🍳    | Cooking
+😓    | Downcast Face with Sweat, Sad, :(
+💪    | Flexed Biceps, Power
+🤷    | Person Shrugging, Welp
+😉    | Winking Face, ;)
+💩    | Pile of Poo, Caca
+😤    | Face with Steam From Nose, Mad, Angry
 ➡    | Right Arrow
 🙌    | Raising Hands, Yay
-✔️    | Check Mark, OK, Valid
-❌    | Cross Mark
 ✅    | Check Mark Button
 🥢    | Chopsticks, Chinese, Noodles
 ⚠️    | Warning
@@ -36,14 +53,10 @@
 🌟    | Glowing Star, Magic
 ⭐    | Star, Magic
 🧗    | Person Climbing
-❝❞    | Fancy Quotes
-🙏    | Folded Hands, Thank you
 😐    | Neutral Face, :|
 ✡    | Star of David
 💖    | Sparkling Heart
 🤯    | Exploding Head, Mindblown
-🤐    | Zipper-Mouth Face
-🍳    | Cooking
 │     | box drawings light vertical
 🙃    | Upside-Down Face, Welp, (:
 😘    | Face Blowing a Kiss, <3
@@ -58,7 +71,6 @@
 ⤵     | Right Arrow Curving Down
 📑    | Bookmark Tabs
 🧠    | Brain, Clever, Smart
-🎁    | Wrapped Gift
 👎    | Thumbs Down, Hand, -1
 👏    | Clapping Hands
 💀    | Skull, Dead, Death
@@ -74,7 +86,6 @@
 😌    | Relieved Face, :)
 🐈    | Cat
 👇    | Backhand Index Pointing Down, Hand
-🙄    | Face with Rolling Eyes, Yeeeeah, Right
 😀    | Grinning Face, Happy, :D
 🍽️    | Fork and Knife with Plate, Eat, Hungry
 🍑    | Peach
@@ -91,7 +102,6 @@
 🛌    | Person in Bed
 ☑    | Check Box with Check
 🤗    | Hugging Face
-💰    | Money Bag
 🗑️    | Wastebasket, Bin, Office trash
 🛸    | Flying Saucer
 🦋    | Butterfly
@@ -106,8 +116,6 @@
 😰    | Anxious Face with Sweat, :o
 🥓    | Bacon
 🕶️    | Sunglasses, Cool
-👨‍🍳  | Man Cook, Chef, Cuisine
-😄    | Grinning Face with Smiling Eyes, Happy, :D
 🚆    | Train
 🧡    | Orange Heart
 ⚰️    | Coffin, deat, death, funerals
@@ -117,7 +125,6 @@
 🔤    | Input Latin Letters
 📖    | Open Book
 💾    | Floppy Disk, Data, Database
-🍹    | Tropical Drink, Cocktail
 🔎    | Magnifying Glass Tilted Right, Zoom, Search
 ⌨️    | Keyboard
 💻    | Laptop
@@ -128,7 +135,6 @@
 🔗    | Link
 🧘    | Person in Lotus Position, Meditation
 💥    | Collision, Boom, Explosion
-💼    | Briefcase, Work
 🔌    | Electric Plug
 ⛔    | No Entry
 💽    | Computer Disk, Data, Database
@@ -186,7 +192,6 @@
 😋    | Face Savoring Food
 😜    | Winking Face with Tongue, :p
 🤪    | Zany Face, :p
-😝    | Squinting Face with Tongue, :p
 🤭    | Face with Hand Over Mouth
 🤫    | Shushing Face, Ssshhh
 🤨    | Face with Raised Eyebrow
@@ -269,7 +274,6 @@
 👂    | Ear, Listen
 👃    | Nose, Smell
 🦷    | Tooth, Dentist
-🦴    | Bone, Dog
 👁️    | Eye, Look
 👅    | Tongue
 👄    | Mouth
@@ -819,7 +823,6 @@
 ⌛    | Hourglass Done
 ⏳    | Hourglass Not Done
 ⌚    | Watch, Time, Clock
-⏰    | Alarm Clock, Time
 ⏱️    | Stopwatch, Time, Chronometer
 ⏲️    | Timer Clock, Chronometer
 🕰️    | Mantelpiece Clock, Vintage
@@ -861,7 +864,6 @@
 💿    | Optical Disk
 📀    | DVD
 🧮    | Abacus
-🎥    | Movie Camera
 🎞️    | Film Frames
 📽️    | Film Projector
 📷    | Camera, Photo
@@ -911,8 +913,6 @@
 📝    | Memo
 📁    | File Folder
 🗂️    | Card Index Dividers, Folder, Organize
-📅    | Calendar
-📆    | Tear-Off Calendar
 🗒️    | Spiral Notepad
 🗓️    | Spiral Calendar
 📇    | Card Index

@@ -59,7 +59,7 @@ function toTypescript(obj, idt = 0) {
                 key + (sure ? ': ' : '?: ') + type
             )).join(',' + newline(idt+1))
 
-            return `{${ newline(idt+1) + str + newline(idt) }}[]`;
+            return `{${ newline(idt+1) + str + newline(idt) }}[] /* x${obj.length} */`;
         } else {
             obj.forEach(elem => {
                 const str = toTypescript(elem, idt + 1);

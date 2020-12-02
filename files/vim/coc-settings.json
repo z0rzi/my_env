@@ -92,7 +92,9 @@
 
             "Y": "copyFilepath",
             "y": "copyFile",
+            "yy": "copyFile",
             "d": "cutFile",
+            "dd": "cutFile",
             "p": "pasteFile",
             "<del>": "delete",
 

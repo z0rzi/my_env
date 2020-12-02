@@ -122,12 +122,53 @@
 " 
 " FUNCTIONS
 " 
+
+    function! RestrictSearch(flag)
+        let cursearch = @/
+        let save = winsaveview()
+
+        " let cara = matchstr( a:line, '\S\ze\s' )
+        let start = matchstr(cursearch, '\\%>\zs\d\+\zel')
+        let end = matchstr(cursearch, '\\%<\zs\d\+\zel')
+        let search = substitute(cursearch, '\\%[<>]\d\+l', '', 'g')
+
+        if a:flag == 0
+            let @/ = search
+            return
+        endif
+
+        if a:flag < 0
+            if !end
+                let end = line('.') + 1
+            endif
+            if start
+                call setpos('.', [0, start + 1, 0, 0])
+            endif
+            call search(search, 'bW')
+            let start = line('.') - 1
+        else
+            if !start
+                let start = line('.') - 1
+            endif
+            if end
+                call setpos('.', [0, end, 0, 0])
+            endif
+            call search(search, 'W')
+            let end = line('.') + 1
+        endif
+
+        call winrestview(save)
+
+        let @/ = '\%>'.start.'l\%<'.end.'l'.search
+        call histadd('/', @/)
+    endfunction
     function! DoAtEach(macro, range)
         echom a:macro
         let save = winsaveview()
         let count = 0
+        let searchSave = @/
+        let selSave = [ getpos("'<"), getpos("'>") ]
         if a:range < 0
-            let searchSave = @/
             call setpos('.', [0, 1, 1, 0])
             while search(@/, 'W')
                 let count += 1
@@ -135,6 +176,8 @@
                 exe "exe \"norm! " . substitute(substitute(a:macro, '<>', '\<ESC>', 'g'), '<[a-zA-Z-]\+>\|"', '\\&', 'gi') . '"'
 
                 let @/ = searchSave
+                call setpos("'<", selSave[0])
+                call setpos("'>", selSave[1])
 
                 if count > 200
                     break
@@ -147,8 +190,15 @@
 
                 let col = col('.')
                 exe "exe \"norm! " . substitute(substitute(a:macro, '<>', '\<ESC>', 'g'), '<[a-zA-Z-]\+>\|"', '\\&', 'gi') . '"'
+                if line('.') == line('$')
+                    break
+                endif
                 call setpos('.', [0, line('.')+1, col, 0])
                 " norm!j
+
+                let @/ = searchSave
+                call setpos("'<", selSave[0])
+                call setpos("'>", selSave[1])
 
                 let count += 1
                 if count > 200
@@ -709,7 +759,7 @@
             \   },
             \   'html': {
             \     '^\%(div\|span\|table\|h\d\)$': "<$&></$&>\<C-o>F<!",
-            \     '^\.\.\(\w\+\)$': "<div class=\"$1\"></div>\<C-o>F<!",
+            \     '^\.\.\([[:alnum:]-]\+\)$': "<div class=\"$1\"></div>\<C-o>F<!",
             \   },
             \   'javascript': {
             \     'l': "let",
@@ -730,6 +780,7 @@
             \   },
             \   'typescript': {
             \     '@inherit': 'javascript',
+            \     'ro': "readonly",
             \     'pub': "public",
             \     'pri': "private",
             \   },
@@ -1162,6 +1213,7 @@
         " Fast selection wrap
             vnoremap "" c""<ESC>Pgvlolo
             vnoremap '' c''<ESC>Pgvlolo
+            vnoremap `` c``<ESC>Pgvlolo
             vnoremap {{ c{  }<ESC>hPgvllollo
             vnoremap }} c{}<ESC>Pgvlolo
             vnoremap [[ c[  ]<ESC>hPgvllollo
@@ -1216,6 +1268,8 @@
             vnoremap <S-RIGHT> "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/)<CR>/<CR>
             vnoremap # "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/)<CR>?<CR>
             vnoremap * "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/)<CR>/<CR>
+            nmap <CS-Right> <CMD>call RestrictSearch(1)<CR>
+            nmap <CS-Left> <CMD>call RestrictSearch(-1)<CR>
 
         " Init folds
             function! FoldIfMakeSense(offset)
@@ -1245,6 +1299,7 @@
 
         " go to next/previous match under cursor
             function! NextOccurence(way)
+                call RestrictSearch(0)
                 if ! CursorOnMatch(@/)
                     let @/ = '\<'.expand('<cword>').'\>'
                 else
@@ -1266,10 +1321,6 @@
             nnoremap <C-RIGHT> <CMD>call search('\w\>\<BAR>\u\l\<BAR>_[a-z]\<BAR>\S\s\<BAR>$', 'W')<CR>
             inoremap <C-LEFT> <CMD>call search('\<\<BAR>\u\l\<BAR>_[a-z]\<BAR>\s\zs\S\<BAR>^', 'bW')<CR>
             inoremap <C-RIGHT> <CMD>call search('\>\zs\<BAR>\u\l\<BAR>_[a-z]\<BAR>\S\zs\s\<BAR>$', 'W')<CR>
-            nnoremap <CS-LEFT> B
-            nnoremap <CS-RIGHT> E
-            inoremap <CS-LEFT> <CMD>norm!B<CR>
-            inoremap <CS-RIGHT> <CMD>norm!E<CR><RIGHT>
 
         " go to end of paragraph
             function! IndentJump(direction)
@@ -1305,12 +1356,6 @@
             endfunction
             noremap <S-UP> <CMD>call IndentJump(-1)<CR>
             noremap <S-DOWN> <CMD>call IndentJump(1)<CR>
-
-        " Move seletion area
-            " vnoremap <S-UP> V<C-v>koko
-            " vnoremap <S-DOWN> V<C-v>jojo
-            " vnoremap <S-RIGHT> V<C-v>lolo
-            " vnoremap <S-LEFT> V<C-v>hoho
 
         " go to end of paragraph
             nnoremap { [(
@@ -1435,9 +1480,12 @@
             nnoremap <LEADER>. f.a
 
         " Double Tap shortcut
-            inoremap )) (<CMD>call SmartJumpToEnd()<CR><RIGHT>)
-            inoremap ]] [<CMD>call SmartJumpToEnd()<CR><RIGHT>]
-            inoremap }} {<CMD>call SmartJumpToEnd()<CR><RIGHT>}
+            " inoremap )) (<CMD>call SmartJumpToEnd()<CR><RIGHT>)
+            " inoremap ]] [<CMD>call SmartJumpToEnd()<CR><RIGHT>]
+            " inoremap }} {<CMD>call SmartJumpToEnd()<CR><RIGHT>}
+            inoremap )<TAB> (<CMD>call SmartJumpToEnd()<CR><RIGHT>)
+            inoremap ]<TAB> [<CMD>call SmartJumpToEnd()<CR><RIGHT>]
+            inoremap }<TAB> {<CMD>call SmartJumpToEnd()<CR><RIGHT>}
 
         " Backspace selector
             function! BSOperator()
@@ -1473,6 +1521,7 @@
             onoremap ) t)
             onoremap ( t(
             onoremap } t}
+            onoremap { t{
             onoremap > t>
             onoremap ] t]
             onoremap . t.
@@ -1629,3 +1678,19 @@
         iab \\> ⤷
         iab \! ⚠
 
+
+
+function! WrapLine(num)
+    while len(getline('.')) > 81
+        norm! ^
+        let pos = col('.')
+        call setpos('.', [0, line('.'), pos+a:num, 0])
+        call search('\S\s', 'bW')
+        if pos > col('.')
+            break
+        endif
+        exe "norm! a\<CR>\<ESC>"
+    endwhile
+endfunction
+
+nnoremap gqq <CMD>call WrapLine(81)<CR>
