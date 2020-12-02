@@ -15,8 +15,10 @@ fi
 
 choice=$(echo -e "`sed -e 's/,\(.*\)$/\\\e[30m,\1/' -e 's/^/\\\e[0m/' $path`" | fzf -e --no-sort --ansi)
 
-emoji=`echo $choice | sed -e 's/^\(.\+\)|[^|]*$/\1/' -e 's/\s//g'`
-desc=`echo $choice | sed -e 's/^.\+|\([^|]*\)$/\1/'`
+emoji=`echo $choice | sed -e 's/^\([^|]\+\)|.*$/\1/' -e 's/\s//g'`
+desc=`echo $choice | sed -e 's/^[^|]\+|\(.*\)$/\1/'`
+
+echo $desc
 
 ( [ ! "$emoji" ] || [ ! "$desc" ] ) && exit
 
@@ -34,4 +36,4 @@ EOF
 
 nohup bash -c "$cmd" 2&>/dev/null & disown
 
-sleep .01
+sleep .05

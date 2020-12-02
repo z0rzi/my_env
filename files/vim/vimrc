@@ -373,29 +373,23 @@
 
     function! MapToNextMove(cmd)
         let cmd = escape(a:cmd, '\\"')
-        exe "aug nextmove \<BAR>" .
-                    \ "autocmd CursorMoved * :exe \"" . cmd . "\\<BAR> aug nextmove \\<BAR> au! \\<BAR> aug END \\<BAR> aug! nextmove\" \<BAR>"
+        sil!exe "aug nextmove \<BAR>" .
+                    \ "autocmd CursorMoved * :sil!exe \"" . cmd . "\\<BAR> aug nextmove \\<BAR> au! \\<BAR> aug END \\<BAR> aug! nextmove\" \<BAR>"
                     \ "aug END"
     endfunction
 
     function! DuplicateLines(type, ...)
-        let viewSave = winsaveview()
-
-        echom a:0
         if a:0
-            silent exe 'normal! gv"yy'
+            " We're in visual mode
+            if visualmode() == 'v'
+                exe 'normal! "my"mPgv'
+            else
+                exe "normal! :co '<-1\<CR>gv"
+            endif
         else
-            silent exe "normal! '[V']\"yy"
+            '[,'] copy '[-1
+            call setpos('.', [0, line("']")+1, 1000, 0])
         endif
-        silent exe 'normal! "yP'
-
-        call winrestview(viewSave)
-        if search('^\s*\%#', 'n') != 0
-            call search('^\s\+\zs\S')
-            norm!$
-        endif
-        call winrestview(viewSave)
-        " s/^\ze.*\%#/\r/ " To add a new line between the old and the duplicate
     endfunction
 
     function! GetGroupName()
@@ -747,7 +741,9 @@
 
     function! GitBlame()
         let line=line('.')
-        let cmd = 'git blame -p -L '.line.','.line.' '.expand('%')
+        let truefile = system('readlink -f ' . expand('%'))
+        let truepath = matchstr(truefile, '^.*/', '')
+        let cmd = 'cd '.truepath.' && git blame -p -L '.line.','.line.' '.truefile
         let res = systemlist(cmd)
 
         let author = ''
@@ -771,39 +767,37 @@
     endfunction
 
     function! EpochToRelative(epoch)
-        let time = system('date -d "@' . a:epoch . '" +"%Y %m %d %H %M %S"')
-        let [year, month, day, hour, minute, second] = split(time)
-        let time = {
-                    \ 'year': year,
-                    \ 'month': month,
-                    \ 'day': day,
-                    \ 'hour': hour,
-                    \ 'minute': minute,
-                    \ 'second': second,
-                    \ }
+        let now = system('date +"%s"')
+        let diff = now - a:epoch
 
-        let now = system('date +"%Y %m %d %H %M %S"')
-        let [year, month, day, hour, minute, second] = split(now)
-        let now = {
-                    \ 'year': year,
-                    \ 'month': month,
-                    \ 'day': day,
-                    \ 'hour': hour,
-                    \ 'minute': minute,
-                    \ 'second': second,
-                    \ }
-
-        let labels = ['year', 'month', 'day', 'hour', 'minute', 'second']
+        let units = ['year', 'month', 'day', 'hour', 'minute', 'second']
+        let values = [1] " second
+        call insert(values, values[0] * 60) " minute
+        call insert(values, values[0] * 60) " hour
+        call insert(values, values[0] * 24) " day
+        call insert(values, values[0] * 31) " month
+        call insert(values, values[1] * 365) " year
 
         let out = ''
-        for label in labels
-            let diff = now[label] - time[label]
-            if diff > 0
-                if diff > 1 | let label = label . 's' | endif
-                let out .= diff . ' ' . label . ' ago'
-                break
+        let cnt = 0
+        let yes = 0
+        while cnt < len(values)
+            let nb = diff / values[cnt]
+            let diff -= nb * values[cnt]
+            if nb > 0
+                let plural = ''
+                if nb > 1 | let plural = 's' | endif
+                let out .= nb.' '.units[cnt].plural.', '
+
+                " Max 2 units displayed
+                if yes | break
+                else | let yes = 1
+                endif
             endif
-        endfor
+            let cnt += 1
+        endwhile
+
+        let out = substitute(out, '[[:blank:],]\+$', '', '') . ' ago'
 
         return out
     endfunction
@@ -815,23 +809,29 @@
         let g:ale_fixers = {
                     \ 'typescript': ['prettier'],
                     \ 'javascript': ['prettier'],
-                    \ 'python': ['prettier']
+                    \ 'python': ['autopep8']
                     \ }
 
         let g:ale_linters = {
-                    \ 'typescript': ['eslint'],
-                    \ 'javascript': ['eslint'],
-                    \ 'rust': ['rust-analyzer'],
-                    \ 'python': ['flake8']
+                    \ 'python': ['pyls']
                     \ }
-                    " \ 'python': ['pylint', 'flake8']
-        let g:ale_enabled = 1
+                    " \ 'typescript': ['eslint'],
+                    " \ 'javascript': ['eslint'],
+                    " \ 'rust': ['rust-analyzer'],
+
+        let g:ale_enabled = 0
+        autocmd! BufNewFile,BufRead *.py let g:ale_enabled = 1
         " let g:ale_sign_error = '✘'
         " let g:ale_sign_warning = '⚠'
         let g:ale_sign_error = ''
         let g:ale_sign_warning = ''
         au! InsertEnter * call ALEToggleHighlights(0)
         au! InsertLeave * call ALEToggleHighlights(1)
+
+        let g:ale_lint_on_text_changed = 'never'
+        let g:ale_lint_on_insert_leave = 1
+        let g:ale_lint_on_enter = 1
+        let g:ale_completion_enabled = 1
         
         let g:AleErrorHI = GetHighlightProps("ALEError")
         let g:AleWarningHI = GetHighlightProps("ALEWarning")
@@ -850,7 +850,6 @@
             \ ['''', ''''],
             \ ['"', '"'],
             \ ['```', '```'],
-            \ ['"""', '"""'],
             \ ]
 
         " ^ at start of lhs to only work if match at start of line
@@ -1292,18 +1291,17 @@
             nnoremap <C-down> <CMD>m+1<CR>
             nnoremap <C-k> <CMD>m-2<CR>
             nnoremap <C-up> <CMD>m-2<CR>
-
-            vnoremap <C-up> :m-2<CR>gv
-            vnoremap <C-down> <ESC>'>jdd'<Pgv
+            vnoremap <C-up> :<C-u>exe (line("'<")-1) . " m " . line("'>")<CR>gv
+            vnoremap <C-down> :<C-u>exe (line("'>")+1) . " m " . (line("'<") - 1)<CR>gv
             vnoremap <C-right> dpgvlolo
             vnoremap <C-left> dhPgvhoho
 
 
         " Duplicate lines
             nnoremap <silent> Z <CMD>set opfunc=DuplicateLines<CR>g@
-            vnoremap <silent> Z :<C-u>call DuplicateLines(visualmode(), 1)<CR>gv
-            nnoremap <silent> ZZ mnV:call DuplicateLines(visualmode(), 1)<CR>`n
-            nnoremap <silent> zx mnV:call DuplicateLines(visualmode(), 1)<CR>`n
+            vnoremap <silent> Z  <CMD>call DuplicateLines(visualmode(), 1)<CR>
+            nnoremap <silent> ZZ <CMD>co +0<CR>
+            nnoremap <silent> zx <CMD>co +0<CR>
 
         " Easy search n replace
             " nnoremap <C-c> <CMD>let @/="\\<".expand("<cword>")."\\>"<CR>lNcgn
@@ -1312,6 +1310,7 @@
         " Better ranges for XML
             nmap >it vitVkoj>
             nmap <it vitVkoj<
+
 
         " Cool selection stuff
             vnoremap <C-c> "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/) <BAR> set hlsearch <CR>cgn
@@ -1411,12 +1410,6 @@
         " go to end of paragraph
             nnoremap { [(
             nnoremap } ])
-
-        " Jumb to end/beggining of block
-            nnoremap ] ]}
-            nnoremap [ [{
-            vnoremap ] ]}
-            vnoremap [ [{
 
         " Easy beg/end of line
             nnoremap ^ 0
@@ -1617,14 +1610,6 @@
             vnoremap io <ESC>:call SelectSmallestRangePossible(0)<CR>
             vnoremap ao <ESC>:call SelectSmallestRangePossible(1)<CR>
 
-        " Faster moves
-            " command! -nargs=1 -range MoveFast call MoveFaster("<args>", "<count>")
-            " nnoremap <silent> <DOWN> :MoveFast 1<CR>
-            " nnoremap <silent> <UP> :MoveFast -1<CR>
-            " nnoremap <RIGHT> <CMD>let b:tap=0<CR><RIGHT>
-            " nnoremap <LEFT> <CMD>let b:tap=0<CR><LEFT>
-            " autocmd InsertEnter,InsertLeave,CursorHold * let b:tap=0
-
 " 
 " AUTOCMD
 " 
@@ -1638,6 +1623,9 @@
 
     " Correcting bad commenting for specific languages | Plugin: Commentary
         autocmd! FileType php let b:commentary_format="// %s"
+        autocmd! FileType python let b:commentary_format="# %s"
+        autocmd! FileType sh let b:commentary_format="# %s"
+        autocmd! FileType dockerfile let b:commentary_format="# %s"
         autocmd! FileType vue let b:commentary_format="// %s"
         autocmd! FileType typescript let b:commentary_format="// %s"
         autocmd! FileType sql let b:commentary_format="-- %s"
@@ -1649,7 +1637,17 @@
         autocmd BufReadPost * AdaptIndent
 
     " Language specific maps
-        autocmd FileType html,php,javascript,javascriptreact inoremap >> <ESC>ya>Pf<a <ESC>wyiwvi>pT<i/<C-o>T>
+        function! CloseXmlTag()
+            call search('<', 'b')
+            let col = col('.')
+            let tag = matchstr(getline('.'), '\%'.col.'c<\zs.\{-}\ze\%(\s\|>\|$\)')
+            call search('>', '')
+            let col = col('.')
+            let line = getline('.')
+            call setline(line('.'), getline('.')[:col-1] . '</'.tag.'>' . getline('.')[col:])
+            call setpos('.', [0, line('.'), col + 1, 0])
+        endfunction
+        autocmd FileType html,php,javascript,javascriptreact inoremap >> <CMD>call CloseXmlTag()<CR>
 
     " Correcting FZF buffer | Plugin: FZF
         autocmd! FileType fzf

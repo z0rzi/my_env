@@ -1,5 +1,8 @@
 let g:netrw_dirhistmax  =10
-let g:netrw_dirhistcnt =9
+let g:netrw_dirhistcnt =2
+let g:netrw_dirhist_2='/mnt/DATA/home/zorzi/Work/EDF/server/serveur_applicatif'
+let g:netrw_dirhist_1='/mnt/DATA/home/zorzi/Downloads'
+let g:netrw_dirhist_0='/mnt/DATA/home/zorzi/Work/EDF/hist/201202-Python_Amaury_Durand/decomp_cdc/multisite'
 let g:netrw_dirhist_9='/mnt/DATA/home/zorzi/.my_env/files/vim/bundle/vim-smart-hits/autoload'
 let g:netrw_dirhist_8='/mnt/DATA/home/zorzi/.my_env/files/vim/bundle/auto-pairs/plugin'
 let g:netrw_dirhist_7='/mnt/DATA/home/zorzi/.config/dmenu-recent'
@@ -7,6 +10,3 @@ let g:netrw_dirhist_6='/mnt/DATA/home/zorzi/.my_env/files/tmux'
 let g:netrw_dirhist_5='/mnt/DATA/home/zorzi/.tmux/plugins'
 let g:netrw_dirhist_4='/mnt/DATA/home/zorzi/.tmux'
 let g:netrw_dirhist_3='/mnt/DATA/home/zorzi/.my_env/files/vim/bundle/vim-adaptive-indent/plugin'
-let g:netrw_dirhist_2='/mnt/DATA/home/zorzi/.my_env/files/vim/bundle/vim-adaptive-indent'
-let g:netrw_dirhist_1='/mnt/DATA/home/zorzi/.my_env/files/vim/bundle/vim-adaptive-indent/autoload'
-let g:netrw_dirhist_0='/mnt/DATA/home/zorzi/.my_env/files/vim/bundle/vim-adaptive-indent'

@@ -96,6 +96,8 @@
 # WINDOW SPECIFIC CONFIG
 #
     # Open specific applications in floating mode
+    for_window [class="Meld"] floating enable border pixel 1
+    for_window [title="meld"] floating enable border pixel 1
     for_window [title="alsamixer"] floating enable border pixel 1
     for_window [class="calamares"] floating enable border normal
     for_window [class="Clipgrab"] floating enable

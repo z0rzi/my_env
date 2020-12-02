@@ -1,11 +1,19 @@
-¯\_(ツ)_/¯ | Shrug
+❌    | Cross Mark
 😅    | Grinning Face with Sweat, ^^'
+😂    | Face with Tears of Joy, XD, Happy
+🎉    | Party Popper
+😶    | Face Without Mouth, No mouth, :|
+😓    | Downcast Face with Sweat, Sad, :(
+🙄    | Face with Rolling Eyes, Yeeeeah, Right
+🤔    | Thinking Face, Huuum
+👌    | OK Hand
+¯\_(ツ)_/¯ | Shrug
+😐    | Neutral Face, :|
+🙃    | Upside-Down Face, Welp, (:
 😃    | Grinning Face with Big Eyes, Happy, :D
 💰    | Money Bag
 😝    | Squinting Face with Tongue, :p
 👍    | Thumbs Up, +1
-😂    | Face with Tears of Joy, XD, Happy
-😓    | Downcast Face with Sweat, Sad, :(
 🎄    | Christmas Tree, Sapling
 😁    | Beaming Face with Smiling Eyes, Happy, :D
 🛍️    | Shopping Bags, Money
@@ -23,20 +31,14 @@
 👨‍🍳  | Man Cook, Chef, Cuisine
 ✔️    | Check Mark, OK, Valid
 ⚠️    | Warning
-🎉    | Party Popper
-🙃    | Upside-Down Face, Welp, (:
-❌    | Cross Mark
-🙄    | Face with Rolling Eyes, Yeeeeah, Right
 🙂    | Slightly Smiling Face, Happy, :)
 💾    | Floppy Disk, Data, Database
 ✅    | Check Mark Button
-🤔    | Thinking Face, Huuum
 🙏    | Folded Hands, Thank you
 🍹    | Tropical Drink, Cocktail
 ❝❞    | Fancy Quotes
 👋    | Waving Hand
 🦴    | Bone, Dog
-👌    | OK Hand
 😄    | Grinning Face with Smiling Eyes, Happy, :D
 😛    | Face with Tongue, :p
 💼    | Briefcase, Work
@@ -66,7 +68,6 @@
 🌟    | Glowing Star, Magic
 ⭐    | Star, Magic
 🧗    | Person Climbing
-😐    | Neutral Face, :|
 ✡    | Star of David
 💖    | Sparkling Heart
 🤯    | Exploding Head, Mindblown
@@ -91,7 +92,6 @@
 🍨    | Ice Cream, Fat
 🍪    | Cookie, Fat
 😪    | Sleepy Face, Zzzzz
-😶    | Face Without Mouth, No mouth, :|
 🌈    | Rainbow
 🤑    | Money-Mouth Face
 😌    | Relieved Face, :)

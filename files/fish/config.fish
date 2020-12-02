@@ -21,7 +21,7 @@ end < $HOME/.config/fish/aliases
 
 
 if ! string match -n "scripts" "$PATH"
-    set PATH $PATH:$HOME/.my_env/scripts/
+    set PATH $PATH:$HOME/.my_env/scripts/:$HOME/.local/bin
 end
 
 [ -n "$TMUX" ] && export TERM=tmux-256color
