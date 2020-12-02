@@ -894,6 +894,9 @@
             \     'upd': 'UPDATE tbl SET row = ""',
             \     'del': 'DELETE FROM',
             \   },
+            \   'python': {
+            \     '^tryc$': "try:\<ESC>:call SmartJumpToEnd()\<CR>aexcept:\<CR>pass\<C-o>O\<SPACE>\<BS>\<C-o>z"
+            \   },
             \ }
 
     " indentLine
@@ -1632,6 +1635,7 @@
         autocmd! FileType coffee let b:commentary_format="# %s"
         autocmd! FileType conf let b:commentary_format="# %s"
         autocmd! FileType vim let b:commentary_format="\" %s"
+        autocmd! FileType yaml let b:commentary_format="# %s"
 
     " Auto detecting indent on entering a file! | Plugin: vim-adaptive-indent
         autocmd BufReadPost * AdaptIndent

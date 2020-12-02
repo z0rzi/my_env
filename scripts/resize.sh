@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -lt 2 ]; then
-    echo "USAGE = '$0 [--overwrite||--replace] [-q|--quiet] <rule> <new dimensions> <input images>'"
+    echo "USAGE = '$0 [--overwrite|--replace] [-q|--quiet] [-o|--output <name>] <rule> <new dimensions> <input images>'"
     echo "rule can be:"
     echo "  --min"
     echo "      don't go over the given dimensions'"
@@ -15,6 +15,7 @@ rule=''
 overwrite=''
 dims=''
 quiet=''
+outname=''
 while [ $# -gt 0 ]; do
     if [ -f "$1" ]; then
         files=`printf "$files\n$1"`
@@ -25,7 +26,15 @@ while [ $# -gt 0 ]; do
             dims="$1"
         elif [[ "$1" =~ ^[0-9]+$ ]]; then
             dims=$1"x"$1
+        elif [[ "$1" =~ ^[0-9]k$ ]]; then
+            num=$1
+            num=${num%%k}
+            num=$(($num * 1920 / 2))
+            dims=$num"x"$num
         fi
+    elif [ "$1" = "-o" ] || [ "$1" = "--output" ]; then
+        shift
+        outname=$1
     elif [ "$1" = "-q" ] || [ "$1" = "--quiet" ]; then
         quiet='1'
     elif [ "$1" = "--overwrite" ] || [ "$1" = "--replace" ]; then
@@ -57,9 +66,9 @@ while read file; do
 
     read oldX oldY _ <<< `tr 'x' ' ' <<< "$old_size"`
 
-    new_ratio=$((oldX*100000/oldY))
+    old_ratio=$((oldX*100000/oldY))
 
-    if [ $new_ratio -gt $ratio ]; then
+    if [ $old_ratio -gt $ratio ]; then
         [ "$rule" = "--min" ] && dims="10000000x"$Y || dims=$X"x10000000"
     else
         [ "$rule" = "--min" ] && dims=$X"x10000000" || dims="10000000x"$Y
@@ -68,10 +77,25 @@ while read file; do
     path=`sed -e 's/\(^.*\/\).*$/\1/' <<< "$file"`
     [[ ! "$path" =~ /$ ]] && path=''
     filename=${file:${#path}:${#file}}
-    newfile="${path}res_${filename}"
+    if [ "$outname" ]; then
+        ext=${filename##*.}
+        if ! [[ "$outname" =~ .$ext$ ]]; then
+            outname=${outname}.$ext
+        fi
+        newfile="${path}${outname}"
+        if [ ! "$overwrite" ]; then
+            cnt=0
+            while [ -f "$newfile" ]; do
+                newfile="${path}${outname%%.*}_$cnt.${ext}"
+                cnt=$((cnt+1))
+            done
+        fi
+    else
+        newfile="${path}res_${filename}"
+    fi
 
 
-    if [ $oldY -lt $Y ] || [ $oldX -lt $X ]; then
+    if [ $oldY -lt $Y ] && [ $oldX -lt $X ]; then
         # no image bigger than origin
         cp "$file" "$newfile"
     else
@@ -82,7 +106,7 @@ while read file; do
         new_size=`identify -format "%wx%h" "$newfile"`
         echo "$file resized from $old_size to $new_size"
     fi
-    if [ "$overwrite" ]; then
+    if [ "$overwrite" ] && [ ! "$outname" ]; then
         mv "$newfile" "$file"
     fi
 

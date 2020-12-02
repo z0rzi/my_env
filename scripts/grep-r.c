@@ -102,6 +102,7 @@ void dir_contents(char* path, char* search) {
                     && strcmp(ext, ".c")
                     && strcmp(ext, ".json")
                     && strcmp(ext, ".xml")
+                    && strcmp(ext, ".cs")
                 ) {
                     break;
                 }

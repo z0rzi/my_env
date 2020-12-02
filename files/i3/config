@@ -9,7 +9,7 @@
 #
 # MAIN SETTINGS
 #
-    # Set mod key (Mod1=<Alt>, Mod4=<Super>)
+    # Set mod key (Mod1=<Alt>, Mod2=<NumLock>, Mod4=<Super>)
         set $mod Mod4
         set $alt Mod1
         set $sup Mod4
@@ -45,28 +45,22 @@
 
     # kill focused window
         bindsym $mod+q kill
+        bindsym $alt+k kill
 
     # Clipboard
-        bindsym Ctrl+Shift+x exec gpaste-client ui
+        # bindsym Ctrl+Shift+x exec gpaste-client ui
+        bindsym Ctrl+Shift+x exec copyq toggle
 
     # program launcher
         bindsym $alt+space exec --no-startup-id dmenu_recency
 
     # change focus
-        bindsym $mod+j focus left
-        bindsym $mod+k focus down
-        bindsym $mod+l focus up
-        bindsym $mod+semicolon focus right
         bindsym $mod+Left focus left
         bindsym $mod+Down focus down
         bindsym $mod+Up focus up
         bindsym $mod+Right focus right
     
     # move focused window
-        bindsym $mod+Shift+j move left
-        bindsym $mod+Shift+k move down
-        bindsym $mod+Shift+l move up
-        bindsym $mod+Shift+semicolon move right
         bindsym $mod+Shift+Left move left
         bindsym $mod+Shift+Down move down
         bindsym $mod+Shift+Up move up
@@ -82,7 +76,7 @@
         bindsym $alt+Shift+e exec kitty -o font_size=20 -e /mnt/DATA/home/zorzi/.my_env/scripts/emoji.sh
 
     # Mouse
-        bindsym --whole-window --release $mod+button2 kill
+        bindsym $mod+button2 --whole-window --release kill
 
     # Keyboard layout
         bindsym Ctrl+Shift+k exec /home/zorzi/.my_env/scripts/switch_keyboard_layout.sh
@@ -98,6 +92,8 @@
     # Open specific applications in floating mode
     for_window [class="Meld"] floating enable border pixel 1
     for_window [title="meld"] floating enable border pixel 1
+    for_window [class="CopyQ"] floating enable border pixel 1
+    for_window [title="CopyQ"] floating enable border pixel 1
     for_window [title="alsamixer"] floating enable border pixel 1
     for_window [class="calamares"] floating enable border normal
     for_window [class="Clipgrab"] floating enable
@@ -201,6 +197,7 @@
     # exec --no-startup-id start_conky_green
     exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
     # exec --no-startup-id nitrogen --restore
+    exec --no-startup-id bash -c "dunst"
     exec_always --no-startup-id bash -c "while :; do feh --bg-fill --no-fehbg --randomize $HOME/Documents/Wallpapers/*.jpg; sleep 3600; done"
     exec --no-startup-id bash -c "sleep 10; picom -b"
     # exec --no-startup-id manjaro-hello
@@ -215,10 +212,11 @@
     exec --no-startup-id bash -c "XMODIFIERS=@im=ibus && setxkbmap -option compose:rctrl"
     exec --no-startup-id bash ~/.my_env/scripts/monitors.sh
     # exec --no-startup-id fcitx-autostart
+    exec_always --no-startup-id bash -c '[ -f "$HOME/.Xmodmap" ] && xmodmap $HOME/.Xmodmap'
     exec --no-startup-id bash -c "ibus-daemon -drx --panel /usr/lib/ibus/ibus-ui-gtk3 &"
     exec --no-startup-id bash -c "optimus-manager-qt &"
     exec --no-startup-id bash -c "kdeconnect-indicator &"
-    exec --no-startup-id bash -c "gpaste-client start"
+    exec --no-startup-id bash -c "copyq &"
     exec --no-startup-id libinput-gestures-setup start
     # exec --no-startup-id bash -c "gpaste-client daemon-reexec"
 
@@ -410,7 +408,6 @@ bar {
         background #222D31
         # statusline #FFFFFF
         separator  #ec1d1c
-        # separator  #000000
 
         # #                  border  backgr. text
         # focused_workspace  #F9FAF9 #16a085 #292F34
@@ -427,10 +424,10 @@ bindsym $mod+m bar mode toggle
 # Theme colors
 # class                   border  backgr. text    indic.   child_border
   client.focused          #556064 #556064 #80FFF9 #FDF6E3
-  client.focused_inactive #2F3D44 #2F3D44 #1ABC9C #454948
-  client.unfocused        #2F3D44 #2F3D44 #1ABC9C #454948
-  client.urgent           #CB4B16 #FDF6E3 #1ABC9C #268BD2
-  client.placeholder      #000000 #0c0c0c #ffffff #000000 
+  client.focused_inactive #2F3D44 #2F3D44 #dfd0a9 #454948
+  client.unfocused        #2F3D44 #2F3D44 #dfd0a9 #454948
+  client.urgent           #CB4B16 #FDF6E3 #dfd0a9 #268BD2
+  client.placeholder      #000000 #0c0c0c #dfd0a9 #000000 
 
   client.background       #2B2C2B
 

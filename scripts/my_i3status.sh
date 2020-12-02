@@ -68,7 +68,7 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
     COLOR_BATTERY_HIGH="#27ae60"
     COLOR_BATTERY_LOW="#e74c3c"
 
-    COLOR_TIME="#eeeeee"
+    COLOR_TIME="#DDDDDD"
 
 #
 # HELPERS
@@ -220,10 +220,10 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
         function monitor_text {
             file='/tmp/.screenlayout'
             last=`cat $file`
-            current=`$HOME.my_env/scripts/monitors.sh --get-hash 2> /dev/null`
+            current=`$HOME.my_env/scripts/monitors.js --get-hash 2> /dev/null`
             if [ "$last" != "$current" ]; then
                 echo -n $current > $file
-                $HOME.my_env/scripts/monitors.sh > /dev/null 2>&1 
+                $HOME.my_env/scripts/monitors.js > /dev/null 2>&1 
             fi
             printf " $ICON_MONITOR "
         }
@@ -231,11 +231,7 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
             printf ""
         }
         function monitor_click {
-            $HOME.my_env/scripts/monitors.sh > /dev/null 2>&1
-
-            if [ $? -ne 0 ]; then
-                notify-send "No configuration file found"  "Run 'monitors.sh'" -t 5000
-            fi
+            $HOME.my_env/scripts/monitors.js > /dev/null 2>&1
         }
 
     # LOCK
@@ -389,6 +385,7 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
             fi
             # echo ">>> $module"
             color=`${module}_color 2> /dev/null`
+            color=${color:-$COLOR_DISABLED}
             text=`${module}_text 2> /dev/null`
             json+='{"name":"'$module'"'
 

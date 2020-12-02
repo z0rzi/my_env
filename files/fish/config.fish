@@ -7,12 +7,7 @@ while read line
         function \\$alias -V alias
             set args ''
             for arg in $argv;
-                set -l formatted_arg (string replace -r -a "[[:space:]*\\\\]" '\\\\\\\\$0' $arg)
-                if test -n formatted_arg
-                    set args "$args $arg"
-                else
-                    set args "$args $formatted_arg"
-                end
+                set args "$args "(bash -c "printf '%q' '$arg'")
             end
             bash -c "$alias $args"
         end
