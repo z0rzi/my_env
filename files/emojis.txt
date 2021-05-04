@@ -1,19 +1,25 @@
+¯\_(ツ)_/¯ | Shrug
+€     | Euro Symbol
+💰    | Money Bag
+👍    | Thumbs Up, +1
+🎉    | Party Popper
+🍹    | Tropical Drink, Cocktail
 🙃    | Upside-Down Face, Welp, (:
+😅    | Grinning Face with Sweat, ^^'
+😃    | Grinning Face with Big Eyes, Happy, :D
+🙂    | Slightly Smiling Face, Happy, :)
+⚠️    | Warning
+😂    | Face with Tears of Joy, XD, Happy
+🙏    | Folded Hands, Thank you
 😔    | Pensive Face, Dissapointed
 🤷    | Person Shrugging, Welp
 😕    | Confused Face, Sad, :(
-😅    | Grinning Face with Sweat, ^^'
 😓    | Downcast Face with Sweat, Sad, :(
 😐    | Neutral Face, :|
 🙄    | Face with Rolling Eyes, Yeeeeah, Right
-😃    | Grinning Face with Big Eyes, Happy, :D
 😛    | Face with Tongue, :p
-¯\_(ツ)_/¯ | Shrug
-😂    | Face with Tears of Joy, XD, Happy
 📢    | Loudspeaker
 🤐    | Zipper-Mouth Face, :|
-🙂    | Slightly Smiling Face, Happy, :)
-👍    | Thumbs Up, +1
 🤔    | Thinking Face, Huuum
 💩    | Pile of Poo, Caca
 👌    | OK Hand
@@ -22,7 +28,6 @@
 😑    | Expressionless face, :|
 🖕    | Middle Finger, Hand
 🛌    | Person in Bed
-🎉    | Party Popper
 😴    | Sleeping Face, Zzzzz
 🗑️    | Wastebasket, Bin, Office trash
 ❌    | Cross Mark
@@ -33,16 +38,13 @@
 ➡    | Right Arrow
 🎯    | Direct Hit, Target, Arrow, Goal
 ℹ    | Information
-⚠️    | Warning
 😀    | Grinning Face, Happy, :D
-💰    | Money Bag
 😝    | Squinting Face with Tongue, :p
 🎄    | Christmas Tree, Sapling
 😁    | Beaming Face with Smiling Eyes, Happy, :D
 🛍️    | Shopping Bags, Money
 🏝️    | Desert Island, Paradise, Beach, Palm tree
 🤤    | Drooling Face, bave
-€     | Euro Symbol
 💀    | Skull, Dead, Death
 😨    | Fearful Face, Scared, Wow, :o
 🌏    | Globe Showing Asia-Australia
@@ -51,8 +53,6 @@
 😜    | Winking Face with Tongue, :p
 👨‍🍳  | Man Cook, Chef, Cuisine
 💾    | Floppy Disk, Data, Database
-🙏    | Folded Hands, Thank you
-🍹    | Tropical Drink, Cocktail
 ❝❞    | Fancy Quotes
 🦴    | Bone, Dog
 💼    | Briefcase, Work

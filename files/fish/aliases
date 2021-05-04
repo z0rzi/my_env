@@ -4,6 +4,8 @@ minivim   nvim -u NONE
 tinyvim   nvim -u NONE
 vimtiny   nvim -u NONE
 
+bc bc -l
+
 office onlyoffice-desktopeditors
 
 r ranger .

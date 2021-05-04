@@ -36,6 +36,9 @@
         bindsym $mod+Return exec kitty
         bindsym Ctrl+$alt+t exec kitty
 
+    # Kill a window
+        bindsym $mod+Escape exec /home/zorzi/.local/bin/custom/winkill.sh
+
     # File explorer
         # bindsym $sup+e exec dolphin
         bindsym $sup+e exec kitty -e ranger
@@ -77,15 +80,16 @@
         bindsym $alt+$sup+Down resize shrink height 5 px or 5 ppt
         bindsym $alt+$sup+Right resize grow width 5 px or 5 ppt
 
-    # Resize
-        bindsym $alt+Shift+e exec kitty -o font_size=20 -e /mnt/DATA/home/zorzi/.my_env/scripts/emoji.sh
+    # Emojis
+        bindsym $alt+Shift+e exec kitty -o font_size=20 -e /mnt/DATA/home/zorzi/.my_env/scripts/emoji.js
 
     # Mouse
         bindsym $mod+button2 --whole-window --release kill
 
     # Keyboard layout
         bindsym Ctrl+Shift+k exec /home/zorzi/.my_env/scripts/switch_keyboard_layout.sh
-        bindsym Ctrl+Shift+l exec bash -c '[ -f "$HOME/.Xmodmap" ] && xmodmap $HOME/.Xmodmap && XMODIFIERS=@im=ibus setxkbmap -option compose:rctrl'
+        bindsym $alt+l exec bash -c 'xkbcomp -w0 -I$HOME/.xkb ~/.xkb/keymap/basic $DISPLAY'
+        bindsym Ctrl+Shift+l exec bash -c 'xkbcomp -w0 -I$HOME/.xkb ~/.xkb/keymap/basic $DISPLAY'
 
     # change borders
         # bindsym $mod+y border pixel 1
@@ -215,7 +219,7 @@
     exec_always --no-startup-id ff-theme-util
     exec_always --no-startup-id fix_xcursor
     
-    exec --no-startup-id bash -c "XMODIFIERS=@im=ibus && setxkbmap -option compose:rctrl"
+    exec --no-startup-id bash -c "xkbcomp -w0 -I$HOME/.xkb ~/.xkb/keymap/basic $DISPLAY"
     exec --no-startup-id bash ~/.my_env/scripts/monitors.sh
     # exec --no-startup-id fcitx-autostart
     exec_always --no-startup-id bash -c '[ -f "$HOME/.Xmodmap" ] && xmodmap $HOME/.Xmodmap'

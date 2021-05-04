@@ -17,9 +17,8 @@ while read line
     end
 end < $HOME/.config/fish/aliases
 
-
-if ! string match -n "scripts" "$PATH"
-    set PATH $PATH:$HOME/.my_env/scripts/:$HOME/.local/bin
+if ! string match -r "scripts" "$PATH"
+    set PATH $PATH:$HOME/.local/bin:$HOME/.local/bin/custom
 end
 
 export TERM=xterm

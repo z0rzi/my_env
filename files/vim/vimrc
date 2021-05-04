@@ -5,6 +5,7 @@
     syn on
     filetype on
     set nu
+    set nosol
     set wrap
     set linebreak
     set breakindent
@@ -312,20 +313,10 @@
     endfunction
     command! -nargs=+  Err call ParseErrorLine('<args>')
 
-    function! ComparePositions(pos1, pos2)
-        if a:pos1[0] < a:pos2[0]
-            return 1
-        endif
-        if a:pos1[0] > a:pos2[0]
-            return -1
-        endif
-        if a:pos1[1] < a:pos2[1]
-            return 1
-        endif
-        if a:pos1[1] > a:pos2[1]
-            return -1
-        endif
-        return 0
+    function! ComparePositions(p1, p2)
+        let linediff = a:p2[0] - a:p1[0]
+        let coldiff = a:p2[1] - a:p1[1]
+        return linediff + (!linediff) * coldiff
     endfunction
 
     function! CursorOnMatch(searchPattern)
@@ -620,15 +611,18 @@
         return [rx, gargs]
     endfunction
 
-    let s:fzf_options = '-e ' .
-                \ '--history /home/zorzi/.local/share/fzf-history/FZF' .
-                \ '--algo=v1 ' .
+    let s:fzf_options = 
+                \ '--tiebreak=index ' .
+                \ '--filepath-word ' .
+                \ '--history /home/zorzi/.local/share/fzf-history/FZF ' .
+                \ '--algo=v2 ' .
                 \ '--keep-right ' .
                 \ '--multi ' .
-                \ '--no-sort ' .
                 \ '--preview="bash -c \"[ \\\"\\\$(git ls-files -m {})\\\" ] && flag=-d; bat --color always \\\$flag {} | tail -n+2\"" ' .
                 \ '--preview-window="right:50%:rounded:nowrap:nofollow:nocycle:nohidden" ' .
                 \ '--sync'
+                " \ '--no-sort ' .
+                " \ '-e ' .
                 " \ '--preview="[ \"$(git ls-files -m ''{}'')\" ] && bash -c \"bat -d --color always {} | tail -n+2\" || bat {}" ' .
                 " \ '--preview="git diff --color=always {} | sed -e \"1,5d\" -e \"s/^\s\+//g\" | diff-so-fancy" ' .
     function! FZFFindFile()
@@ -790,6 +784,115 @@
 
         return out
     endfunction
+    function! WhichBraceAmIIn()
+        let matches = {
+                    \ '{': '}',
+                    \ '(': ')',
+                    \ '\[': '\]'
+                    \ }
+
+        let closest_brace = [
+                    \ [0, 0],
+                    \ [0, 0],
+                    \ ['', '']
+                    \ ]
+
+        for open_cara in keys(matches)
+            let close_cara = matches[open_cara]
+            let start_pos = searchpairpos(open_cara, '', close_cara, 'bcn')
+            if !closest_brace[0][0] || ComparePositions(closest_brace[0], start_pos) > 0
+                let end_pos = searchpairpos(open_cara, '', close_cara, 'n')
+                let closest_brace = [
+                            \ start_pos,
+                            \ end_pos,
+                            \ [open_cara, close_cara]
+                            \ ]
+            endif
+        endfor
+
+        return closest_brace
+    endfunction
+    function! Pack()
+        let [start_pos, end_pos, chars] = WhichBraceAmIIn()
+        if !start_pos[0] || !end_pos[0] | return | endif
+
+        let line_start = start_pos[0]
+        let line_end = end_pos[0]
+
+        if line_start >= line_end | return | endif
+
+        exe (line_start).','.(line_end-1).'s/\n//'
+        sil!s/\S\zs\s\+/ /g
+        sil!s/[\[(]\zs\s\+//g
+        sil!s/\s\+\ze[\])]//g
+
+        call cursor(start_pos[0], start_pos[1])
+    endfunction
+
+    function! Unpack()
+        let [start_pos, end_pos, chars] = WhichBraceAmIIn()
+        if !start_pos[0] || !end_pos[0] | return | endif
+
+        let [char_open, char_close] = chars
+
+        call cursor(end_pos[0], end_pos[1])
+
+        exe "norm i\<CR>"
+
+        let next_pos = searchpos('[\])},]', 'nbW')
+        let cnt = 200
+        while ComparePositions(start_pos, next_pos) > 0
+            let cnt -= 1
+            if cnt < 0 | break | endif
+            call cursor(next_pos[0], next_pos[1])
+            let char_now = getline('.')[col('.')-1]
+            if char_now == ','
+                exe "norm mma\<CR>\<ESC>`m"
+            else
+                norm!%
+            endif
+
+            let next_pos = searchpos('[\])},]', 'nbW')
+        endwhile
+
+        call cursor(start_pos[0], start_pos[1])
+        exe "norm a\<CR>"
+        call cursor(start_pos[0], start_pos[1])
+    endfunction
+
+    function! AngularHtmlGotoImplementation()
+        let func_name = expand('<cword>')
+        let saveview = winsaveview()
+
+        let path = expand('%:h')
+        let html_file = expand('%:t')
+
+        if match(html_file, '\.html$') < 0
+            " not an HTML file
+            return
+        endif
+
+        let script_file = ''
+        let extensions = ['ts', 'js']
+        for ext in extensions
+            let script_file = matchstr(html_file, '^.*\.') . ext
+            if filereadable(path . '/' . script_file)
+                break
+            endif
+        endfor
+        if ! filereadable(path . '/' . script_file)
+            return
+        endif
+
+        exe 'e ' . path . '/' . script_file
+
+        call cursor(1, 1)
+        if ! search('^\s*\%(private\|public\)\?\s*\zs' . func_name . '\ze\s*(')
+            exe 'e ' . path . '/' . html_file
+            call winrestview(saveview)
+        endif
+    endfunction
+    autocmd! FileType html nnoremap <buffer> <C-]> <CMD>call AngularHtmlGotoImplementation()<CR>
 
 " 
 " PLUGINS CONFIG
@@ -829,6 +932,8 @@
             \     'l': "let",
             \     '^iff': "if () {\<CR>}<UP><ESC>f(a!",
             \     '^forr': "for () {\<CR>}<UP><ESC>f(a!",
+            \     '\%(for\s*([^)]*\)\@<=in': "of",
+            \     '^\(if\|for\|while\|switch\)\s\+\([^([:blank:]][^(]\+\)': "$1 ($2)\<LEFT>",
             \     'c': "const",
             \     'prom': "new Promise((resolve, reject) => {})\<LEFT>\<LEFT>!",
             \     '^ret$': "return",
@@ -1040,6 +1145,7 @@
         let g:lightline.component_raw = {'buffers': 1}
         let g:lightline#bufferline#enable_devicons = 1
         let g:lightline#bufferline#clickable = 1
+        let g:lightline#bufferline#modified = ' ●'
         " let g:lightline#bufferline#reverse_buffers = 1
 
         let g:lightline.separator = {
@@ -1145,19 +1251,43 @@
             return g:Vm.buffer
         endfun
 
-" 
+    " CtrlSF
+        let g:ctrlsf_auto_close = {
+            \ "normal" : 1,
+            \ "compact": 1
+            \}
+
+        let g:ctrlsf_auto_focus = {
+            \ "at": "start"
+            \ }
+
+        let g:ctrlsf_auto_preview = 0
+        let g:ctrlsf_case_sensitive = 'yes'
+        let g:ctrlsf_context = '-B 3 -A 3'
+        let g:ctrlsf_default_root = 'cwd'
+        let g:ctrlsf_default_view_mode = 'compact'
+        let g:ctrlsf_regex_pattern = 1
+        let g:ctrlsf_winsize = '40%'
+        let g:ctrlsf_mapping = {
+            \ "chgmode": "<TAB>",
+            \ "quit": "q"
+            \ }
+    " JsDoc
+        let g:jsdoc_formatter = 'tsdoc'
+"
 " PLUGINS
 " 
     " including Vundle and initialize
     set rtp+=~/.vim/bundle/Vundle.vim
     call vundle#begin()
 
+        Plugin 'dyng/ctrlsf.vim'
+        Plugin 'mg979/vim-visual-multi'
         " 
         " Gotta go fast!
         " 
             " indent range
             Plugin 'vim-indent-object'
-            Plugin 'mg979/vim-visual-multi'
 
             " Fast surround shortcuts
             Plugin 'tpope/vim-surround'
@@ -1188,7 +1318,10 @@
         " 
         " Language specific
         " 
-            Plugin 'yardnsm/vim-import-cost', { 'do': 'npm install' }
+            Plugin 'heavenshell/vim-jsdoc', { 
+              \ 'for': ['javascript', 'javascript.jsx','typescript'], 
+              \ 'do': 'make install'
+            \}
 
         " 
         " Others
@@ -1225,7 +1358,8 @@
         nnoremap Y y$
         nnoremap YY <CMD>let v = winsaveview()<CR>ggyG<CMD>call winrestview(v)<CR>
         nnoremap vv v$h
-        noremap <CR> <CMD>exe "norm %"<CR>
+        nnoremap <CR> <CMD>call SearchPair()<CR>
+        onoremap <CR> v<CMD>call SearchPair()<CR>
         inoremap <F2> <ESC>
         inoremap <C-x><C-l> <C-x><C-l>
         inoremap <silent> <C-r>/ <C-r>=substitute(@/, '\\.', '', 'g')<CR>
@@ -1250,7 +1384,7 @@
         " nnoremap <F3> :set hlsearch!<CR>
         nnoremap <F3> <CMD>noh<CR>
         " Plugin: GitGutter
-        nmap <F5> <CMD>redraw!<CR><CMD>GitGutter<CR><CMD>set foldmethod=expr<CR>
+        nmap <F5> <CMD>redraw!<CR><CMD>GitGutter<CR><CMD>set foldmethod=expr<CR><CMD>AdaptIndent<CR><CMD>MinimapToggle<CR><CMD>MinimapToggle<CR>
 
         " Fast selection wrap
             vnoremap "" c""<ESC>Pgvlolo
@@ -1434,76 +1568,19 @@
             nmap <A-l> <C-w>l
 
     " Plugin related maps
-        " CoC
-            function! OpenCocSearch()
-                if GoToCocSearch() == 0
-                    return
-                endif
-                let linecnt = line('.')
-                while linecnt > 0 && match(getline(linecnt), '^　.*$') < 0
-                    let linecnt -= 1
-                endwhile
-                let filename = substitute(getline(linecnt), '^[[:blank:]　]\+', '', '')
-                sil! call KillCocSearch()
-                exe "edit " . filename
-                call search(@/)
-            endfunction
-            function GoToCocSearch()
-                if match(bufname(), '^__coc_refactor') >= 0
-                    return 1
-                endif
-                let bufcnt = 1
-                while bufcnt <= bufnr('$')
-                    if bufexists(bufcnt) && match(bufname(bufcnt), '^__coc_refactor') >= 0
-                        let winsids = win_findbuf(bufcnt)
-                        for winid in winsids
-                            echom winid
-                            call win_gotoid(winid)
-                            return 1
-                        endfor
-                    endif
-                    let bufcnt += 1
-                endwhile
-                return 0
-            endfunction
-            function! KillCocSearch()
-                if GoToCocSearch() > 0
-                    if ! &mod
-                        wincmd q
-                    else
-                        echom "Can't close: modifs not saved!"
-                    endif
-                endif
-                aug killSearch
-                    autocmd!
-                aug END
-            endfunction
-            function! SetupCocSearchListeners()
-                nnoremap <buffer> <ESC> :call KillCocSearch()<CR>
-                nnoremap <buffer> q :call KillCocSearch()<CR>
-                nnoremap <buffer> <CR> :call OpenCocSearch()<CR>
-            endfunction
-            function! CocSearch2(str)
-                if ! len(a:str)
-                    call inputsave()
-                    let str = input('> ')
-                    call inputrestore()
-                else
-                    let str = a:str
-                endif
-                if !len(str) | return | endif
-                let @/ = '\%(^　.*\)\@<!' . str
-                let [grepstr, grepargs] = VimToGrepRegex(str)
-                aug killSearch
-                    autocmd!
-                    autocmd BufEnter,BufReadPost,CursorMoved * if match(bufname(), '^__coc_refactor') == 0 | call SetupCocSearchListeners() | endif
-                aug END
-                exe 'CocSearch ' . escape(grepstr, ' ') . ' ' . grepargs
-            endfunction
-            command! -nargs=? CocSearch2 call CocSearch2(<q-args>)
-            nnoremap <C-f> :CocSearch2<CR>
-            nnoremap <C-s> :CocSearch2 \<<C-r>=expand('<cword>')<CR>\><CR>
+        " JsDoc
+            nnoremap <LEADER>* :JsDoc<CR>
+            vnoremap <LEADER>* :JsDoc<CR>
+            nnoremap <LEADER><LEADER>/ :JsDoc<CR>
+            vnoremap <LEADER><LEADER>/ :JsDoc<CR>
 
+        " CtrlSF
+            nnoremap <C-f> :CtrlSF ''<LEFT>
+            nnoremap <C-s> :let @/ = '<C-r>=expand('<cword>')<CR>'<CR>:CtrlSF '\b<C-r>=@/<CR>\b'<CR>:CtrlSFFocus<CR>
+            vnoremap <C-f> <ESC>:let @/ = escape(getline('.')[col("'<")-1 : col("'>")-1], '.\\[]')<CR>:CtrlSF "<C-r>=escape(@/, '"()')<CR>"<LEFT>
+            vnoremap <C-s> <ESC>:let @/ = escape(getline('.')[col("'<")-1 : col("'>")-1], '.\\[]')<CR>:CtrlSF "<C-r>=escape(@/, '"()')<CR>"<CR>
+
+        " CoC
             nnoremap <C-q> :CocAction<CR>
             nnoremap <S-q> :CocCommand<CR>
 
@@ -1608,6 +1685,10 @@
             nnoremap <LEADER>Q <CMD>bd<CR>
 
     " New Ideas
+        " Pack / unpack
+            nnoremap <LEADER><CR> <CMD>call Unpack()<CR>
+            nnoremap <LEADER><BS> <CMD>call Pack()<CR>
+
         " Fast insert mode
             nnoremap <LEADER>b bi
             nnoremap <LEADER>i bi
@@ -1894,5 +1975,61 @@ inoremap <silent> <S-DOWN> <C-r>=CopyWord(1, 0)<CR>
 inoremap <silent> <CS-UP> <C-r>=CopyWord(-1, 1)<CR>
 inoremap <silent> <CS-DOWN> <C-r>=CopyWord(1, 1)<CR>
 
+function! HandleSig()
+    let errFile = system('cat /tmp/vim_sig.txt')
+    let errFile = trim(errFile)
+    call ParseErrorLine(errFile)
+endfunction
+autocmd Signal SIGUSR1 call HandleSig()
 
+function! IsSyn(grp_str, line, col)
+    let syngrps = map(synstack(a:line, a:col), 'synIDattr(v:val, "name" )')
 
+    let is_string = 0
+
+    for syngrp in syngrps
+        if match(tolower(syngrp), tolower(a:grp_str)) >= 0 
+            return 1
+        endif
+        let papa_name = synIDattr(synIDtrans(hlID(syngrp)), 'name')
+        if match(tolower(papa_name), tolower(a:grp_str)) >= 0 
+            return 1
+        endif
+    endfor
+    return 0
+endfunction
+function! SearchQuotePair(cara)
+    if !IsSyn('string', line('.'), col('.')-1) && IsSyn('string', line('.'), col('.')+1)
+        call search(a:cara)
+    elseif IsSyn('string', line('.'), col('.')-1) && !IsSyn('string', line('.'), col('.')+1)
+        call search(a:cara, 'b')
+    else
+        " No string, we count the amount of characters before cursor
+        let line = getline('.')[:col('.') - 1]
+        let cnt = 0
+        for cara in split(line, '\ze.')
+            if cara == a:cara
+                let cnt += 1
+            endif
+        endfor
+        if cnt % 2 == 0
+            call search(a:cara, 'b')
+        else
+            call search(a:cara)
+        endif
+    endif
+endfunction
+function! SearchPair()
+    let save = winsaveview()
+    if !search('[''"`}{\]\[()]\|/\*\*\|\*/', 'cW')
+        return
+    endif
+
+    let cara = getline('.')[col('.')-1]
+
+    if match(cara, '[''"`]') >= 0
+        call SearchQuotePair(cara)
+    else
+        norm!%
+    endif
+endfunction

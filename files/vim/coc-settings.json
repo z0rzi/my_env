@@ -18,6 +18,16 @@
       "pyright.enable": true,
       "python.linting.enabled": true,
 
+      "prettier.semi": true,
+      "prettier.useTabs": false,
+      "prettier.tabWidth": 4,
+      "prettier.singleQuote": true,
+      "prettier.arrowParens": "avoid",
+      "prettier.requireConfig": true,
+      "prettier.eslintIntegration": true,
+      "prettier.tslintIntegration": false,
+      "prettier.printWidth": -1,
+
       "tsserver.enableJavascript": true,
       "typescript.suggest.enabled": true,
       "typescript.suggest.autoImports": true,
@@ -43,15 +53,17 @@
       "suggest.localityBonus": true,
       "suggest.fixInsertedWord": true,
       "suggest.triggerAfterInsertEnter": true,
+
+
+      "eslint.format.enable": true,
       "eslint.autoFixOnSave": false,
       "eslint.codeAction.showDocumentation": {
             "enable": true
       },
       "eslint.run": "onType",
       "eslint.packageManager": "yarn",
-      "eslint.options": {
-            "useEslintrc": true
-      },
+      "eslint.options": {  },
+
       "explorer.mouseMode": "singleclick",
       "explorer.icon.enableVimDevicons": true,
       "explorer.position": "left",

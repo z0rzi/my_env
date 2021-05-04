@@ -18,6 +18,8 @@ if (process.argv.indexOf('--full') >= 0)
 
 
 function getType(obj) {
+    if (obj === null)
+        return 'null'
     if (obj instanceof Date)
         return 'Date';
     if (Array.isArray(obj))
