@@ -1,5 +1,13 @@
 #!/bin/bash
 
+if [ $# -eq 0 ]; then
+    echo
+    echo "    Renames a file by removing its special characters"
+    echo
+    echo "    USAGE = 'rn <file-name>'"
+    echo
+    exit 1
+fi
 
 while [ $# -gt 0 ]; do
     if [ ! -e "$1" ]; then

@@ -1571,8 +1571,6 @@
         " JsDoc
             nnoremap <LEADER>* :JsDoc<CR>
             vnoremap <LEADER>* :JsDoc<CR>
-            nnoremap <LEADER><LEADER>/ :JsDoc<CR>
-            vnoremap <LEADER><LEADER>/ :JsDoc<CR>
 
         " CtrlSF
             nnoremap <C-f> :CtrlSF ''<LEFT>
@@ -2021,6 +2019,8 @@ function! SearchQuotePair(cara)
 endfunction
 function! SearchPair()
     let save = winsaveview()
+    " For comments, putting cursor in proper place
+    call search('\*\%#\/', 'b')
     if !search('[''"`}{\]\[()]\|/\*\*\|\*/', 'cW')
         return
     endif

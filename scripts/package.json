@@ -1,8 +1,18 @@
 {
+  "type": "module",
   "dependencies": {
     "clipboardy": "^2.3.0",
-    "keypress": "^0.2.1",
+    "jsdom": "^16.5.3",
     "node-fetch": "^2.6.1",
-    "quick-score": "^0.0.12"
+    "quick-score": "^0.0.12",
+    "@types/jest": "~26.0.22",
+    "@types/node": "~14.14.41",
+    "tsutils": "~3.21.0",
+    "typescript": "~4.2.4"
+  },
+  "scripts": {
+    "build": "tsc -p .tsconfig.json && yarn postbuild",
+    "build:watch": "tsc -w -p .tsconfig.json && yarn postbuild",
+    "postbuild": "rm *.map && chmod u+x *.js"
   }
 }
