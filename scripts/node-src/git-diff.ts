@@ -54,6 +54,9 @@ async function chooseBranch() {
             return fuzzyFind(branches, 0);
         })
         .then(branch => branch.label.split(/\s+/g).pop())
+        .catch(() => {
+            process.exit(1);
+        })
 }
 
 mapArgs(

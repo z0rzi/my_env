@@ -36,6 +36,8 @@ class Cli {
     x = 0;
     y = 0;
 
+    rl: readline.Interface;
+
     maxHeight = 20;
     _maxWidth = -1;
     get maxWidth() {
@@ -81,15 +83,17 @@ class Cli {
         process.stdin.setRawMode(true);
         this.updateHeight(height);
 
-        readline.createInterface({
+        this.rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout,
             terminal: true,
+            prompt: '',
             historySize: 0,
             tabSize: 4,
             crlfDelay: 10
         });
 
+        process.stdin.removeAllListeners('keypress');
 
         process.stdin.on('keypress', this.onKeyPress);
 
@@ -312,10 +316,10 @@ class FuzzyFinder<T = unknown> {
 
     end() {
         this.isDead = true;
-        this.search = '';
-        this.choices = [];
-        this.filteredChoices = [];
-        this.selectCb = () => {};
+        // this.search = '';
+        // this.choices = [];
+        // this.filteredChoices = [];
+        // this.selectCb = () => {};
     }
 
     filterResults(): Choice<T>[] {
@@ -390,7 +394,6 @@ class FuzzyFinder<T = unknown> {
                 ' - ' + choice.tags.replace(/^[^a-zA-Z]*/, ''),
                 { color: CliColor.BLACK }
             );
-
     }
 
     refreshAllResults() {
@@ -513,8 +516,7 @@ class FuzzyFinder<T = unknown> {
                 case 'return':
                     if (this.filteredChoices[this.selectionPos]) {
                         this.selectCb(this.filteredChoices[this.selectionPos]);
-                        this.cli.goTo(this.height - 2, this.caretPos);
-                        this.cli.offHitKey();
+                        this.cli.goTo(this.height - 1, this.caretPos);
                         this.end();
                         return;
                     }
@@ -523,6 +525,7 @@ class FuzzyFinder<T = unknown> {
                 case 'escape':
                     this.selectCb();
                     this.cli.offHitKey();
+                    this.end();
                     break;
             }
         }
@@ -551,7 +554,6 @@ async function fuzzyFind<T = unknown>(choices: Choice<T>[] | string[], scoreLimi
             },
             scoreLimit
         );
-            
     })
 }
 

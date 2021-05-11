@@ -52,7 +52,10 @@ function chooseBranch() {
             .then(branches => {
             return fuzzyFind(branches, 0);
         })
-            .then(branch => branch.label.split(/\s+/g).pop());
+            .then(branch => branch.label.split(/\s+/g).pop())
+            .catch(() => {
+            process.exit(1);
+        });
     });
 }
 mapArgs({

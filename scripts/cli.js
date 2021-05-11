@@ -33,14 +33,16 @@ class Cli {
         this.hitListener = null;
         process.stdin.setRawMode(true);
         this.updateHeight(height);
-        readline.createInterface({
+        this.rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout,
             terminal: true,
+            prompt: '',
             historySize: 0,
             tabSize: 4,
             crlfDelay: 10
         });
+        process.stdin.removeAllListeners('keypress');
         process.stdin.on('keypress', this.onKeyPress);
         this.up(height);
         this.sol();
@@ -266,10 +268,10 @@ class FuzzyFinder {
     }
     end() {
         this.isDead = true;
-        this.search = '';
-        this.choices = [];
-        this.filteredChoices = [];
-        this.selectCb = () => { };
+        // this.search = '';
+        // this.choices = [];
+        // this.filteredChoices = [];
+        // this.selectCb = () => {};
     }
     filterResults() {
         if (this.isDead)
@@ -434,8 +436,7 @@ class FuzzyFinder {
                 case 'return':
                     if (this.filteredChoices[this.selectionPos]) {
                         this.selectCb(this.filteredChoices[this.selectionPos]);
-                        this.cli.goTo(this.height - 2, this.caretPos);
-                        this.cli.offHitKey();
+                        this.cli.goTo(this.height - 1, this.caretPos);
                         this.end();
                         return;
                     }
@@ -443,6 +444,7 @@ class FuzzyFinder {
                 case 'escape':
                     this.selectCb();
                     this.cli.offHitKey();
+                    this.end();
                     break;
             }
         }
