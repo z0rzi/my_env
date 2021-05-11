@@ -1,11 +1,7 @@
 import { __awaiter } from "tslib";
-import { createInterface } from 'readline';
+import * as readline from 'readline';
 import { QuickScore } from 'quick-score';
 import { cmd } from './shell.js';
-const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout,
-});
 var CliColor;
 (function (CliColor) {
     CliColor[CliColor["BLACK"] = 0] = "BLACK";
@@ -21,7 +17,6 @@ class Cli {
     constructor(height = 30) {
         this.x = 0;
         this.y = 0;
-        this.rl = null;
         this.maxHeight = 20;
         this._maxWidth = -1;
         this._positions = {};
@@ -38,6 +33,15 @@ class Cli {
         this.hitListener = null;
         process.stdin.setRawMode(true);
         this.updateHeight(height);
+        readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+            terminal: true,
+            historySize: 0,
+            tabSize: 4,
+            crlfDelay: 10
+        });
+        process.stdin.on('keypress', this.onKeyPress);
         this.up(height);
         this.sol();
     }
@@ -77,13 +81,13 @@ class Cli {
     }
     updateHeight(newHeight) {
         this.maxHeight = newHeight;
-        const save = { x: this.x, y: this.y };
+        this.savePos('__updateHeight__');
         this.goTo(0, 0);
         let cnt = newHeight;
         while (cnt--)
             console.log('');
         this.y = newHeight;
-        this.goTo(save.y, save.x);
+        this.loadPos('__updateHeight__');
     }
     savePos(tag = null) {
         tag = tag || '__tmp__';
@@ -221,15 +225,8 @@ class Cli {
         if (this.hitListener)
             this.offHitKey();
         this.hitListener = cb;
-        process.stdin.on('keypress', this.onKeyPress);
-        // this.rl = createInterface({
-        //     input: process.stdin,
-        //     output: process.stdout,
-        // });
     }
     offHitKey() {
-        process.stdin.off('keypress', this.onKeyPress);
-        // this.rl.close();
         this.hitListener = null;
     }
 }
@@ -269,8 +266,14 @@ class FuzzyFinder {
     }
     end() {
         this.isDead = true;
+        this.search = '';
+        this.choices = [];
+        this.filteredChoices = [];
+        this.selectCb = () => { };
     }
     filterResults() {
+        if (this.isDead)
+            return;
         if (!this.search)
             return this.choices.slice(0, this.height - 1);
         const res = this._qs.search(this.search);
@@ -293,6 +296,8 @@ class FuzzyFinder {
      * @param direction Up or down. If nothing is provided, simply redraw the arrow
      */
     moveSelection(direction) {
+        if (this.isDead)
+            return;
         this.cli.savePos('move-sel');
         this.cli.goToLine(this.height - 2 - this.selectionPos);
         this.cli.sol();
@@ -314,6 +319,8 @@ class FuzzyFinder {
         this.cli.loadPos('move-sel');
     }
     refreshOneResult(index = this.selectionPos) {
+        if (this.isDead)
+            return;
         if (index >= this.filteredChoices.length)
             return;
         this.cli.goTo(this.height - 2 - index, this.selectorWidth);
@@ -324,6 +331,8 @@ class FuzzyFinder {
             this.cli.write(' - ' + choice.tags.replace(/^[^a-zA-Z]*/, ''), { color: CliColor.BLACK });
     }
     refreshAllResults() {
+        if (this.isDead)
+            return;
         this.cli.savePos('refresh');
         this.filteredChoices = this.filterResults();
         this.filteredChoices.forEach((_, idx) => {
@@ -337,6 +346,8 @@ class FuzzyFinder {
         this.cli.loadPos('refresh');
     }
     refreshSearch() {
+        if (this.isDead)
+            return;
         this.cli.goToLine(this.height - 1);
         this.cli.clearLine();
         this.cli.write(this.search);
@@ -416,16 +427,17 @@ class FuzzyFinder {
                     break;
                 case 'up':
                     this.moveSelection('down');
-                    // this.cli.goToCol(this.caretPos);
                     break;
                 case 'down':
                     this.moveSelection('up');
-                    // this.cli.goToCol(this.caretPos);
                     break;
                 case 'return':
                     if (this.filteredChoices[this.selectionPos]) {
                         this.selectCb(this.filteredChoices[this.selectionPos]);
+                        this.cli.goTo(this.height - 2, this.caretPos);
                         this.cli.offHitKey();
+                        this.end();
+                        return;
                     }
                     break;
                 case 'escape':
@@ -452,10 +464,9 @@ function fuzzyFind(choices, scoreLimit = .5) {
             return choice;
         });
         return new Promise((resolve, reject) => {
-            const fufi = new FuzzyFinder(choices, choice => {
+            new FuzzyFinder(choices, choice => {
                 if (!choice)
                     reject();
-                fufi.end();
                 return resolve(choice);
             }, scoreLimit);
         });

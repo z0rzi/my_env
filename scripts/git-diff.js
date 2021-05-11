@@ -24,20 +24,22 @@ function checkDiff(commit1 = 'HEAD', commit2 = '') {
             if (!choice)
                 return;
             let choosenFile = choice.label;
-            if (commit1)
-                commit1 += ':';
+            let c1 = commit1;
+            if (c1)
+                c1 += ':';
             else
-                commit1 = gitRoot + '/';
-            commit1 += choosenFile;
-            if (commit2)
-                commit2 += ':';
+                c1 = gitRoot + '/';
+            c1 += choosenFile;
+            let c2 = commit2;
+            if (c2)
+                c2 += ':';
             else
-                commit2 = gitRoot + '/';
-            commit2 += choosenFile;
-            return cmd(`git difftool ${commit1} ${commit2}`);
+                c2 = gitRoot + '/';
+            c2 += choosenFile;
+            return cmd(`git difftool ${c1} ${c2}`);
         })
             .then(() => {
-            process.exit(0);
+            return checkDiff(commit1, commit2);
         })
             .catch(() => {
             process.exit(1);
@@ -57,6 +59,14 @@ mapArgs({
     '-cc|--choose-commit': () => {
         chooseBranch()
             .then(branch => checkDiff(branch));
+    },
+    '-h|--help': () => {
+        console.log('');
+        console.log('USAGE = "git-diff.js [-cc | --chose-commit]"');
+        console.log('');
+        console.log('    Checks the difference between the current state and a given commit (or HEAD if -cc is not used)');
+        console.log('');
+        process.exit(0);
     }
 }, () => {
     checkDiff();

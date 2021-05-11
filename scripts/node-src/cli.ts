@@ -1,11 +1,6 @@
-import { createInterface } from 'readline';
+import * as readline from 'readline';
 import { QuickScore } from 'quick-score';
 import { cmd } from './shell.js';
-
-const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout,
-});
 
 enum CliColor {
     BLACK = 0,
@@ -41,8 +36,6 @@ class Cli {
     x = 0;
     y = 0;
 
-    rl = null;
-
     maxHeight = 20;
     _maxWidth = -1;
     get maxWidth() {
@@ -74,17 +67,31 @@ class Cli {
 
     updateHeight(newHeight: number) {
         this.maxHeight = newHeight;
-        const save = {x: this.x, y: this.y};
+        this.savePos('__updateHeight__')
+
         this.goTo(0, 0);
         let cnt = newHeight;
         while (cnt--) console.log('');
         this.y = newHeight;
-        this.goTo(save.y, save.x);
+
+        this.loadPos('__updateHeight__')
     }
 
     private constructor(height = 30) {
         process.stdin.setRawMode(true);
         this.updateHeight(height);
+
+        readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+            terminal: true,
+            historySize: 0,
+            tabSize: 4,
+            crlfDelay: 10
+        });
+
+
+        process.stdin.on('keypress', this.onKeyPress);
 
         this.up(height);
         this.sol();
@@ -247,16 +254,9 @@ class Cli {
         if (this.hitListener) this.offHitKey();
 
         this.hitListener = cb;
-        process.stdin.on('keypress', this.onKeyPress);
-        // this.rl = createInterface({
-        //     input: process.stdin,
-        //     output: process.stdout,
-        // });
     }
 
     offHitKey() {
-        process.stdin.off('keypress', this.onKeyPress);
-        // this.rl.close();
         this.hitListener = null;
     }
 }
@@ -312,9 +312,14 @@ class FuzzyFinder<T = unknown> {
 
     end() {
         this.isDead = true;
+        this.search = '';
+        this.choices = [];
+        this.filteredChoices = [];
+        this.selectCb = () => {};
     }
 
     filterResults(): Choice<T>[] {
+        if (this.isDead) return;
         if (!this.search) return this.choices.slice(0, this.height - 1);
 
         const res = this._qs.search<Choice<T>>(this.search);
@@ -339,6 +344,7 @@ class FuzzyFinder<T = unknown> {
      * @param direction Up or down. If nothing is provided, simply redraw the arrow
      */
     moveSelection(direction?: 'up' | "down") {
+        if (this.isDead) return;
         this.cli.savePos('move-sel');
 
         this.cli.goToLine(this.height - 2 - this.selectionPos);
@@ -367,6 +373,7 @@ class FuzzyFinder<T = unknown> {
     }
 
     refreshOneResult(index = this.selectionPos) {
+        if (this.isDead) return;
         if (index >= this.filteredChoices.length) return;
 
         this.cli.goTo(this.height - 2 - index, this.selectorWidth);
@@ -387,6 +394,7 @@ class FuzzyFinder<T = unknown> {
     }
 
     refreshAllResults() {
+        if (this.isDead) return;
         this.cli.savePos('refresh');
 
         this.filteredChoices = this.filterResults();
@@ -407,6 +415,7 @@ class FuzzyFinder<T = unknown> {
     }
 
     refreshSearch() {
+        if (this.isDead) return;
         this.cli.goToLine(this.height - 1);
         this.cli.clearLine();
         this.cli.write(this.search);
@@ -495,18 +504,19 @@ class FuzzyFinder<T = unknown> {
 
                 case 'up':
                     this.moveSelection('down');
-                    // this.cli.goToCol(this.caretPos);
                     break;
 
                 case 'down':
                     this.moveSelection('up');
-                    // this.cli.goToCol(this.caretPos);
                     break;
 
                 case 'return':
                     if (this.filteredChoices[this.selectionPos]) {
                         this.selectCb(this.filteredChoices[this.selectionPos]);
+                        this.cli.goTo(this.height - 2, this.caretPos);
                         this.cli.offHitKey();
+                        this.end();
+                        return;
                     }
                     break;
 
@@ -533,11 +543,10 @@ async function fuzzyFind<T = unknown>(choices: Choice<T>[] | string[], scoreLimi
     });
 
     return new Promise((resolve, reject) => {
-        const fufi = new FuzzyFinder(
+        new FuzzyFinder(
             choices as Choice<T>[],
             choice => {
                 if (!choice) reject()
-                fufi.end();
                 return resolve(choice);
             },
             scoreLimit
