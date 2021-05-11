@@ -10,7 +10,11 @@
     "sourceMap": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "outDir": "./"
+    "outDir": "./",
+    "typeRoots": [
+      "node_modules/@types",
+      "node-src/*.d.ts"
+    ]
   },
   "include": [
     "node-src/*.js",

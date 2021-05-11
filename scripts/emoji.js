@@ -6,21 +6,6 @@ import { writeSync } from 'clipboardy';
 import { writeFileSync, existsSync, readFileSync } from 'fs';
 import { get } from 'https';
 import { FuzzyFinder } from './cli.js';
-// Emoji received from the gh file:
-// {
-//     codes: '1F600',
-//     char: '😀',
-//     name: 'grinning face',
-//     category: 'Smileys & Emotion (face-smiling)',
-//     group: 'Smileys & Emotion',
-//     subgroup: 'face-smiling',
-// };
-// Our emoji:
-// {
-//     icon: '😀',
-//     name: 'grinning face',
-//     tags: 'face grinning :)',
-// };
 function setupFile() {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
@@ -30,24 +15,19 @@ function setupFile() {
                     rawData += chunk;
                 });
                 res.on('end', () => {
-                    let emojis = JSON.parse(rawData);
-                    emojis = emojis.map(emo => ({
+                    const emojis = JSON.parse(rawData);
+                    const newEmojis = emojis.map(emo => ({
                         icon: emo.char,
                         name: emo.name,
                         tags: emo.subgroup.replace(/[^a-zA-Z]/g, ' '),
                     }));
-                    writeFileSync(EMOJI_FILE_PATH, JSON.stringify(emojis));
+                    writeFileSync(EMOJI_FILE_PATH, JSON.stringify(newEmojis));
                     resolve();
                 });
             });
         });
     });
 }
-/**
- * loadEmojis.
- *
- * @return {Promise<{icon: string, name: string, tags: string}[]>} The emojis
- */
 function loadEmojis() {
     return __awaiter(this, void 0, void 0, function* () {
         if (!existsSync(EMOJI_FILE_PATH))

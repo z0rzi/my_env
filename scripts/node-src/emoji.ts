@@ -9,25 +9,24 @@ import { writeFileSync, existsSync, readFileSync } from 'fs';
 import { get } from 'https';
 import { FuzzyFinder } from './cli.js';
 
-// Emoji received from the gh file:
-// {
-//     codes: '1F600',
-//     char: '😀',
-//     name: 'grinning face',
-//     category: 'Smileys & Emotion (face-smiling)',
-//     group: 'Smileys & Emotion',
-//     subgroup: 'face-smiling',
-// };
 
-// Our emoji:
-// {
-//     icon: '😀',
-//     name: 'grinning face',
-//     tags: 'face grinning :)',
-// };
+type ApiEmoji = {
+    codes: number,
+    char: string,
+    name: string,
+    category: string,
+    group: string,
+    subgroup: string
+}
+
+type Emoji = {
+    icon: string,
+    name: string,
+    tags: string
+}
 
 async function setupFile() {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
         get(
             'https://raw.githubusercontent.com/amio/emoji.json/master/emoji.json',
             res => {
@@ -36,13 +35,13 @@ async function setupFile() {
                     rawData += chunk;
                 });
                 res.on('end', () => {
-                    let emojis = JSON.parse(rawData);
-                    emojis = emojis.map(emo => ({
+                    const emojis = JSON.parse(rawData) as ApiEmoji[];
+                    const newEmojis = emojis.map(emo => ({
                         icon: emo.char,
                         name: emo.name,
                         tags: emo.subgroup.replace(/[^a-zA-Z]/g, ' '),
-                    }));
-                    writeFileSync(EMOJI_FILE_PATH, JSON.stringify(emojis));
+                    })) as Emoji[];
+                    writeFileSync(EMOJI_FILE_PATH, JSON.stringify(newEmojis));
                     resolve();
                 });
             }
@@ -50,14 +49,9 @@ async function setupFile() {
     });
 }
 
-/**
- * loadEmojis.
- *
- * @return {Promise<{icon: string, name: string, tags: string}[]>} The emojis
- */
-async function loadEmojis() {
+async function loadEmojis(): Promise<{icon: string, name: string, tags: string}[]> {
     if (!existsSync(EMOJI_FILE_PATH)) await setupFile();
-    const raw = readFileSync(EMOJI_FILE_PATH);
+    const raw = readFileSync(EMOJI_FILE_PATH) as unknown as string;
     return JSON.parse(raw);
 }
 

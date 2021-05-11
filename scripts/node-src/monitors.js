@@ -1,7 +1,7 @@
 #!/bin/node
 const CONF_FILE = '/home/zorzi/.config/monitors.json'
 
-import { exec } from "child_process";
+import { cmd } from "./shell.js";
 import { readFileSync, readFile, writeFile } from 'fs';
 import { createHash as hash } from 'crypto';
 let laptop = null;
@@ -25,21 +25,6 @@ try {
  */
 function md5(str) {
     return hash('md5').update(str, 'utf8').digest('hex');
-}
-
-/**
- * Runs a shell command
- */
-async function cmd(c) {
-    return new Promise((resolve, reject) => {
-        exec(c, (err, stdout, stderr) => {
-            if (err)
-                reject(err);
-            if (!stdout && stderr)
-                reject(stderr);
-            resolve(stdout.trim());
-        });
-    })
 }
 
 /**
