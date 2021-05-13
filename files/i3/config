@@ -54,6 +54,8 @@
         # bindsym Ctrl+Shift+x exec gpaste-client ui
         bindsym Ctrl+Shift+x exec copyq toggle
 
+        bindsym Ctrl+Shift+z exec /home/zorzi/.my_env/scripts/correct.js
+
     # program launcher
         bindsym $alt+space exec --no-startup-id dmenu_recency
 
