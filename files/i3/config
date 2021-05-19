@@ -44,7 +44,7 @@
         bindsym $sup+e exec kitty -e ranger
 
     # Screenshot
-        bindsym --release $mod+Shift+s exec flameshot gui
+        bindsym --release $mod+Shift+s exec bash -c "flameshot & flameshot gui"
 
     # kill focused window
         bindsym $mod+q kill
@@ -212,6 +212,7 @@
     exec --no-startup-id bash -c "dunst"
     exec_always --no-startup-id bash -c "while :; do feh --bg-fill --no-fehbg --randomize $HOME/Documents/Wallpapers/*.jpg; sleep 3600; done"
     exec --no-startup-id bash -c "sleep 10; picom -b"
+    exec --no-startup-id flameshot
     # exec --no-startup-id manjaro-hello
     exec --no-startup-id nm-applet
     exec --no-startup-id xfce4-power-manager

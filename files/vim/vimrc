@@ -18,6 +18,12 @@
     set nowritebackup
     set updatetime=1000
     set shortmess+=c
+    set diffopt=context:15
+    set diffopt+=internal
+    set diffopt+=algorithm:patience
+    set diffopt+=indent-heuristic
+    set diffopt+=filler
+    set diffopt+=vertical
     set signcolumn=yes
     " set termguicolors  " Increases the saturation
     set previewheight=5
@@ -1010,7 +1016,7 @@
             if (index(['vim','help'], &filetype) >= 0)
                 execute 'h '.expand('<cword>')
             else
-                call CocAction('doHover')
+                call CocActionAsync('doHover')
             endif
         endfunction
 
@@ -1181,7 +1187,8 @@
         let g:gitgutter_sign_removed_first_line = '▎'
 
     " Minimap
-        let g:minimap_auto_start = 1
+        " let g:minimap_auto_start = 1
+        autocmd! VimEnter * if !&diff | exe "Minimap" | endif
         nnoremap <F4> <CMD>call minimap#vim#HighlightSearch()<CR>
 
     " Import Cost
@@ -1274,6 +1281,53 @@
             \ }
     " JsDoc
         let g:jsdoc_formatter = 'tsdoc'
+
+    " diffunit
+        let g:DiffUnit = 'Word'
+
+        function OnOpenVimDiff()
+            cab x xa
+            cab q qa
+            cab w wa
+
+            nnoremap <CS-right> <CMD>diffput <BAR> diffupdate<CR>
+            nnoremap <CS-left> <CMD>diffget <BAR> diffupdate<CR>
+
+            nnoremap u u<CMD>diffupdate<CR>
+
+            nnoremap <CS-up> [c
+            nnoremap <CS-down> ]c
+
+            nnoremap <F5> :diffupdate<CR>
+        endfunction
+        autocmd FileType * if &diff | call OnOpenVimDiff() | endif
+
+        set patchexpr=MyPatch()
+        function MyPatch()
+           :call system("patch -o " . v:fname_out . " " . v:fname_in .
+           \  " < " . v:fname_diff)
+           :call system("patch -o " . v:fname_out . " " . v:fname_in .
+           \  " < " . v:fname_diff . " > ")
+        endfunction
+
+        set diffexpr=MyDiff()
+        function MyDiff()
+           let opt = ""
+           if &diffopt =~ "icase"
+             let opt = opt . "-i "
+           endif
+           if &diffopt =~ "iwhite"
+             let opt = opt . "-b "
+           endif
+           silent execute "!diff -w -B -a --binary " . opt . v:fname_in . " " . v:fname_new . " > " . v:fname_out
+           " exe "!/home/zorzi/.local/bin/custom/diff.js -w -B -a --binary " . opt . v:fname_in . " " . v:fname_new ." > " . v:fname_out
+
+           " silent execute "!diff -e -w -B -a " . opt . v:fname_in . " " . v:fname_new .
+           "  \  " > " . v:fname_out
+           redraw!
+        endfunction
+        " let diffexpr='diff -t -w -B -a --strip-trailing-cr -d'
+        let diffexpr=MyDiff()
 "
 " PLUGINS
 " 
@@ -1281,8 +1335,6 @@
     set rtp+=~/.vim/bundle/Vundle.vim
     call vundle#begin()
 
-        Plugin 'dyng/ctrlsf.vim'
-        Plugin 'mg979/vim-visual-multi'
         " 
         " Gotta go fast!
         " 
@@ -1299,6 +1351,12 @@
                 " Snippets
                 Plugin 'sirver/UltiSnips'
             endif
+
+            " Recursive search
+            Plugin 'dyng/ctrlsf.vim'
+
+            " Multi cursors
+            Plugin 'mg979/vim-visual-multi'
 
         " 
         " Pretty editor
@@ -1333,13 +1391,12 @@
             Plugin 'junegunn/fzf'
             Plugin 'junegunn/fzf.vim'
 
-            " React
-            " Plugin 'MaxMEllon/vim-jsx-pretty'
-
             " Buffer stuff
             Plugin 'z0rzi/lightline-bufferline'
 
             Plugin 'neoclide/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
+
+            Plugin 'rickhowe/diffchar.vim'
 
         " 
         " My plugins!

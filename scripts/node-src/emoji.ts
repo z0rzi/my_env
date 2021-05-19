@@ -7,23 +7,22 @@ import { writeSync } from 'clipboardy';
 
 import { writeFileSync, existsSync, readFileSync } from 'fs';
 import { get } from 'https';
-import { FuzzyFinder } from './cli.js';
-
+import { FuzzyFinder } from './fuzzyFinder.js';
 
 type ApiEmoji = {
-    codes: number,
-    char: string,
-    name: string,
-    category: string,
-    group: string,
-    subgroup: string
-}
+    codes: number;
+    char: string;
+    name: string;
+    category: string;
+    group: string;
+    subgroup: string;
+};
 
 type Emoji = {
-    icon: string,
-    name: string,
-    tags: string
-}
+    icon: string;
+    name: string;
+    tags: string;
+};
 
 async function setupFile() {
     return new Promise<void>((resolve, reject) => {
@@ -49,7 +48,9 @@ async function setupFile() {
     });
 }
 
-async function loadEmojis(): Promise<{icon: string, name: string, tags: string}[]> {
+async function loadEmojis(): Promise<
+    { icon: string; name: string; tags: string }[]
+> {
     if (!existsSync(EMOJI_FILE_PATH)) await setupFile();
     const raw = readFileSync(EMOJI_FILE_PATH) as unknown as string;
     return JSON.parse(raw);

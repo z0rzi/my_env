@@ -690,14 +690,14 @@ endif
 " }}}
 " Diffs: {{{
 
-call s:HL('DiffDelete', s:red, s:bg0, s:inverse)
-call s:HL('DiffAdd',    s:green, s:bg0, s:inverse)
-"call s:HL('DiffChange', s:bg0, s:blue)
-"call s:HL('DiffText',   s:bg0, s:yellow)
+" call s:HL('DiffDelete', s:red, s:bg0, s:inverse)
+" call s:HL('DiffAdd',    s:green, s:bg0, s:inverse)
+" call s:HL('DiffChange', s:bg0, s:blue)
+" call s:HL('DiffText',   s:bg0, s:yellow)
 
 " Alternative setting
-call s:HL('DiffChange', s:aqua, s:bg0, s:inverse)
-call s:HL('DiffText',   s:yellow, s:bg0, s:inverse)
+" call s:HL('DiffChange', s:aqua, s:bg0, s:inverse)
+" call s:HL('DiffText',   s:yellow, s:bg0, s:inverse)
 
 " }}}
 " Spelling: {{{
@@ -944,6 +944,10 @@ hi DiffChange ctermbg=black ctermfg=none      cterm=none guibg=#262626 guifg=#87
 hi DiffAdd    ctermbg=black ctermfg=darkgreen cterm=bold guibg=#262626 guifg=#87af87 gui=reverse
 hi DiffDelete ctermbg=black ctermfg=131       cterm=none guibg=#262626 guifg=#af5f5f gui=reverse
 hi DiffText   ctermbg=black ctermfg=blue  cterm=bold guibg=#262626 guifg=#ff8700 gui=reverse
+" hi DiffText   ctermbg=none  ctermfg=none      cterm=none
+" hi DiffChange ctermbg=none  ctermfg=none      cterm=none
+" hi DiffAdd    ctermbg=black ctermfg=darkgreen cterm=bold
+" hi DiffDelete ctermbg=black ctermfg=131       cterm=none
 
 " }}}
 " Html: {{{

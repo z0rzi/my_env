@@ -1,17 +1,17 @@
 #!/bin/node
 
-import { fuzzyFind } from './cli.js';
+import { fuzzyFind } from './fuzzyFinder.js';
 import * as git from './git.js';
-import { cmd, mapArgs } from './shell.js';
+import { cmd, mapArgs, NO_MATCH_FOUND } from './shell.js';
 
-
-async function checkDiff(commit1='HEAD', commit2='') {
+async function checkDiff(commit1 = 'HEAD', commit2 = '') {
     let gitRoot = '';
 
-    return git.getRootPath()
+    return git
+        .getRootPath()
         .then(root => {
-            let c1 = commit1 || root;
-            let c2 = commit2 || root;
+            const c1 = commit1 || root;
+            const c2 = commit2 || root;
             gitRoot = root;
             return git.getFilesDiff(c1, c2);
         })
@@ -20,13 +20,12 @@ async function checkDiff(commit1='HEAD', commit2='') {
                 console.log('No unstaged files!');
                 process.exit(1);
             }
-            return fuzzyFind(files, 0)
+            return fuzzyFind(files, 0);
         })
         .then(choice => {
-            if (!choice)
-                return;
+            if (!choice) return;
 
-            let choosenFile = choice.label;
+            const choosenFile = choice.label;
 
             let c1 = commit1;
             if (c1) c1 += ':';
@@ -38,7 +37,7 @@ async function checkDiff(commit1='HEAD', commit2='') {
             else c2 = gitRoot + '/';
             c2 += choosenFile;
 
-            return cmd(`git difftool ${c1} ${c2}`)
+            return cmd(`git difftool ${c1} ${c2}`);
         })
         .then(() => {
             return checkDiff(commit1, commit2);
@@ -49,31 +48,30 @@ async function checkDiff(commit1='HEAD', commit2='') {
 }
 
 async function chooseBranch() {
-    return git.getBranches()
+    return git
+        .getBranches()
         .then(branches => {
             return fuzzyFind(branches, 0);
         })
         .then(branch => branch.label.split(/\s+/g).pop())
         .catch(() => {
             process.exit(1);
-        })
+        });
 }
 
-mapArgs(
-    {
-        '-cc|--choose-commit': () => {
-            chooseBranch()
-                .then(branch => checkDiff(branch))
-        },
-        '-h|--help': () => {
-            console.log('');
-            console.log('USAGE = "git-diff.js [-cc | --chose-commit]"');
-            console.log('');
-            console.log('    Checks the difference between the current state and a given commit (or HEAD if -cc is not used)');
-            console.log('');
-            process.exit(0);
-        }
+mapArgs({
+    '-cc|--choose-commit': () => {
+        chooseBranch().then(branch => checkDiff(branch));
     },
-    () => {
-        checkDiff();
-    });
+    '-h|--help': () => {
+        console.log('');
+        console.log('USAGE = "git-diff.js [-cc | --chose-commit]"');
+        console.log('');
+        console.log(
+            '    Checks the difference between the current state and a given commit (or HEAD if -cc is not used)'
+        );
+        console.log('');
+        process.exit(0);
+    },
+    [NO_MATCH_FOUND]: () => checkDiff(),
+});

@@ -1,0 +1,54 @@
+#!/bin/bash
+
+while [ "$1" = "--" ]; do shift; done
+
+editor=nvim
+
+if [ -d "$1" ] && [ -d "$2" ]; then
+    # Opening folders
+    local=$1
+    remote=$2
+
+#     echo $local
+#     echo $remote
+
+    export EDITOR="$HOME/.local/bin/custom/codediff"
+    # ranger $local
+    $HOME/.local/bin/custom/explorer.js $local/../
+elif [ -f "$1" ] && [ -f "$2" ]; then
+    # Opening folders
+    local=`realpath $1`
+    remote=`realpath $2`
+
+    case "$editor" in
+        "nvim")
+            nvim -d $local $remote
+            ;;
+    esac
+else
+    # Opening a file
+    file="$1"
+    file=`realpath $file`
+
+    if [ ! -f "$file" ]; then
+        echo "'$file' not found!"
+        sleep 5
+        exit 1
+    fi
+
+    if [[ "$file" =~ /right/ ]]; then
+        right=$file
+        left=`realpath ${file/right/left}`
+    elif [[ "$file" =~ /left/ ]]; then
+        left=$file
+        right=`realpath ${file/left/right}`
+    else
+        $editor "$file"
+        exit 0
+    fi
+    case "$editor" in
+        "nvim")
+            nvim -d $left $right
+            ;;
+    esac
+fi

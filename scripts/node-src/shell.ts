@@ -1,59 +1,134 @@
-import { exec } from "child_process";
+import child_process from 'child_process';
+import tty from 'tty';
 
 const HOME = process.env['HOME'];
 const CWD = process.env['PWD'];
 const NO_ARGS_PROVIDED = process.argv.length <= 2;
 
-export { HOME, CWD, NO_ARGS_PROVIDED }
+export { HOME, CWD, NO_ARGS_PROVIDED };
 
 /**
  * Runs a shell command
  *
  * @returns The result as 1 string
  */
-export async function cmd(command: string, cut_lines = false): Promise<string|string[]> {
+export async function cmd(
+    command: string,
+    cut_lines = false
+): Promise<string | string[]> {
     return new Promise((resolve, reject) => {
-        exec(command, (err, stdout, stderr) => {
+        child_process.exec(command, (err, stdout, stderr) => {
+            if (!!stdout) {
+                if (!cut_lines) return resolve(stdout.trim());
+
+                return resolve(
+                    stdout
+                        .split('\n')
+                        .map(line => line.trim())
+                        .filter(e => !!e)
+                );
+            }
+
+            if (stderr) return reject(stderr);
+
             if (err) {
                 if (err.message.includes('Command failed')) {
-                    console.log("Failed while trying to execute the following command:");
-                    console.log("");
-                    console.log("    " + command);
-                    console.log("");
+                    console.log(
+                        'Failed while trying to execute the following command:'
+                    );
+                    console.log('');
+                    console.log('    ' + command);
+                    console.log('');
                     console.log(err.message);
                     process.exit(1);
                 }
-                reject(err);
+                return reject(err);
             }
-            if (!stdout && stderr)
-                reject(stderr);
-            if (!cut_lines)
-                resolve(stdout.trim());
-
-            resolve(stdout.split('\n').map(line => line.trim()).filter(e => !!e));
         });
-    })
+    });
 }
+
+export async function editFile(path: string): Promise<void> {
+    return new Promise(resolve => {
+        const editor = process.env['EDITOR'] || 'vim';
+
+        const child = child_process.spawn(editor, [path], {
+            stdio: 'inherit',
+            windowsHide: false,
+        });
+
+        child.on('exit', function (e, code) {
+            resolve();
+        });
+    });
+}
+
+export async function sourceCmd(cmd: string, args: string[]): Promise<number> {
+    const proc = child_process.spawn(cmd, args);
+
+    function indata(c) {
+        proc.stdin.write(c);
+    }
+    function outdata(c) {
+        process.stdout.write(c);
+    }
+
+    process.stdin.resume();
+    process.stdin.on('data', indata);
+    proc.stdout.on('data', outdata);
+    process.stdin.setRawMode(true);
+
+    return new Promise((resolve, reject) => {
+        proc.on('exit', function (code) {
+            process.stdin.setRawMode(false);
+            process.stdin.pause();
+            process.stdin.removeListener('data', indata);
+            proc.stdout.removeListener('data', outdata);
+
+            resolve(code);
+        });
+    });
+}
+
+export type MapOptions = {
+    /** Can an argument match multiple patterns? */
+    multiMatch?: boolean;
+};
+
+const NO_MATCH_FOUND = '__no_matches__';
+export { NO_MATCH_FOUND };
 
 export function mapArgs(
     map: {
-        [rx: string]: (match: string, captureGroups: {[key: string]: string}) => unknown
+        [rx: string]: (
+            match?: string,
+            captureGroups?: { [key: string]: string }
+        ) => unknown;
     },
-    noMatchCb: () => unknown = null
+    opts: MapOptions = {
+        multiMatch: true,
+    }
 ) {
+    let noMatchCb = null as (
+        match: string,
+        captureGroups: { [key: string]: string }
+    ) => unknown;
+    if (NO_MATCH_FOUND in map) noMatchCb = map[NO_MATCH_FOUND];
+
     let matchFound = false;
     process.argv.slice(2).forEach(arg => {
         for (const strRx of Object.keys(map)) {
-            const rx = new RegExp(strRx)
+            const rx = new RegExp(strRx);
             if (rx.test(arg)) {
                 matchFound = true;
                 const matchres = arg.match(rx);
                 map[strRx](arg, matchres.groups);
+                if (!opts.multiMatch) return;
             }
         }
     });
 
-    if (!matchFound) {
-        noMatchCb();
+    if (!matchFound && !!noMatchCb) {
+        noMatchCb('', {});
     }
 }

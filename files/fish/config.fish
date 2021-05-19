@@ -23,14 +23,4 @@ end
 
 export TERM=xterm
 
-# [ -n "$TMUX" ] && export TERM=tmux-256color
-# Launching TMUX
-# if test ! "$TMUX"
-#     tmux has-session 2&> /dev/null
-#     if test $status -eq 0
-#         # exec tmux attach
-#         exec tmux
-#     else
-#         exec tmux
-#     end
-# end
+bind \ct 'commandline -t (rg --files | fzf)'
