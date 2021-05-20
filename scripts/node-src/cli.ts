@@ -37,7 +37,7 @@ class Cli {
 
     kb: Keyboard;
 
-    maxHeight = 20;
+    _maxHeight = 20;
     _maxWidth = -1;
     get maxWidth(): number {
         if (this._maxWidth > 0) return this._maxWidth;
@@ -49,6 +49,25 @@ class Cli {
             this._maxWidth = 0;
         }
         return 200;
+    }
+
+    _termHeight = -1;
+    get maxHeight(): number {
+        if (this._termHeight > 0)
+            return Math.min(this._termHeight, this._maxHeight);
+
+        if (this._termHeight < 0) {
+            cmd('tput lines').then(height => {
+                this._termHeight = 1;
+                this._termHeight = Number(height);
+            });
+            this._termHeight = 0;
+        }
+        return this._maxHeight;
+    }
+
+    set maxHeight(newHeight: number) {
+        this._maxHeight = newHeight;
     }
 
     private constructor(height = 30) {
@@ -219,6 +238,11 @@ class Cli {
         }
 
         this.clearAllStyles();
+    }
+
+    toggleCursor(flag: boolean): void {
+        if (flag) process.stdout.write('\x1B[?25h');
+        else process.stdout.write('\x1B[?25l');
     }
 
     testColors(): void {

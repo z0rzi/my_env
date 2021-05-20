@@ -15,8 +15,9 @@ class Cli {
     constructor(height = 30) {
         this.x = 0;
         this.y = 0;
-        this.maxHeight = 20;
+        this._maxHeight = 20;
         this._maxWidth = -1;
+        this._termHeight = -1;
         this._positions = {};
         this.onKeyPress = ((key) => {
             if (!this.hitListener)
@@ -49,6 +50,21 @@ class Cli {
             this._maxWidth = 0;
         }
         return 200;
+    }
+    get maxHeight() {
+        if (this._termHeight > 0)
+            return Math.min(this._termHeight, this._maxHeight);
+        if (this._termHeight < 0) {
+            cmd('tput lines').then(height => {
+                this._termHeight = 1;
+                this._termHeight = Number(height);
+            });
+            this._termHeight = 0;
+        }
+        return this._maxHeight;
+    }
+    set maxHeight(newHeight) {
+        this._maxHeight = newHeight;
     }
     color(color) {
         process.stdout.write(`\x1b[0;${90 + color}m`);
@@ -203,6 +219,12 @@ class Cli {
             }
         }
         this.clearAllStyles();
+    }
+    toggleCursor(flag) {
+        if (flag)
+            process.stdout.write('\x1B[?25h');
+        else
+            process.stdout.write('\x1B[?25l');
     }
     testColors() {
         this.clearScreen();

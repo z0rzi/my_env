@@ -42,6 +42,23 @@ const KEYCODES = {
     '27-91-72': 'home',
     '27-91-54-126': 'pgdown',
     '27-91-53-126': 'pgup',
+    '27-79-80': 'f1',
+    '27-79-81': 'f2',
+    '27-79-82': 'f3',
+    '27-79-83': 'f4',
+    // With modifiers
+    '27-91-80': 'f1',
+    '27-91-81': 'f2',
+    '27-91-82': 'f3',
+    '27-91-83': 'f4',
+    '27-91-49-53-126': 'f5',
+    '27-91-49-55-126': 'f6',
+    '27-91-49-56-126': 'f7',
+    '27-91-49-57-126': 'f8',
+    '27-91-50-48-126': 'f9',
+    '27-91-50-49-126': 'f10',
+    '27-91-50-51-126': 'f11',
+    '27-91-50-52-126': 'f12',
 };
 function buffToCode(buff) {
     const res = [];
@@ -106,7 +123,7 @@ export class Keyboard {
             }
             // Normal printable characters ([a-z0-9])
             let cara = String.fromCharCode(Number(keyCode));
-            if (/\w/.test(cara)) {
+            if (/^[^\x00-\x1F\x80-\x9F]+$/.test(cara)) {
                 if (/[A-Z]/.test(cara)) {
                     mods.shift = true;
                     cara = cara.toLowerCase();
@@ -146,4 +163,9 @@ export class Keyboard {
     }
 }
 Keyboard._instance = null;
+if (/keyboard.js/.test(process.argv[1])) {
+    Keyboard.getInstance().onKeyPress(key => {
+        console.log(key);
+    });
+}
 //# sourceMappingURL=keyboard.js.map

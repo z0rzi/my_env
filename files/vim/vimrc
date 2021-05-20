@@ -1640,6 +1640,7 @@
             nnoremap <S-q> :CocCommand<CR>
 
             nnoremap <LEADER>= <CMD>call CocAction('format')<CR>
+            autocmd BufNew *.ts nnoremap <buffer> <LEADER>= <CMD> call CocAction('format')<CR><CMD>CocCommand tsserver.organizeImports<CR><CMD>CocCommand tsserver.executeAutofix<CR>
 
             " Tab to go through completion list
             inoremap <silent><expr> <TAB>
@@ -2078,7 +2079,7 @@ function! SearchPair()
     let save = winsaveview()
     " For comments, putting cursor in proper place
     call search('\*\%#\/', 'b')
-    if !search('[''"`}{\]\[()]\|/\*\*\|\*/', 'cW')
+    if !search('[''"`}{\]\[()<>]\|/\*\*\|\*/', 'cW')
         return
     endif
 

@@ -1,8 +1,10 @@
 import child_process from 'child_process';
+import fs from 'fs';
 const HOME = process.env['HOME'];
 const CWD = process.env['PWD'];
 const NO_ARGS_PROVIDED = process.argv.length <= 2;
 export { HOME, CWD, NO_ARGS_PROVIDED };
+export { NO_MATCH_FOUND };
 /**
  * Runs a shell command
  *
@@ -35,10 +37,9 @@ export async function cmd(command, cut_lines = false) {
         });
     });
 }
-export async function editFile(path) {
+export async function openFile(path) {
     return new Promise(resolve => {
-        const editor = process.env['EDITOR'] || 'vim';
-        const child = child_process.spawn(editor, [path], {
+        const child = child_process.spawn('rifle', [path], {
             stdio: 'inherit',
             windowsHide: false,
         });
@@ -46,6 +47,16 @@ export async function editFile(path) {
             resolve();
         });
     });
+}
+export async function logInFile(obj, file = '/tmp/tmp.txt') {
+    let str = '';
+    try {
+        str = JSON.stringify(obj);
+    }
+    catch (err) {
+        str = String(obj);
+    }
+    fs.writeFileSync(file, str);
 }
 export async function sourceCmd(cmd, args) {
     const proc = child_process.spawn(cmd, args);
@@ -70,7 +81,6 @@ export async function sourceCmd(cmd, args) {
     });
 }
 const NO_MATCH_FOUND = '__no_matches__';
-export { NO_MATCH_FOUND };
 export function mapArgs(map, opts = {
     multiMatch: true,
 }) {

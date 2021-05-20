@@ -1,11 +1,12 @@
 import child_process from 'child_process';
-import tty from 'tty';
+import fs from 'fs';
 
 const HOME = process.env['HOME'];
 const CWD = process.env['PWD'];
 const NO_ARGS_PROVIDED = process.argv.length <= 2;
 
 export { HOME, CWD, NO_ARGS_PROVIDED };
+export { NO_MATCH_FOUND };
 
 /**
  * Runs a shell command
@@ -48,11 +49,9 @@ export async function cmd(
     });
 }
 
-export async function editFile(path: string): Promise<void> {
+export async function openFile(path: string): Promise<void> {
     return new Promise(resolve => {
-        const editor = process.env['EDITOR'] || 'vim';
-
-        const child = child_process.spawn(editor, [path], {
+        const child = child_process.spawn('rifle', [path], {
             stdio: 'inherit',
             windowsHide: false,
         });
@@ -61,6 +60,20 @@ export async function editFile(path: string): Promise<void> {
             resolve();
         });
     });
+}
+
+export async function logInFile(
+    obj: unknown,
+    file = '/tmp/tmp.txt'
+): Promise<void> {
+    let str = '';
+    try {
+        str = JSON.stringify(obj);
+    } catch (err) {
+        str = String(obj);
+    }
+
+    fs.writeFileSync(file, str);
 }
 
 export async function sourceCmd(cmd: string, args: string[]): Promise<number> {
@@ -96,7 +109,6 @@ export type MapOptions = {
 };
 
 const NO_MATCH_FOUND = '__no_matches__';
-export { NO_MATCH_FOUND };
 
 export function mapArgs(
     map: {
