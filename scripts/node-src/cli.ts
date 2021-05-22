@@ -1,5 +1,5 @@
+import { Key, Keyboard } from './keyboard.js';
 import { cmd } from './shell.js';
-import { Keyboard, Key } from './keyboard.js';
 
 export enum CliColor {
     BLACK = 0,
@@ -287,8 +287,6 @@ class Cli {
     onKeyHit(
         cb: (keyname: string, ctrl: boolean, shift: boolean) => unknown
     ): void {
-        this.offHitKey();
-
         this.kb.onKeyPress(this.onKeyPress);
         this.hitListener = cb;
     }

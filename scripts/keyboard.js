@@ -75,7 +75,7 @@ function buffToCode(buff) {
 }
 export class Keyboard {
     constructor() {
-        this.active = false;
+        this.rolling = false;
     }
     static getInstance() {
         if (!this._instance)
@@ -86,7 +86,7 @@ export class Keyboard {
         process.stdin.setRawMode(true);
         return new Promise((resolve, reject) => {
             process.stdin.once('data', data => {
-                if (!this.active) {
+                if (!this.callback) {
                     return reject();
                 }
                 const byteArray = [...data];
@@ -94,7 +94,6 @@ export class Keyboard {
                     console.log('^C');
                     process.exit(1);
                 }
-                // process.stdin.setRawMode(false);
                 return resolve(buffToCode(data));
             });
         }).then(keyCode => {
@@ -143,23 +142,32 @@ export class Keyboard {
         });
     }
     async onKeyPress(cb) {
-        this.active = true;
+        this.callback = cb;
+        if (this.rolling)
+            return;
+        this.rolling = true;
         process.stdin.resume();
         while (true) {
-            if (!this.active)
-                return;
+            if (!this.callback)
+                break;
             try {
                 const key = await this.getOneKey();
-                cb(key);
+                this.callback(key);
             }
             catch (err) {
-                return;
+                break;
             }
         }
+        this.rolling = false;
     }
     offKeyPress() {
-        process.stdin.pause();
-        this.active = false;
+        this.callback = null;
+        const iid = setInterval(() => {
+            if (!this.rolling) {
+                clearTimeout(iid);
+                process.stdin.pause();
+            }
+        }, 100);
     }
 }
 Keyboard._instance = null;

@@ -152,9 +152,9 @@ const DESIGNS = {
         rxs: [/\.sh$/, /\.ps1$/, /\.bat$/, /\.fish/],
     },
     image: {
-        icon: ICONS.page,
+        icon: ICONS.image,
         textStyle: { color: CliColor.BLACK },
-        rxs: [/\.(?:png|je?pg|kra|mp4|kdenlive)$/],
+        rxs: [/\.(?:png|jpe?g|kra|mp4|kdenlive)$/],
     },
     documents: {
         icon: ICONS.page,
@@ -164,7 +164,7 @@ const DESIGNS = {
     text: {
         icon: ICONS.page,
         textStyle: { color: CliColor.BLACK },
-        rxs: [/\.(?:pdf|xls)$/],
+        rxs: [/\.(?:pdf|xls|txt)$/],
     },
     prettier: {
         icon: ICONS.settings,

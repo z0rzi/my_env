@@ -1,5 +1,5 @@
-import { cmd } from './shell.js';
 import { Keyboard } from './keyboard.js';
+import { cmd } from './shell.js';
 export var CliColor;
 (function (CliColor) {
     CliColor[CliColor["BLACK"] = 0] = "BLACK";
@@ -258,7 +258,6 @@ class Cli {
         this.write(str);
     }
     onKeyHit(cb) {
-        this.offHitKey();
         this.kb.onKeyPress(this.onKeyPress);
         this.hitListener = cb;
     }

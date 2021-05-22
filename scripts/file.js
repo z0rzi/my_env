@@ -20,6 +20,10 @@ export class File {
             throw new Error(`Could not find file '${path}'`);
         }
         this.isDirectory = fs.lstatSync(path).isDirectory();
+        this.refreshIcon();
+        this.name = path.replace(/^.*\//, '');
+    }
+    refreshIcon() {
         if (this.isDirectory) {
             this.path += '/';
             this.icon = '';
@@ -27,12 +31,11 @@ export class File {
             this.textStyle = { color: CliColor.GRAY };
         }
         else {
-            const res = getStyleFor(path);
+            const res = getStyleFor(this.path);
             this.icon = res.icon;
             this.iconColor = res.iconColor;
             this.textStyle = res.textStyle;
         }
-        this.name = path.replace(/^.*\//, '');
     }
     fromPath(path) {
         return new File(path);
@@ -89,6 +92,7 @@ export class File {
         const fileKid = this.fromPath(this.path + '/' + newChildName);
         fileKid.parent = this;
         this.children.push(fileKid);
+        return fileKid;
     }
     removeChild(dead_kid) {
         this.children = this.children.filter(kid => kid.name !== dead_kid);
@@ -175,15 +179,44 @@ export class File {
     // CRUD
     //
     remove() {
-        if (this.isDirectory) {
-            fs.rmdir(this.path, { recursive: true }, err => {
-                if (err) {
-                    console.error('Error while deleting file:\n', err);
-                    process.exit(1);
-                }
-                this.parent.removeChild(this.name);
-            });
+        try {
+            if (this.isDirectory) {
+                fs.rmdirSync(this.path, { recursive: true });
+            }
+            else {
+                fs.rmSync(this.path);
+            }
         }
+        catch (err) {
+            if (err) {
+                console.error('Error while deleting file:\n', err);
+                process.exit(1);
+            }
+        }
+        this.parent.removeChild(this.name);
+    }
+    createChild(name, directory = false) {
+        if (/\//g.test(name))
+            return null;
+        // not a directory
+        if (!this.isDirectory)
+            return this.parent.createChild(name);
+        // kid already exists
+        if (this.children.find(kid => kid.name === name))
+            return null;
+        if (directory)
+            fs.mkdirSync(this.path + '/' + name);
+        else
+            fs.writeFileSync(this.path + '/' + name, '');
+        return this.appendChild(name);
+    }
+    rename(newName) {
+        if (/\//g.test(newName))
+            return;
+        fs.renameSync(this.path, `${this.parent.path}${newName}`);
+        this.path = `${this.parent.path}${newName}`;
+        this.name = newName;
+        this.refreshIcon();
     }
 }
 //# sourceMappingURL=file.js.map

@@ -5,7 +5,10 @@ import './Array.js';
 import { Cli, CliColor } from './cli.js';
 import { File } from './file.js';
 import { ICONS } from './icons.js';
-import { openFile, NO_ARGS_PROVIDED } from './shell.js';
+import { Prompt } from './prompt.js';
+import { NO_ARGS_PROVIDED, openFile } from './shell.js';
+
+const INDENT = '┆   ';
 
 class ExplorerFile extends File {
     children: ExplorerFile[] = [];
@@ -80,6 +83,22 @@ class ExplorerFile extends File {
         return this;
     }
 
+    refreshChildren() {
+        if (!this.isDirectory) {
+            this.parent.refreshChildren();
+            return (
+                this.parent.children.find(kid => kid.name === this.name) ||
+                this.parent
+            );
+        }
+
+        if (this.opened) this.close();
+        this.children = [];
+        this.open();
+
+        return this;
+    }
+
     draw(cli: Cli, offset = 0, drawKids = true, emphasis = false): void {
         if (!this.showHidden && this.isHiddenFile()) return;
 
@@ -93,7 +112,7 @@ class ExplorerFile extends File {
         if (truePosition >= 0) {
             cli.goToLine(truePosition);
             cli.clearLine();
-            cli.write(`${'┆   '.repeat(this.depth)}`, {
+            cli.write(`${INDENT.repeat(this.depth)}`, {
                 color: CliColor.BLACK,
             });
 
@@ -135,6 +154,10 @@ class ExplorerFile extends File {
         let height = 1;
         for (const kid of this.children) height += kid.height;
         return height;
+    }
+
+    get width() {
+        return this.depth * INDENT.length + this.name.length + 2;
     }
 
     get previous(): ExplorerFile {
@@ -287,21 +310,54 @@ class Explorer {
             this.currentFile.draw(this.cli, this.offset, false, true);
     }
 
+    async createPrompt(
+        initValue = '',
+        col = this.currentFile.width - this.currentFile.name.length,
+        line = this.cli.y
+    ): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const p = new Prompt(this.cli, line, col);
+            p.value = initValue;
+            p.caretPos = initValue.length;
+            p.onConfirm = (text: string) => {
+                this.cli.onKeyHit(this.onInput.bind(this));
+                this.cli.toggleCursor(false);
+                return resolve(text);
+            };
+            p.onCancel = () => {
+                this.cli.onKeyHit(this.onInput.bind(this));
+                this.cli.toggleCursor(false);
+                this.refreshEmphasis();
+                return reject();
+            };
+        });
+    }
+
     onInput(keyName: string, ctrl: boolean, shift: boolean): void {
         if (this.isDead) return;
 
         if (keyName === 'space') keyName = ' ';
         if (keyName.length === 1) {
-            if (shift) keyName = keyName.toUpperCase();
             switch (keyName) {
                 case 'q':
                     this.cli.toggleCursor(true);
                     process.exit(0);
                 case 'r':
-                    if (this.currentFile.isDirectory) {
-                        this.rootFile = this.currentFile;
-                        this.rootFile.parent = null;
-                        this.refreshDisplay();
+                    if (shift) {
+                        // Change root dir
+                        if (this.currentFile.isDirectory) {
+                            this.rootFile = this.currentFile;
+                            this.rootFile.parent = null;
+                            this.refreshDisplay();
+                        }
+                    } else {
+                        // rename
+                        this.createPrompt(this.currentFile.name)
+                            .then(text => {
+                                this.currentFile.rename(text);
+                                this.refreshDisplay();
+                            })
+                            .catch(() => {});
                     }
                     break;
                 case 'x':
@@ -312,8 +368,36 @@ class Explorer {
                     this.offset =
                         this.currentFile.position -
                         ((this.cli.maxHeight / 2) >> 0);
+                    if (this.offset < 0) this.offset = 0;
                     this.refreshDisplay();
                     break;
+                case 'a':
+                    let newfile = null;
+                    if (this.currentFile.isDirectory) {
+                        this.currentFile.open();
+                        newfile = this.currentFile.createChild(
+                            '_explorer_internal',
+                            shift
+                        ) as ExplorerFile;
+                    } else
+                        newfile = this.currentFile.parent.createChild(
+                            '_explorer_internal',
+                            shift
+                        ) as ExplorerFile;
+
+                    if (!newfile) break;
+
+                    this.currentFile = newfile;
+                    this.refreshDisplay();
+
+                    this.createPrompt()
+                        .then(text => {
+                            this.currentFile.rename(text);
+                            this.refreshDisplay();
+                        })
+                        .catch(() => {});
+                    break;
+
                 case '.':
                     this.rootFile.toggleHidden();
                     this.refreshScreen();
@@ -321,6 +405,8 @@ class Explorer {
         } else {
             switch (keyName) {
                 case 'f5':
+                    // const name = this.currentFile.name;
+                    this.currentFile = this.currentFile.refreshChildren();
                     this.refreshScreen();
                     break;
 
@@ -341,11 +427,11 @@ class Explorer {
 
                 case 'up':
                     if (shift || ctrl) {
-                        let nextFile = this.currentFile;
-                        while (!!nextFile.previousSibling)
-                            nextFile = nextFile.previousSibling as ExplorerFile;
-                        this.currentFile = nextFile;
-                    } else this.currentFile = this.currentFile.previous;
+                        this.currentFile =
+                            this.currentFile.parent.visibleChildren[0];
+                    } else {
+                        this.currentFile = this.currentFile.previous;
+                    }
 
                     if (
                         this.offset > 0 &&
@@ -359,10 +445,9 @@ class Explorer {
 
                 case 'down':
                     if (shift || ctrl) {
-                        let nextFile = this.currentFile;
-                        while (!!nextFile.nextSibling)
-                            nextFile = nextFile.nextSibling as ExplorerFile;
-                        this.currentFile = nextFile;
+                        const siblings =
+                            this.currentFile.parent.visibleChildren;
+                        this.currentFile = siblings[siblings.length - 1];
                     } else this.currentFile = this.currentFile.next;
 
                     if (
@@ -376,10 +461,24 @@ class Explorer {
                     break;
 
                 case 'delete':
-                    const file = this.currentFile;
-                    this.currentFile = this.currentFile.previous;
-                    // file.remove();
-                    this.refreshDisplay();
+                    this.cli.goToCol(this.currentFile.width + 1);
+                    this.cli.write('Sure? ');
+                    this.createPrompt(
+                        '',
+                        this.currentFile.width + 1 + 'Sure? '.length
+                    )
+                        .then(text => {
+                            if (text === 'yes') {
+                                const file = this.currentFile;
+                                this.currentFile = this.currentFile.next;
+                                if (this.currentFile === file)
+                                    this.currentFile =
+                                        this.currentFile.previous;
+                                file.remove();
+                            }
+                            this.refreshDisplay();
+                        })
+                        .catch(() => {});
                     break;
 
                 case 'backspace':

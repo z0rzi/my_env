@@ -9,6 +9,7 @@ bc bc -l
 office onlyoffice-desktopeditors
 
 r ranger .
+e explorer.js
 
 :h man
 

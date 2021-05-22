@@ -97,7 +97,8 @@ function buffToCode(buff: Buffer): string {
 
 export class Keyboard {
     static _instance = null;
-    active = false;
+    rolling = false;
+    callback: (k: Key) => unknown;
 
     static getInstance(): Keyboard {
         if (!this._instance) this._instance = new Keyboard();
@@ -108,7 +109,7 @@ export class Keyboard {
         process.stdin.setRawMode(true);
         return new Promise<string>((resolve, reject) => {
             process.stdin.once('data', data => {
-                if (!this.active) {
+                if (!this.callback) {
                     return reject();
                 }
                 const byteArray = [...data];
@@ -116,7 +117,6 @@ export class Keyboard {
                     console.log('^C');
                     process.exit(1);
                 }
-                // process.stdin.setRawMode(false);
                 return resolve(buffToCode(data));
             });
         }).then(keyCode => {
@@ -177,23 +177,33 @@ export class Keyboard {
     }
 
     async onKeyPress(cb: (k: Key) => unknown): Promise<void> {
-        this.active = true;
+        this.callback = cb;
+
+        if (this.rolling) return;
+
+        this.rolling = true;
         process.stdin.resume();
         while (true) {
-            if (!this.active) return;
+            if (!this.callback) break;
 
             try {
                 const key = await this.getOneKey();
-                cb(key);
+                this.callback(key);
             } catch (err) {
-                return;
+                break;
             }
         }
+        this.rolling = false;
     }
 
     offKeyPress(): void {
-        process.stdin.pause();
-        this.active = false;
+        this.callback = null;
+        const iid = setInterval(() => {
+            if (!this.rolling) {
+                clearTimeout(iid);
+                process.stdin.pause();
+            }
+        }, 100);
     }
 }
 
