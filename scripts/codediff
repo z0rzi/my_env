@@ -14,7 +14,7 @@ if [ -d "$1" ] && [ -d "$2" ]; then
 
     export EDITOR="$HOME/.local/bin/custom/codediff"
     # ranger $local
-    $HOME/.local/bin/custom/explorer.js $local
+    $HOME/.local/bin/custom/explorer.js $remote
 elif [ -f "$1" ] && [ -f "$2" ]; then
     # Opening folders
     local=`realpath $1`
@@ -28,7 +28,6 @@ elif [ -f "$1" ] && [ -f "$2" ]; then
 else
     # Opening a file
     file="$1"
-    file=`realpath $file`
 
     if [ ! -f "$file" ]; then
         echo "'$file' not found!"
@@ -37,13 +36,13 @@ else
     fi
 
     if [[ "$file" =~ /right/ ]]; then
-        right=$file
+        right=`realpath $file`
         left=`realpath ${file/right/left}`
     elif [[ "$file" =~ /left/ ]]; then
-        left=$file
+        left=`realpath $file`
         right=`realpath ${file/left/right}`
     else
-        $editor "$file"
+        $editor "`realpath $file`"
         exit 0
     fi
     case "$editor" in

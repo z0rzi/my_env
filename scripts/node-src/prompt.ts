@@ -1,6 +1,6 @@
 import { Cli } from './cli.js';
 
-type PromptCallback = (typedText: string) => unknown;
+type PromptCallback = (typedText: string) => boolean;
 export class Prompt {
     cli: Cli = null;
 
@@ -29,6 +29,14 @@ export class Prompt {
     onConfirm: PromptCallback = null;
     onChange: PromptCallback = null;
     onCancel: PromptCallback = null;
+    onKeyHit: (
+        key: string,
+        ctrl?: boolean,
+        shift?: boolean,
+        alt?: boolean
+    ) => boolean = null;
+
+    _oldKbListener = null;
 
     constructor(cli: Cli, line: number, col: number) {
         this.cli = cli;
@@ -36,11 +44,16 @@ export class Prompt {
         this.col = col;
         this.cli.goTo(line, col);
         this.cli.clearToEndOfLine();
+        this._oldKbListener = this.cli.hitListener;
         this.cli.onKeyHit(this.promptInputListener.bind(this));
     }
 
+    destroy(): void {
+        this.cli.onKeyHit(this._oldKbListener);
+    }
+
     _lastValue = '';
-    redraw() {
+    redraw(): void {
         this.cli.toggleCursor(false);
         this.cli.savePos();
 
@@ -53,7 +66,14 @@ export class Prompt {
         this.cli.toggleCursor(true);
     }
 
-    promptInputListener(keyName: string, ctrl: boolean, shift: boolean): void {
+    promptInputListener(
+        keyName: string,
+        ctrl: boolean,
+        shift: boolean,
+        alt: boolean
+    ): void {
+        if (this.onKeyHit && !this.onKeyHit(keyName, ctrl, shift, alt)) return;
+
         if (keyName === 'space') keyName = ' ';
         const oldText = this.value;
         if (ctrl) {
@@ -112,14 +132,21 @@ export class Prompt {
                     break;
 
                 case 'return':
-                    if (this.onConfirm) this.onConfirm(this.value);
+                    if (this.onConfirm && this.onConfirm(this.value))
+                        this.destroy();
                     break;
 
                 case 'escape':
-                    if (this.onCancel) this.onCancel(this.value);
+                    if (this.onCancel && this.onCancel(this.value))
+                        this.destroy();
                     break;
             }
         }
-        if (this.onChange && oldText !== this.value) this.onChange(this.value);
+        if (
+            this.onChange &&
+            oldText !== this.value &&
+            this.onChange(this.value)
+        )
+            this.destroy();
     }
 }

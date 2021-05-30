@@ -1,7 +1,12 @@
+#!/bin/node
 import fs from 'fs';
 import path from 'path';
+import './Array.js';
 import { CliColor } from './cli.js';
+import * as git from './git.js';
+import { GitFileState } from './git.js';
 import { getStyleFor, ICONS } from './icons.js';
+import { cmd, NO_ARGS_PROVIDED } from './shell.js';
 export class File {
     constructor(path) {
         this.children = [];
@@ -10,7 +15,7 @@ export class File {
         this.isDirectory = false;
         this.name = '';
         this.icon = '';
-        this.gitFilters = [];
+        this._gitFilters = [/\/\.git\//];
         path = path.replace(/\/+/g, '/').replace(/\/$/g, '');
         this.path = path;
         try {
@@ -22,6 +27,26 @@ export class File {
         this.isDirectory = fs.lstatSync(path).isDirectory();
         this.refreshIcon();
         this.name = path.replace(/^.*\//, '');
+    }
+    get gitFilters() {
+        return [
+            ...(this.parent ? this.parent.gitFilters : []),
+            ...this._gitFilters,
+        ];
+    }
+    set gitFilters(filters) {
+        this._gitFilters = filters;
+    }
+    addGitFilters(...newFilters) {
+        if (Array.isArray(this._gitFilters))
+            this._gitFilters = [];
+        this._gitFilters.push(...newFilters);
+    }
+    get extension() {
+        const ext = this.name.match(/(?<=\.)[^.]+$/g);
+        if (!ext)
+            return '';
+        return ext[0];
     }
     refreshIcon() {
         if (this.isDirectory) {
@@ -47,13 +72,14 @@ export class File {
         const content = fs.readFileSync(this.path + '.gitignore').toString();
         const rules = content
             .split(/\n/g)
-            .filter(rule => !!rule && !/^\s*#/.test(rule))
+            .filter(rule => !!rule.trim() && !/^\s*#/.test(rule))
             .map(rule => new RegExp(rule
+            .replace(/\r/g, '')
             .replace(/\*\*/g, '.*')
             .replace(/\*/g, '[^/]*')
             .replace(/\?/g, '[^/]')
             .replace(/\//g, '\\$&')));
-        this.gitFilters = rules;
+        this.addGitFilters(...rules);
     }
     /**
      * Finds the names of this directorie's children
@@ -76,6 +102,9 @@ export class File {
         if (kidsNames.includes('.gitignore'))
             this.parseGitIgnore();
         return kidsNames;
+    }
+    get gitState() {
+        return GitFileState.NONE;
     }
     findParent() {
         const newPath = path.resolve(this.path + '/../');
@@ -120,6 +149,8 @@ export class File {
      * Displays this file and all of its children
      */
     toString() {
+        if (this.isGitIgnored())
+            return '';
         if (this.isDirectory) {
             this.explore();
             this.icon = ICONS.folder_open;
@@ -128,7 +159,12 @@ export class File {
         if (this.isDirectory && this.children.length) {
             out += '\n┆   ';
             out += this.children
-                .map(kid => kid.toString().replace(/\n/g, '\n┆   '))
+                .map(kid => {
+                if (!kid.isGitIgnored())
+                    return kid.toString().replace(/\n/g, '\n┆   ');
+                return '';
+            })
+                .filter(strKid => !!strKid)
                 .join('\n┆   ');
         }
         return out;
@@ -137,7 +173,8 @@ export class File {
      * Does git ignore this file?
      */
     isGitIgnored() {
-        return this.gitFilters.some(rx => rx.test(this.path));
+        const relative = git.getRelativePath(this.path);
+        return this.gitFilters.some(rx => rx.test(relative));
     }
     /**
      * Is it considered a hidden file (usually files beggining with a dot)
@@ -178,7 +215,7 @@ export class File {
     //
     // CRUD
     //
-    remove() {
+    async remove() {
         try {
             if (this.isDirectory) {
                 fs.rmdirSync(this.path, { recursive: true });
@@ -189,8 +226,13 @@ export class File {
         }
         catch (err) {
             if (err) {
-                console.error('Error while deleting file:\n', err);
-                process.exit(1);
+                try {
+                    await cmd('gksu rm -rf "' + this.path + '"');
+                }
+                catch (err) {
+                    console.error('Error while deleting file:\n', err);
+                    process.exit(1);
+                }
             }
         }
         this.parent.removeChild(this.name);
@@ -218,5 +260,14 @@ export class File {
         this.name = newName;
         this.refreshIcon();
     }
+}
+if (/file\.js$/.test(process.argv[1])) {
+    let inPath = '';
+    if (NO_ARGS_PROVIDED)
+        inPath = './';
+    else
+        inPath = process.argv[2];
+    inPath = path.resolve(inPath);
+    console.log(new File(inPath).toString());
 }
 //# sourceMappingURL=file.js.map

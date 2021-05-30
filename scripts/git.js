@@ -1,12 +1,44 @@
-import { cmd } from "./shell.js";
+import fs from 'fs';
+import { parsePath, toAbsolutePath } from './files.js';
+import { cmd } from './shell.js';
+class GitCache {
+    constructor() {
+        this._gitRoots = [];
+    }
+    static getInstance() {
+        if (!GitCache._instance)
+            GitCache._instance = new GitCache();
+        return GitCache._instance;
+    }
+    addGitRoot(path) {
+        path = toAbsolutePath(path);
+        if (this._gitRoots.includes(path))
+            this._gitRoots.push(path);
+    }
+    getGitRoot(path) {
+        path = toAbsolutePath(path);
+        for (const root of this._gitRoots) {
+            if (path.startsWith(root)) {
+                return root;
+            }
+        }
+        return '';
+    }
+}
+export var GitFileState;
+(function (GitFileState) {
+    GitFileState[GitFileState["NONE"] = 0] = "NONE";
+    GitFileState[GitFileState["MODIFIED"] = 1] = "MODIFIED";
+    GitFileState[GitFileState["DELETED"] = 2] = "DELETED";
+    GitFileState[GitFileState["ADDED"] = 3] = "ADDED";
+    GitFileState[GitFileState["UNTRACKED"] = 4] = "UNTRACKED";
+})(GitFileState || (GitFileState = {}));
 /**
  * Returns all the unstaged files
  */
 export async function getUnstaged() {
-    return getRootPath()
-        .then(root => {
-        return cmd(`git ls-files -m --full-name ${root}`, true);
-    });
+    const root = getRootPath();
+    return cmd(`git ls-files -m --full-name ${root}`, true);
 }
 export async function getBranches() {
     return cmd('git branch', true);
@@ -14,26 +46,29 @@ export async function getBranches() {
 export async function getFilesDiff(commit1, commit2) {
     return cmd(`git diff --name-only ${commit1} ${commit2}`, true);
 }
-export async function cwdInGitDir() {
-    return new Promise(async (resolve, reject) => {
-        return getRelativePath()
-            .then(() => resolve())
-            .catch(() => reject(new Error('Not in a git dir!')));
-    });
+export function cwdInGitDir(wd = './') {
+    return !!getRootPath(wd);
 }
-export async function getRootPath() {
-    return cwdInGitDir()
-        .then(() => {
-        return cmd('git rev-parse --show-toplevel');
-    });
+export function getRootPath(wd = './') {
+    let { path } = parsePath(wd);
+    const cachedRoot = GitCache.getInstance().getGitRoot(path);
+    if (cachedRoot)
+        return cachedRoot;
+    while (path) {
+        if (fs.existsSync(`${path}/.git`)) {
+            GitCache.getInstance().addGitRoot(path);
+            return path;
+        }
+        path = path.replace(/[^\/]*.$/, '');
+    }
+    return '';
 }
 /**
  * Gives the current path relative to the git root
  */
-export async function getRelativePath() {
-    return cmd('git rev-parse --show-prefix')
-        .then(path => {
-        return path || '/';
-    });
+export function getRelativePath(wd = './') {
+    const { path, file } = parsePath(wd);
+    const root = this.getRootPath(wd);
+    return (path + file).replace(root, '/');
 }
 //# sourceMappingURL=git.js.map

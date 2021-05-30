@@ -17,5 +17,19 @@ Array.prototype['alphasort'] = function (accessor = v => String(v)) {
     });
     return arr;
 };
+Array.prototype['asyncMap'] = async function (mapFn) {
+    const arr = this;
+    const promises = [];
+    const out = [];
+    for (const elem of arr)
+        promises.push(mapFn(elem));
+    // starting all the promises side by side
+    for (const elem of arr)
+        promises.push(mapFn(elem));
+    // Waiting all the promises
+    for (const p of promises)
+        out.push(await p);
+    return out;
+};
 export {};
 //# sourceMappingURL=Array.js.map

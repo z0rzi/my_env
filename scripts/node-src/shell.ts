@@ -45,6 +45,8 @@ export async function cmd(
                 }
                 return reject(err);
             }
+
+            return resolve('');
         });
     });
 }
@@ -76,7 +78,10 @@ export async function logInFile(
     fs.writeFileSync(file, str);
 }
 
-export async function sourceCmd(cmd: string, args: string[]): Promise<number> {
+export async function sourceCmd(
+    cmd: string,
+    args: string[] = []
+): Promise<number> {
     const proc = child_process.spawn(cmd, args);
 
     function indata(c) {
@@ -120,7 +125,7 @@ export function mapArgs(
     opts: MapOptions = {
         multiMatch: true,
     }
-) {
+): void {
     let noMatchCb = null as (
         match: string,
         captureGroups: { [key: string]: string }

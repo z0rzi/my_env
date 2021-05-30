@@ -7,12 +7,15 @@ export class Prompt {
         this.onConfirm = null;
         this.onChange = null;
         this.onCancel = null;
+        this.onKeyHit = null;
+        this._oldKbListener = null;
         this._lastValue = '';
         this.cli = cli;
         this.line = line;
         this.col = col;
         this.cli.goTo(line, col);
         this.cli.clearToEndOfLine();
+        this._oldKbListener = this.cli.hitListener;
         this.cli.onKeyHit(this.promptInputListener.bind(this));
     }
     get value() {
@@ -33,6 +36,9 @@ export class Prompt {
         pos = pos + this.col;
         this.cli.goToCol(pos);
     }
+    destroy() {
+        this.cli.onKeyHit(this._oldKbListener);
+    }
     redraw() {
         this.cli.toggleCursor(false);
         this.cli.savePos();
@@ -43,7 +49,9 @@ export class Prompt {
         this.cli.loadPos();
         this.cli.toggleCursor(true);
     }
-    promptInputListener(keyName, ctrl, shift) {
+    promptInputListener(keyName, ctrl, shift, alt) {
+        if (this.onKeyHit && !this.onKeyHit(keyName, ctrl, shift, alt))
+            return;
         if (keyName === 'space')
             keyName = ' ';
         const oldText = this.value;
@@ -99,17 +107,19 @@ export class Prompt {
                     this.caretPos++;
                     break;
                 case 'return':
-                    if (this.onConfirm)
-                        this.onConfirm(this.value);
+                    if (this.onConfirm && this.onConfirm(this.value))
+                        this.destroy();
                     break;
                 case 'escape':
-                    if (this.onCancel)
-                        this.onCancel(this.value);
+                    if (this.onCancel && this.onCancel(this.value))
+                        this.destroy();
                     break;
             }
         }
-        if (this.onChange && oldText !== this.value)
-            this.onChange(this.value);
+        if (this.onChange &&
+            oldText !== this.value &&
+            this.onChange(this.value))
+            this.destroy();
     }
 }
 //# sourceMappingURL=prompt.js.map

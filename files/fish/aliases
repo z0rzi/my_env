@@ -4,6 +4,13 @@ minivim   nvim -u NONE
 tinyvim   nvim -u NONE
 vimtiny   nvim -u NONE
 
+vimhtml nvim /tmp/_(random).html
+vimjs nvim /tmp/_(random).js
+vimts nvim /tmp/_(random).ts
+vimcss nvim /tmp/_(random).css
+vimsql nvim /tmp/_(random).sql
+vimpy nvim /tmp/_(random).py
+
 bc bc -l
 
 office onlyoffice-desktopeditors

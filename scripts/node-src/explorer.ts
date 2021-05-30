@@ -83,8 +83,8 @@ class ExplorerFile extends File {
         return this;
     }
 
-    refreshChildren() {
-        if (!this.isDirectory) {
+    refreshChildren(): ExplorerFile {
+        if (!this.isDirectory || !this.opened) {
             this.parent.refreshChildren();
             return (
                 this.parent.children.find(kid => kid.name === this.name) ||
@@ -142,12 +142,12 @@ class ExplorerFile extends File {
         }
     }
 
-    get position() {
+    get position(): number {
         if (!this.parent) return 0;
         return this.parent.getChildAbsolutePos(this);
     }
 
-    get height() {
+    get height(): number {
         if (!this.showHidden && this.isHiddenFile()) return 0;
 
         if (!this.isDirectory || !this.opened) return 1;
@@ -156,7 +156,7 @@ class ExplorerFile extends File {
         return height;
     }
 
-    get width() {
+    get width(): number {
         return this.depth * INDENT.length + this.name.length + 2;
     }
 
@@ -192,7 +192,7 @@ class ExplorerFile extends File {
         return this;
     }
 
-    getChildAbsolutePos(child: ExplorerFile) {
+    getChildAbsolutePos(child: ExplorerFile): number {
         if (!this.isDirectory || !this.opened || !this.children.length)
             return -1;
 
@@ -206,7 +206,7 @@ class ExplorerFile extends File {
 }
 
 class Explorer {
-    height = 30;
+    height = -1;
     isDead = false;
 
     cli: Cli = null;
@@ -230,17 +230,21 @@ class Explorer {
 
     fileOpenListener: (file: ExplorerFile) => unknown = null;
 
-    constructor(path: string, onFileOpen: (file: ExplorerFile) => unknown) {
+    constructor(path: string, onFileOpen?: (file: ExplorerFile) => unknown) {
         this.rootFile = new ExplorerFile(path);
+        this.rootFile.open();
         this.currentFile = this.rootFile;
-
-        this.cli = Cli.getInstance(this.height);
-        this.cli.onKeyHit(this.onInput.bind(this));
-        this.cli.toggleCursor(false);
 
         this.fileOpenListener = onFileOpen;
 
-        this.refreshDisplay();
+        this.cli = new Cli(this.height);
+        this.cli.onKeyHit(this.onInput.bind(this));
+        this.cli.toggleCursor(false);
+
+        this.cli.waitForReady.then(() => {
+            this.height = this.cli.maxHeight;
+            this.refreshDisplay();
+        });
     }
 
     end(): void {
@@ -320,17 +324,122 @@ class Explorer {
             p.value = initValue;
             p.caretPos = initValue.length;
             p.onConfirm = (text: string) => {
-                this.cli.onKeyHit(this.onInput.bind(this));
                 this.cli.toggleCursor(false);
-                return resolve(text);
+                resolve(text);
+                return true;
             };
             p.onCancel = () => {
-                this.cli.onKeyHit(this.onInput.bind(this));
                 this.cli.toggleCursor(false);
                 this.refreshEmphasis();
-                return reject();
+                reject();
+                return true;
             };
         });
+    }
+
+    //
+    // Actions
+    //
+    open(recursive = false): void {
+        if (!this.currentFile.isDirectory)
+            this.fileOpenListener(this.currentFile);
+        else {
+            this.currentFile.open(recursive ? 5 : 0);
+            this.refreshDisplay();
+        }
+    }
+    close(recursive = false): void {
+        this.currentFile = this.currentFile.close(recursive);
+        this.refreshDisplay();
+    }
+    createNew(isDir = false): void {
+        let newfile = null;
+        if (this.currentFile.isDirectory && this.currentFile.opened) {
+            newfile = this.currentFile.createChild(
+                '_explorer_internal',
+                isDir
+            ) as ExplorerFile;
+        } else
+            newfile = this.currentFile.parent.createChild(
+                '_explorer_internal',
+                isDir
+            ) as ExplorerFile;
+
+        if (!newfile) return;
+
+        this.currentFile = newfile;
+        this.refreshDisplay();
+
+        this.createPrompt()
+            .then(text => {
+                this.currentFile.rename(text);
+                this.refreshDisplay();
+            })
+            .catch(() => {
+                const file = this.currentFile;
+                this.currentFile = this.currentFile.next;
+                if (this.currentFile === file)
+                    this.currentFile = this.currentFile.previous;
+                file.remove().then(this.refreshDisplay.bind(this));
+            });
+        this.refreshDisplay();
+    }
+    changeRoot(): void {
+        // Change root dir
+        if (this.currentFile.isDirectory) {
+            this.rootFile = this.currentFile;
+            this.rootFile.parent = null;
+            this.refreshDisplay();
+        }
+    }
+    rename(): void {
+        this.createPrompt(this.currentFile.name)
+            .then(text => {
+                this.currentFile.rename(text);
+                this.refreshDisplay();
+            })
+            .catch(() => {});
+    }
+    goUp(toFirst: boolean): void {
+        if (toFirst) {
+            this.currentFile = this.currentFile.parent.visibleChildren[0];
+        } else {
+            this.currentFile = this.currentFile.previous;
+        }
+
+        if (this.offset > 0 && this.currentFile.position - this.offset <= 0) {
+            this.refreshDisplay();
+        } else {
+            this.refreshEmphasis();
+        }
+    }
+    goDown(toLast: boolean): void {
+        if (toLast) {
+            const siblings = this.currentFile.parent.visibleChildren;
+            this.currentFile = siblings[siblings.length - 1];
+        } else this.currentFile = this.currentFile.next;
+
+        if (this.currentFile.position - this.offset > this.cli.maxHeight) {
+            this.refreshDisplay();
+        } else {
+            this.refreshEmphasis();
+        }
+    }
+    remove(): void {
+        this.cli.goToCol(this.currentFile.width + 1);
+        this.cli.write('Sure? ');
+        this.createPrompt('', this.currentFile.width + 1 + 'Sure? '.length)
+            .then(text => {
+                if (text === 'yes') {
+                    const file = this.currentFile;
+                    this.currentFile = this.currentFile.next;
+                    if (this.currentFile === file)
+                        this.currentFile = this.currentFile.previous;
+                    file.remove().then(this.refreshDisplay.bind(this));
+                }
+                this.refreshDisplay();
+            })
+            .catch(() => {});
     }
 
     onInput(keyName: string, ctrl: boolean, shift: boolean): void {
@@ -340,29 +449,15 @@ class Explorer {
         if (keyName.length === 1) {
             switch (keyName) {
                 case 'q':
+                    this.cli.clearScreen();
                     this.cli.toggleCursor(true);
                     process.exit(0);
                 case 'r':
-                    if (shift) {
-                        // Change root dir
-                        if (this.currentFile.isDirectory) {
-                            this.rootFile = this.currentFile;
-                            this.rootFile.parent = null;
-                            this.refreshDisplay();
-                        }
-                    } else {
-                        // rename
-                        this.createPrompt(this.currentFile.name)
-                            .then(text => {
-                                this.currentFile.rename(text);
-                                this.refreshDisplay();
-                            })
-                            .catch(() => {});
-                    }
+                    if (shift) this.changeRoot();
+                    else this.rename();
                     break;
                 case 'x':
-                    this.currentFile = this.currentFile.close(ctrl || shift);
-                    this.refreshDisplay();
+                    this.close(ctrl || shift);
                     break;
                 case 'z':
                     this.offset =
@@ -372,30 +467,7 @@ class Explorer {
                     this.refreshDisplay();
                     break;
                 case 'a':
-                    let newfile = null;
-                    if (this.currentFile.isDirectory) {
-                        this.currentFile.open();
-                        newfile = this.currentFile.createChild(
-                            '_explorer_internal',
-                            shift
-                        ) as ExplorerFile;
-                    } else
-                        newfile = this.currentFile.parent.createChild(
-                            '_explorer_internal',
-                            shift
-                        ) as ExplorerFile;
-
-                    if (!newfile) break;
-
-                    this.currentFile = newfile;
-                    this.refreshDisplay();
-
-                    this.createPrompt()
-                        .then(text => {
-                            this.currentFile.rename(text);
-                            this.refreshDisplay();
-                        })
-                        .catch(() => {});
+                    this.createNew(shift);
                     break;
 
                 case '.':
@@ -405,80 +477,29 @@ class Explorer {
         } else {
             switch (keyName) {
                 case 'f5':
-                    // const name = this.currentFile.name;
                     this.currentFile = this.currentFile.refreshChildren();
+
                     this.refreshScreen();
                     break;
 
                 case 'left':
-                    this.currentFile = this.currentFile.close(ctrl || shift);
-                    this.refreshDisplay();
+                    this.close(ctrl || shift);
                     break;
 
                 case 'right':
-                    if (!this.currentFile.isDirectory)
-                        this.fileOpenListener(this.currentFile);
-                    else {
-                        this.currentFile.open(ctrl || shift ? 5 : 0);
-                        this.refreshDisplay();
-                    }
-
+                    this.open(ctrl || shift);
                     break;
 
                 case 'up':
-                    if (shift || ctrl) {
-                        this.currentFile =
-                            this.currentFile.parent.visibleChildren[0];
-                    } else {
-                        this.currentFile = this.currentFile.previous;
-                    }
-
-                    if (
-                        this.offset > 0 &&
-                        this.currentFile.position - this.offset <= 0
-                    ) {
-                        this.refreshDisplay();
-                    } else {
-                        this.refreshEmphasis();
-                    }
+                    this.goUp(shift || ctrl);
                     break;
 
                 case 'down':
-                    if (shift || ctrl) {
-                        const siblings =
-                            this.currentFile.parent.visibleChildren;
-                        this.currentFile = siblings[siblings.length - 1];
-                    } else this.currentFile = this.currentFile.next;
-
-                    if (
-                        this.currentFile.position - this.offset >
-                        this.cli.maxHeight
-                    ) {
-                        this.refreshDisplay();
-                    } else {
-                        this.refreshEmphasis();
-                    }
+                    this.goDown(ctrl || shift);
                     break;
 
                 case 'delete':
-                    this.cli.goToCol(this.currentFile.width + 1);
-                    this.cli.write('Sure? ');
-                    this.createPrompt(
-                        '',
-                        this.currentFile.width + 1 + 'Sure? '.length
-                    )
-                        .then(text => {
-                            if (text === 'yes') {
-                                const file = this.currentFile;
-                                this.currentFile = this.currentFile.next;
-                                if (this.currentFile === file)
-                                    this.currentFile =
-                                        this.currentFile.previous;
-                                file.remove();
-                            }
-                            this.refreshDisplay();
-                        })
-                        .catch(() => {});
+                    this.remove();
                     break;
 
                 case 'backspace':
@@ -508,13 +529,15 @@ async function explore(path: string): Promise<ExplorerFile> {
     });
 }
 
-export { Explorer, explore };
+export { Explorer, ExplorerFile, explore };
 
 if (/explorer\.js$/.test(process.argv[1])) {
-    if (NO_ARGS_PROVIDED) process.exit(1);
+    let inPath = '';
 
-    const inPath = process.argv[2];
-    const cli = Cli.getInstance();
+    if (NO_ARGS_PROVIDED) inPath = './';
+    else inPath = process.argv[2];
+
+    const cli = new Cli();
 
     const exp = new Explorer(path.resolve(inPath), file => {
         cli.offHitKey();

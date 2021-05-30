@@ -5,16 +5,12 @@ import * as git from './git.js';
 import { cmd, mapArgs, NO_MATCH_FOUND } from './shell.js';
 
 async function checkDiff(commit1 = 'HEAD', commit2 = '') {
-    let gitRoot = '';
-
+    const gitRoot = git.getRootPath();
+    const c1 = commit1 || gitRoot;
+    const c2 = commit2 || gitRoot;
     return git
-        .getRootPath()
-        .then(root => {
-            const c1 = commit1 || root;
-            const c2 = commit2 || root;
-            gitRoot = root;
-            return git.getFilesDiff(c1, c2);
-        })
+        .getFilesDiff(c1, c2)
+
         .then(files => {
             if (!files.length) {
                 console.log('No unstaged files!');
@@ -75,3 +71,11 @@ mapArgs({
     },
     [NO_MATCH_FOUND]: () => checkDiff(),
 });
+
+function then(
+    arg0: (
+        files: any
+    ) => Promise<{ label: string; tags: string; payload?: unknown }>
+) {
+    throw new Error('Function not implemented.');
+}

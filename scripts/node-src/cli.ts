@@ -1,5 +1,38 @@
+import { clearLine } from 'readline';
 import { Key, Keyboard } from './keyboard.js';
 import { cmd } from './shell.js';
+
+async function getCursorPosition(): Promise<{ x: number; y: number }> {
+    return new Promise(resolve => {
+        getPositionRetry(true, (x, y) => {
+            resolve({ x, y });
+        });
+    });
+}
+
+function getPositionRetry(
+    retry: boolean,
+    oncursor: (x: number, y: number) => unknown
+) {
+    process.stdin.setRawMode(true);
+    process.stdin.on('data', ondata);
+    process.stdout.write('\x1b[6n');
+    const written = process.stdout.bytesWritten;
+
+    function ondata(data: number[]) {
+        if (data[0] !== 0x1b && data[1] !== 0x5b) return;
+        process.stdin.setRawMode(false);
+        process.stdin.removeListener('data', ondata);
+        if (written !== process.stdout.bytesWritten && retry)
+            return getPositionRetry(false, oncursor);
+        const [y, x] = data
+            .slice(2, data.length - 1)
+            .toString()
+            .split(';')
+            .map(Number);
+        oncursor(x - 1, y - 1);
+    }
+}
 
 export enum CliColor {
     BLACK = 0,
@@ -20,64 +53,55 @@ export type StyleOptions = {
 };
 
 class Cli {
-    static _instance = null;
-    static getInstance(height = 30): Cli {
-        if (!this._instance) {
-            this._instance = new Cli(height);
-        }
-        if (height !== this._instance.height) {
-            this._instance.clearScreen();
-            this._instance.updateHeight(height);
-        }
-        return this._instance;
-    }
-
     x = 0;
     y = 0;
 
+    cursorOn = true;
+
     kb: Keyboard;
 
-    _maxHeight = 20;
-    _maxWidth = -1;
+    _height_offset = 0;
+    maxHeight = 20;
     get maxWidth(): number {
-        if (this._maxWidth > 0) return this._maxWidth;
-
-        if (this._maxWidth < 0) {
-            cmd('tput cols').then(width => {
-                this._maxWidth = Number(width);
-            });
-            this._maxWidth = 0;
-        }
-        return 200;
+        return this._termMetas.width - this._termMetas.offset.cols;
     }
 
-    _termHeight = -1;
-    get maxHeight(): number {
-        if (this._termHeight > 0)
-            return Math.min(this._termHeight, this._maxHeight);
-
-        if (this._termHeight < 0) {
-            cmd('tput lines').then(height => {
-                this._termHeight = 1;
-                this._termHeight = Number(height);
-            });
-            this._termHeight = 0;
-        }
-        return this._maxHeight;
+    _termMetas = {
+        height: 20,
+        width: 200,
+        offset: {
+            lines: 0,
+            cols: 0,
+        },
+    };
+    async refreshTermMetas(): Promise<void> {
+        this._termMetas.height = await cmd('tput lines').then(Number);
+        this._termMetas.width = await cmd('tput cols').then(Number);
+        this._termMetas.offset.lines = await getCursorPosition().then(
+            ({ y }) => y
+        );
     }
 
-    set maxHeight(newHeight: number) {
-        this._maxHeight = newHeight;
-    }
-
-    private constructor(height = 30) {
-        this.updateHeight(height);
-
+    constructor(lines = -1, cols = -1, yOffset = -1, xOffset = -1) {
         this.kb = Keyboard.getInstance();
+        this.clearScreen();
+        this.refreshTermMetas().then(() => {
+            this.updateHeight(lines);
+            this._readyResolve();
+            if (cols > 0)
+                this._termMetas.width = Math.min(cols, this._termMetas.width);
+            if (xOffset > 0) this._termMetas.offset.cols = xOffset;
+            if (yOffset > 0) this._termMetas.offset.lines = yOffset;
 
-        this.up(height);
-        this.sol();
+            this.isReady = true;
+        });
     }
+
+    _readyResolve = null;
+    isReady = false;
+    waitForReady = new Promise(resolve => {
+        this._readyResolve = resolve;
+    }) as Promise<void>;
 
     color(color: CliColor): void {
         process.stdout.write(`\x1b[0;${90 + color}m`);
@@ -96,18 +120,35 @@ class Cli {
     }
 
     updateHeight(newHeight: number): void {
-        this.maxHeight = newHeight;
-        this.savePos('__updateHeight__');
+        const oldHeight = this.maxHeight;
+        if (newHeight < 0)
+            this.maxHeight =
+                this._termMetas.height - this._termMetas.offset.lines - 1;
+        else this.maxHeight = Math.min(newHeight, this._termMetas.height - 1);
 
-        this.goTo(0, 0);
-        let cnt = newHeight;
-        while (cnt--) console.log('');
-        this.y = newHeight;
+        const availableSpace =
+            this._termMetas.height - this._termMetas.offset.lines;
 
-        this.loadPos('__updateHeight__');
+        if (availableSpace < this.maxHeight) {
+            this.savePos('__updateHeight__');
+
+            this.goTo(oldHeight, 0);
+            console.log('\n'.repeat(this.maxHeight - oldHeight));
+            this.y = this.maxHeight;
+
+            this.loadPos('__updateHeight__');
+
+            this._termMetas.offset.lines =
+                this._termMetas.height - this.maxHeight;
+        }
     }
 
     _positions = {};
+    /**
+     * Saves the current position of the cursor, to be loaded later
+     *
+     * @param tag A key to be associated with this position
+     */
     savePos(tag = null): void {
         tag = tag || '__tmp__';
         this._positions[tag] = {
@@ -116,6 +157,11 @@ class Cli {
         };
     }
 
+    /**
+     * Moves the cursor to a saved position
+     *
+     * @param tag The key provided to the save function.
+     */
     loadPos(tag = null): void {
         tag = tag || '__tmp__';
         if (!(tag in this._positions)) {
@@ -125,6 +171,18 @@ class Cli {
         this.goTo(y, x);
     }
 
+    private _refreshCurPos(line = this.y, col = this.x): void {
+        const move = () =>
+            process.stdout.write(
+                `\x1b[${this._termMetas.offset.lines + line + 1};${
+                    this._termMetas.offset.cols + col + 1
+                }H`
+            );
+
+        if (this.isReady) move();
+        else this.waitForReady.then(move);
+    }
+
     up(n = 1): void {
         if (this.y - n <= 0) n = this.y;
         if (n === 0) return;
@@ -132,8 +190,8 @@ class Cli {
             this.down(-1 * n);
             return;
         }
-        process.stdout.write(`\x1b[${n}A`);
         this.y -= n;
+        this._refreshCurPos();
     }
     down(n = 1): void {
         if (this.y + n >= this.maxHeight) n = this.maxHeight - this.y;
@@ -142,8 +200,8 @@ class Cli {
             this.up(-1 * n);
             return;
         }
-        process.stdout.write(`\x1b[${n}B`);
         this.y += n;
+        this._refreshCurPos();
     }
     right(n = 1): void {
         if (this.x + n >= this.maxWidth) n = this.maxWidth - this.x;
@@ -152,8 +210,8 @@ class Cli {
             this.left(-1 * n);
             return;
         }
-        process.stdout.write(`\x1b[${n}C`);
         this.x += n;
+        this._refreshCurPos();
     }
     left(n = 1): void {
         if (this.x - n <= 0) n = this.x;
@@ -162,8 +220,8 @@ class Cli {
             this.right(-1 * n);
             return;
         }
-        process.stdout.write(`\x1b[${n}D`);
         this.x -= n;
+        this._refreshCurPos();
     }
 
     goTo(y = this.y, x = this.x): void {
@@ -184,8 +242,7 @@ class Cli {
      * Puts the cursor to the start of line
      */
     sol(): void {
-        process.stdout.write(`\x1b[1000D`);
-        this.x = 0;
+        this.left(1000);
     }
 
     /**
@@ -198,9 +255,6 @@ class Cli {
             this.up();
             this.clearLine();
         }
-        // process.stdout.write(`\x1b[2J`);
-        // this.sol();
-        // this.up(5000);
     }
 
     /**
@@ -212,7 +266,12 @@ class Cli {
     }
 
     clearToEndOfLine(): void {
-        process.stdout.write('\x1b[K');
+        if (this.isReady) {
+            this.savePos('cteof');
+            this.write(' '.repeat(this.maxWidth));
+            this.x = this.maxWidth;
+            this.loadPos('cteof');
+        } else process.stdout.write('\x1b[K');
     }
 
     /**
@@ -240,8 +299,11 @@ class Cli {
         this.clearAllStyles();
     }
 
-    toggleCursor(flag: boolean): void {
-        if (flag) process.stdout.write('\x1B[?25h');
+    toggleCursor(flag?: boolean): void {
+        if (typeof flag === 'boolean') this.cursorOn = flag;
+        else this.cursorOn = !this.cursorOn;
+
+        if (this.cursorOn) process.stdout.write('\x1B[?25h');
         else process.stdout.write('\x1B[?25l');
     }
 
@@ -280,12 +342,17 @@ class Cli {
 
     onKeyPress = ((key: Key) => {
         if (!this.hitListener) return;
-        this.hitListener(key.key, key.ctrl, key.shift);
+        this.hitListener(key.key, key.ctrl, key.shift, key.alt);
     }).bind(this);
 
     hitListener = null;
     onKeyHit(
-        cb: (keyname: string, ctrl: boolean, shift: boolean) => unknown
+        cb: (
+            keyname: string,
+            ctrl?: boolean,
+            shift?: boolean,
+            alt?: boolean
+        ) => unknown
     ): void {
         this.kb.onKeyPress(this.onKeyPress);
         this.hitListener = cb;

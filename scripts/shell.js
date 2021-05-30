@@ -34,6 +34,7 @@ export async function cmd(command, cut_lines = false) {
                 }
                 return reject(err);
             }
+            return resolve('');
         });
     });
 }
@@ -58,7 +59,7 @@ export async function logInFile(obj, file = '/tmp/tmp.txt') {
     }
     fs.writeFileSync(file, str);
 }
-export async function sourceCmd(cmd, args) {
+export async function sourceCmd(cmd, args = []) {
     const proc = child_process.spawn(cmd, args);
     function indata(c) {
         proc.stdin.write(c);

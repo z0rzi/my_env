@@ -25,7 +25,7 @@
     set diffopt+=filler
     set diffopt+=vertical
     set signcolumn=yes
-    " set termguicolors  " Increases the saturation
+    set termguicolors  " Increases the saturation
     set previewheight=5
 
     " different cursors in different modes
@@ -942,7 +942,7 @@
             \     '^\(if\|for\|while\|switch\)\s\+\([^([:blank:]][^(]\+\)': "$1 ($2)\<LEFT>",
             \     'c': "const",
             \     'prom': "new Promise((resolve, reject) => {})\<LEFT>\<LEFT>!",
-            \     '^ret$': "return",
+            \     '^ret': "return",
             \     'req$': "require('')\<LEFT>\<LEFT>!",
             \     'aw': "await",
             \     '^ii': "if(  )\<LEFT>\<LEFT>!",
@@ -958,6 +958,8 @@
             \   'typescript': {
             \     '@inherit': 'javascript',
             \     'ro': "readonly",
+            \     '^Inp': "@Input() attr: string;\<ESC>Fave\<C-g>!",
+            \     '^Out': "@Output() attr: EventEmitter<string> = new EventEmitter<string>();\<ESC>^fave\<C-g>!",
             \     'pub': "public",
             \     'pri': "private",
             \   },
@@ -1169,8 +1171,8 @@
         inoremap <C-SPACE> <C-x>
         inoremap <C-x> <CMD>call UltiSnips#JumpForwards()<CR>
         inoremap <C-z> <CMD>call UltiSnips#JumpBackwards()<CR>
-        vnoremap <C-x> <CMD>call UltiSnips#JumpForwards()<CR>
-        vnoremap <C-z> <CMD>call UltiSnips#JumpBackwards()<CR>
+        xnoremap <C-x> <CMD>call UltiSnips#JumpForwards()<CR>
+        xnoremap <C-z> <CMD>call UltiSnips#JumpBackwards()<CR>
 
     " FZF
         let g:fzf_history_dir = '~/.local/share/fzf-history'
@@ -1381,6 +1383,8 @@
               \ 'do': 'make install'
             \}
 
+            Plugin 'norcalli/nvim-colorizer.lua'
+
         " 
         " Others
         " 
@@ -1425,13 +1429,13 @@
         inoremap <DOWN> <C-G>U<DOWN>
         inoremap <UP> <C-G>U<UP>
 
-        vnoremap <CR> <CMD>if mode() == 'V' <BAR> call search('\%#.*\zs\([{[(][;:.,\\]*\<BAR>\/\*\+\)$') <BAR> endif<CR>%
+        xnoremap <CR> <CMD>if mode() == 'V' <BAR> call search('\%#.*\zs\([{[(][;:.,\\]*\<BAR>\/\*\+\)$') <BAR> endif<CR>%
 
-        vnoremap p <CMD>let save=@0<CR>p<CMD>let [@0, @", @+] = [save, save, save]<CR>
-        vnoremap $ $h
+        xnoremap p <CMD>let save=@0<CR>p<CMD>let [@0, @", @+] = [save, save, save]<CR>
+        xnoremap $ $h
         nnoremap - 2<C-y><C-g>
         nnoremap + 2<C-e><C-g>
-        vnoremap g= c<C-r>=<C-r>+<CR><ESC>
+        xnoremap g= c<C-r>=<C-r>+<CR><ESC>
         nnoremap g= Vc<C-r>=<C-r>+<CR><ESC>
         inoremap \'e é
         nnoremap cb vbc
@@ -1444,15 +1448,15 @@
         nmap <F5> <CMD>redraw!<CR><CMD>GitGutter<CR><CMD>set foldmethod=expr<CR><CMD>AdaptIndent<CR><CMD>MinimapToggle<CR><CMD>MinimapToggle<CR>
 
         " Fast selection wrap
-            vnoremap "" c""<ESC>Pgvlolo
-            vnoremap '' c''<ESC>Pgvlolo
-            vnoremap `` c``<ESC>Pgvlolo
-            vnoremap {{ c{  }<ESC>hPgvllollo
-            vnoremap }} c{}<ESC>Pgvlolo
-            vnoremap [[ c[  ]<ESC>hPgvllollo
-            vnoremap ]] c[]<ESC>Pgvlolo
-            vnoremap (( c(  )<ESC>hPgvllollo
-            vnoremap )) c()<ESC>Pgvlolo
+            xnoremap "" c""<ESC>Pgvlolo
+            xnoremap '' c''<ESC>Pgvlolo
+            xnoremap `` c``<ESC>Pgvlolo
+            xnoremap {{ c{  }<ESC>hPgvllollo
+            xnoremap }} c{}<ESC>Pgvlolo
+            xnoremap [[ c[  ]<ESC>hPgvllollo
+            xnoremap ]] c[]<ESC>Pgvlolo
+            xnoremap (( c(  )<ESC>hPgvllollo
+            xnoremap )) c()<ESC>Pgvlolo
 
         " no yank delete
             nnoremap \ "_
@@ -1474,15 +1478,15 @@
             nnoremap <C-down> <CMD>if MultiCursorOn()<BAR>exe "norm j"<BAR>else<BAR>m+1<BAR>endif<CR>
             " nnoremap <C-down> <CMD>m+1<CR>
             " nnoremap <C-up> <CMD>m-2<CR>
-            vnoremap <C-up> :<C-u>exe (line("'<")-1) . " m " . line("'>")<CR>gv
-            vnoremap <C-down> :<C-u>exe (line("'>")+1) . " m " . (line("'<") - 1)<CR>gv
-            vnoremap <C-right> dpgvlolo
-            vnoremap <C-left> dhPgvhoho
+            xnoremap <C-up> :<C-u>exe (line("'<")-1) . " m " . line("'>")<CR>gv
+            xnoremap <C-down> :<C-u>exe (line("'>")+1) . " m " . (line("'<") - 1)<CR>gv
+            xnoremap <C-right> dpgvlolo
+            xnoremap <C-left> dhPgvhoho
 
 
         " Duplicate lines
             nnoremap <silent> Z <CMD>set opfunc=DuplicateLines<CR>g@
-            vnoremap <silent> Z  <CMD>call DuplicateLines(visualmode(), 1)<CR>
+            xnoremap <silent> Z  <CMD>call DuplicateLines(visualmode(), 1)<CR>
             nnoremap <silent> ZZ <CMD>co +0<CR>
             nnoremap <silent> zx <CMD>co +0<CR>
 
@@ -1496,7 +1500,7 @@
 
 
         " Cool selection stuff
-            vnoremap <C-c> "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/) <BAR> set hlsearch <CR>cgn
+            xnoremap <C-c> "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/) <BAR> set hlsearch <CR>cgn
             function! ToNextOccurence(backward)
                 if mode() == 'n'
                     call RestrictSearch(0)
@@ -1519,12 +1523,12 @@
                 call search(@/, flags)
                 call histadd('/', @/)
             endfunction
-            vnoremap <S-LEFT> <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
-            vnoremap <S-RIGHT> <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
+            xnoremap <S-LEFT> <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
+            xnoremap <S-RIGHT> <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
             nnoremap <silent> <S-LEFT> <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
             nnoremap <silent> <S-RIGHT> <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
-            vnoremap # <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
-            vnoremap * <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
+            xnoremap # <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
+            xnoremap * <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
             nmap <CS-Right> <CMD>call RestrictSearch(1)<CR>
             nmap <CS-Left> <CMD>call RestrictSearch(-1)<CR>
 
@@ -1627,20 +1631,20 @@
     " Plugin related maps
         " JsDoc
             nnoremap <LEADER>* :JsDoc<CR>
-            vnoremap <LEADER>* :JsDoc<CR>
+            xnoremap <LEADER>* :JsDoc<CR>
 
         " CtrlSF
             nnoremap <C-f> :CtrlSF ''<LEFT>
             nnoremap <C-s> :let @/ = '<C-r>=expand('<cword>')<CR>'<CR>:CtrlSF '\b<C-r>=@/<CR>\b'<CR>:CtrlSFFocus<CR>
-            vnoremap <C-f> <ESC>:let @/ = escape(getline('.')[col("'<")-1 : col("'>")-1], '.\\[]')<CR>:CtrlSF "<C-r>=escape(@/, '"()')<CR>"<LEFT>
-            vnoremap <C-s> <ESC>:let @/ = escape(getline('.')[col("'<")-1 : col("'>")-1], '.\\[]')<CR>:CtrlSF "<C-r>=escape(@/, '"()')<CR>"<CR>
+            xnoremap <C-f> <ESC>:let @/ = escape(getline('.')[col("'<")-1 : col("'>")-1], '.\\[]')<CR>:CtrlSF "<C-r>=escape(@/, '"()')<CR>"<LEFT>
+            xnoremap <C-s> <ESC>:let @/ = escape(getline('.')[col("'<")-1 : col("'>")-1], '.\\[]')<CR>:CtrlSF "<C-r>=escape(@/, '"()')<CR>"<CR>
 
         " CoC
             nnoremap <C-q> :CocAction<CR>
             nnoremap <S-q> :CocCommand<CR>
 
             nnoremap <LEADER>= <CMD>call CocAction('format')<CR>
-            autocmd BufNew *.ts nnoremap <buffer> <LEADER>= <CMD> call CocAction('format')<CR><CMD>CocCommand tsserver.organizeImports<CR><CMD>CocCommand tsserver.executeAutofix<CR>
+            autocmd BufEnter *.ts nnoremap <buffer> <LEADER>= <CMD>CocCommand tsserver.organizeImports<CR><CMD>CocCommand tsserver.executeAutofix<CR><CMD>call CocAction('format')<CR>
 
             " Tab to go through completion list
             inoremap <silent><expr> <TAB>
@@ -1682,7 +1686,7 @@
                 sil! GitGutter
             endfunction
             command -range GitGutterStageSelection call GitGutterStageSelection(<line1>, <line2>)
-            vnoremap <LEADER>ga :GitGutterStageSelection<CR>
+            xnoremap <LEADER>ga :GitGutterStageSelection<CR>
 
             nnoremap <LEADER>gs <CMD>call system('git reset ' . @%) <BAR> GitGutter<CR>
             nnoremap <LEADER>gr <CMD>call system('git reset ' . @%) <BAR> GitGutter<CR>
@@ -1700,15 +1704,15 @@
             nnoremap <leader>t: mm<CMD>Tabular /^[^:]*:\zs/l0r1<CR>`m
             nnoremap <leader>t> mm<CMD>Tabular /^[^=]*\zs=>/<CR>`m
             nnoremap <leader>t<SPACE> mm<CMD>Tabular / *\zs /l0<CR>`m
-            vnoremap <leader>t= :Tabular /^[^=]*\zs=<CR>
-            vnoremap <leader>t: :Tabular /:\zs<CR>
-            vnoremap <leader>t<SPACE> :Tabular / *\zs /l0<CR>
+            xnoremap <leader>t= :Tabular /^[^=]*\zs=<CR>
+            xnoremap <leader>t: :Tabular /:\zs<CR>
+            xnoremap <leader>t<SPACE> :Tabular / *\zs /l0<CR>
             nnoremap <leader>t> mm<CMD>Tabular /^[^=]*\zs=>/<CR>`m
 
             " nmap <leader>t* mm?/\*\*<CR>kmn:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/@param\s\+\S\+\s\+\S\+\zs\s\+/ /<CR>`nO<ESC>0CTabular /^\s\+\*\s\+@\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@param\s\+\S\+\s\+\S\+\s*\zs\s/l0<ESC>:s/[^\\]\zs\|/\r/g<CR>^tDddk^"rDddk^"eDdd`n:/\/\*\*/,/\*\//g/./<C-r>e<CR>`n:/\/\*\*/,/\*\//g/./<C-r>r<CR>`n:/\/\*\*/,/\*\//g/./<C-r>t<CR>`m
 
             nnoremap <leader>t :Tabular /
-            vnoremap <leader>t :Tabular /
+            xnoremap <leader>t :Tabular /
 
         " FZF
             nnoremap <C-p> <CMD>call FZFFindFile()<CR>
@@ -1717,11 +1721,11 @@
         " Commentary
             nnoremap  <CMD>Commentary<CR>
             inoremap  <CMD>Commentary<CR>
-            vnoremap  :Commentary<CR>gv
+            xnoremap  :Commentary<CR>gv
 
         " Multi cursors
             nnoremap s/ :call CursOnMatches()<CR>
-            vnoremap s :call vm#commands#visual_cursors()<CR>
+            xnoremap s :call vm#commands#visual_cursors()<CR>
             nnoremap ss :call vm#commands#add_cursor_at_pos(0)<CR>
             nnoremap sp :call vm#commands#seek_up()<CR>
             nnoremap sn :call vm#commands#seek_down()<CR>
@@ -1774,7 +1778,7 @@
                 norm!gv
             endfunction
             onoremap <BS> <CMD>call BSOperator()<CR>
-            vnoremap <BS> <CMD>call BSOperator()<CR>
+            xnoremap <BS> <CMD>call BSOperator()<CR>
 
         " Paste selector
             nnoremap >p mm`[>`]`m
@@ -1825,27 +1829,27 @@
         " select multiple lines in a VSCode Style
             nnoremap <CS-DOWN> <C-v>j
             nnoremap <CS-UP> <C-v>k
-            vnoremap <CS-DOWN> j
-            vnoremap <CS-UP> k
-            vnoremap <LEADER>i I
-            vnoremap <LEADER>a A
-            vnoremap <LEADER>I ^I
-            vnoremap <LEADER>A $A
+            xnoremap <CS-DOWN> j
+            xnoremap <CS-UP> k
+            xnoremap <LEADER>i I
+            xnoremap <LEADER>a A
+            xnoremap <LEADER>I ^I
+            xnoremap <LEADER>A $A
 
         " Around selection, completes the vim-surround plugin
-            vmap m S
-            vnoremap m/ c//<ESC>P
-            vnoremap m_ c__<ESC>P
-            vnoremap m+ c++<ESC>P
-            vnoremap m. c..<ESC>P
-            vnoremap m<SPACE> c<SPACE><SPACE><ESC>P
-            vnoremap m<BS> dvhpgv
+            xmap m S
+            xnoremap m/ c//<ESC>P
+            xnoremap m_ c__<ESC>P
+            xnoremap m+ c++<ESC>P
+            xnoremap m. c..<ESC>P
+            xnoremap m<SPACE> c<SPACE><SPACE><ESC>P
+            xnoremap m<BS> dvhpgv
 
         " Smallest range possible
             onoremap io <CMD>call SelectSmallestRangePossible(0)<CR>
             onoremap ao <CMD>call SelectSmallestRangePossible(1)<CR>
-            vnoremap io <ESC>:call SelectSmallestRangePossible(0)<CR>
-            vnoremap ao <ESC>:call SelectSmallestRangePossible(1)<CR>
+            xnoremap io <ESC>:call SelectSmallestRangePossible(0)<CR>
+            xnoremap ao <ESC>:call SelectSmallestRangePossible(1)<CR>
 
 " 
 " AUTOCMD

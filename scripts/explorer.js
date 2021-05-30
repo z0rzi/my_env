@@ -73,7 +73,7 @@ class ExplorerFile extends File {
         return this;
     }
     refreshChildren() {
-        if (!this.isDirectory) {
+        if (!this.isDirectory || !this.opened) {
             this.parent.refreshChildren();
             return (this.parent.children.find(kid => kid.name === this.name) ||
                 this.parent);
@@ -181,7 +181,7 @@ class ExplorerFile extends File {
 }
 class Explorer {
     constructor(path, onFileOpen) {
-        this.height = 30;
+        this.height = -1;
         this.isDead = false;
         this.cli = null;
         this.selectionPos = 0;
@@ -190,12 +190,16 @@ class Explorer {
         this.showHidden = false;
         this.fileOpenListener = null;
         this.rootFile = new ExplorerFile(path);
+        this.rootFile.open();
         this.currentFile = this.rootFile;
-        this.cli = Cli.getInstance(this.height);
+        this.fileOpenListener = onFileOpen;
+        this.cli = new Cli(this.height);
         this.cli.onKeyHit(this.onInput.bind(this));
         this.cli.toggleCursor(false);
-        this.fileOpenListener = onFileOpen;
-        this.refreshDisplay();
+        this.cli.waitForReady.then(() => {
+            this.height = this.cli.maxHeight;
+            this.refreshDisplay();
+        });
     }
     get currentFile() {
         return this._currentFile;
@@ -263,17 +267,117 @@ class Explorer {
             p.value = initValue;
             p.caretPos = initValue.length;
             p.onConfirm = (text) => {
-                this.cli.onKeyHit(this.onInput.bind(this));
                 this.cli.toggleCursor(false);
-                return resolve(text);
+                resolve(text);
+                return true;
             };
             p.onCancel = () => {
-                this.cli.onKeyHit(this.onInput.bind(this));
                 this.cli.toggleCursor(false);
                 this.refreshEmphasis();
-                return reject();
+                reject();
+                return true;
             };
         });
+    }
+    //
+    // Actions
+    //
+    open(recursive = false) {
+        if (!this.currentFile.isDirectory)
+            this.fileOpenListener(this.currentFile);
+        else {
+            this.currentFile.open(recursive ? 5 : 0);
+            this.refreshDisplay();
+        }
+    }
+    close(recursive = false) {
+        this.currentFile = this.currentFile.close(recursive);
+        this.refreshDisplay();
+    }
+    createNew(isDir = false) {
+        let newfile = null;
+        if (this.currentFile.isDirectory && this.currentFile.opened) {
+            newfile = this.currentFile.createChild('_explorer_internal', isDir);
+        }
+        else
+            newfile = this.currentFile.parent.createChild('_explorer_internal', isDir);
+        if (!newfile)
+            return;
+        this.currentFile = newfile;
+        this.refreshDisplay();
+        this.createPrompt()
+            .then(text => {
+            this.currentFile.rename(text);
+            this.refreshDisplay();
+        })
+            .catch(() => {
+            const file = this.currentFile;
+            this.currentFile = this.currentFile.next;
+            if (this.currentFile === file)
+                this.currentFile = this.currentFile.previous;
+            file.remove().then(this.refreshDisplay.bind(this));
+        });
+        this.refreshDisplay();
+    }
+    changeRoot() {
+        // Change root dir
+        if (this.currentFile.isDirectory) {
+            this.rootFile = this.currentFile;
+            this.rootFile.parent = null;
+            this.refreshDisplay();
+        }
+    }
+    rename() {
+        this.createPrompt(this.currentFile.name)
+            .then(text => {
+            this.currentFile.rename(text);
+            this.refreshDisplay();
+        })
+            .catch(() => { });
+    }
+    goUp(toFirst) {
+        if (toFirst) {
+            this.currentFile = this.currentFile.parent.visibleChildren[0];
+        }
+        else {
+            this.currentFile = this.currentFile.previous;
+        }
+        if (this.offset > 0 && this.currentFile.position - this.offset <= 0) {
+            this.refreshDisplay();
+        }
+        else {
+            this.refreshEmphasis();
+        }
+    }
+    goDown(toLast) {
+        if (toLast) {
+            const siblings = this.currentFile.parent.visibleChildren;
+            this.currentFile = siblings[siblings.length - 1];
+        }
+        else
+            this.currentFile = this.currentFile.next;
+        if (this.currentFile.position - this.offset > this.cli.maxHeight) {
+            this.refreshDisplay();
+        }
+        else {
+            this.refreshEmphasis();
+        }
+    }
+    remove() {
+        this.cli.goToCol(this.currentFile.width + 1);
+        this.cli.write('Sure? ');
+        this.createPrompt('', this.currentFile.width + 1 + 'Sure? '.length)
+            .then(text => {
+            if (text === 'yes') {
+                const file = this.currentFile;
+                this.currentFile = this.currentFile.next;
+                if (this.currentFile === file)
+                    this.currentFile = this.currentFile.previous;
+                file.remove().then(this.refreshDisplay.bind(this));
+            }
+            this.refreshDisplay();
+        })
+            .catch(() => { });
     }
     onInput(keyName, ctrl, shift) {
         if (this.isDead)
@@ -283,30 +387,17 @@ class Explorer {
         if (keyName.length === 1) {
             switch (keyName) {
                 case 'q':
+                    this.cli.clearScreen();
                     this.cli.toggleCursor(true);
                     process.exit(0);
                 case 'r':
-                    if (shift) {
-                        // Change root dir
-                        if (this.currentFile.isDirectory) {
-                            this.rootFile = this.currentFile;
-                            this.rootFile.parent = null;
-                            this.refreshDisplay();
-                        }
-                    }
-                    else {
-                        // rename
-                        this.createPrompt(this.currentFile.name)
-                            .then(text => {
-                            this.currentFile.rename(text);
-                            this.refreshDisplay();
-                        })
-                            .catch(() => { });
-                    }
+                    if (shift)
+                        this.changeRoot();
+                    else
+                        this.rename();
                     break;
                 case 'x':
-                    this.currentFile = this.currentFile.close(ctrl || shift);
-                    this.refreshDisplay();
+                    this.close(ctrl || shift);
                     break;
                 case 'z':
                     this.offset =
@@ -317,23 +408,7 @@ class Explorer {
                     this.refreshDisplay();
                     break;
                 case 'a':
-                    let newfile = null;
-                    if (this.currentFile.isDirectory) {
-                        this.currentFile.open();
-                        newfile = this.currentFile.createChild('_explorer_internal', shift);
-                    }
-                    else
-                        newfile = this.currentFile.parent.createChild('_explorer_internal', shift);
-                    if (!newfile)
-                        break;
-                    this.currentFile = newfile;
-                    this.refreshDisplay();
-                    this.createPrompt()
-                        .then(text => {
-                        this.currentFile.rename(text);
-                        this.refreshDisplay();
-                    })
-                        .catch(() => { });
+                    this.createNew(shift);
                     break;
                 case '.':
                     this.rootFile.toggleHidden();
@@ -343,69 +418,23 @@ class Explorer {
         else {
             switch (keyName) {
                 case 'f5':
-                    // const name = this.currentFile.name;
                     this.currentFile = this.currentFile.refreshChildren();
                     this.refreshScreen();
                     break;
                 case 'left':
-                    this.currentFile = this.currentFile.close(ctrl || shift);
-                    this.refreshDisplay();
+                    this.close(ctrl || shift);
                     break;
                 case 'right':
-                    if (!this.currentFile.isDirectory)
-                        this.fileOpenListener(this.currentFile);
-                    else {
-                        this.currentFile.open(ctrl || shift ? 5 : 0);
-                        this.refreshDisplay();
-                    }
+                    this.open(ctrl || shift);
                     break;
                 case 'up':
-                    if (shift || ctrl) {
-                        this.currentFile =
-                            this.currentFile.parent.visibleChildren[0];
-                    }
-                    else {
-                        this.currentFile = this.currentFile.previous;
-                    }
-                    if (this.offset > 0 &&
-                        this.currentFile.position - this.offset <= 0) {
-                        this.refreshDisplay();
-                    }
-                    else {
-                        this.refreshEmphasis();
-                    }
+                    this.goUp(shift || ctrl);
                     break;
                 case 'down':
-                    if (shift || ctrl) {
-                        const siblings = this.currentFile.parent.visibleChildren;
-                        this.currentFile = siblings[siblings.length - 1];
-                    }
-                    else
-                        this.currentFile = this.currentFile.next;
-                    if (this.currentFile.position - this.offset >
-                        this.cli.maxHeight) {
-                        this.refreshDisplay();
-                    }
-                    else {
-                        this.refreshEmphasis();
-                    }
+                    this.goDown(ctrl || shift);
                     break;
                 case 'delete':
-                    this.cli.goToCol(this.currentFile.width + 1);
-                    this.cli.write('Sure? ');
-                    this.createPrompt('', this.currentFile.width + 1 + 'Sure? '.length)
-                        .then(text => {
-                        if (text === 'yes') {
-                            const file = this.currentFile;
-                            this.currentFile = this.currentFile.next;
-                            if (this.currentFile === file)
-                                this.currentFile =
-                                    this.currentFile.previous;
-                            file.remove();
-                        }
-                        this.refreshDisplay();
-                    })
-                        .catch(() => { });
+                    this.remove();
                     break;
                 case 'backspace':
                     if (this.currentFile.parent) {
@@ -432,12 +461,14 @@ async function explore(path) {
         });
     });
 }
-export { Explorer, explore };
+export { Explorer, ExplorerFile, explore };
 if (/explorer\.js$/.test(process.argv[1])) {
+    let inPath = '';
     if (NO_ARGS_PROVIDED)
-        process.exit(1);
-    const inPath = process.argv[2];
-    const cli = Cli.getInstance();
+        inPath = './';
+    else
+        inPath = process.argv[2];
+    const cli = new Cli();
     const exp = new Explorer(path.resolve(inPath), file => {
         cli.offHitKey();
         openFile(file.path).then(() => {

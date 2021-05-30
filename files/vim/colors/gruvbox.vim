@@ -950,6 +950,11 @@ hi DiffText   ctermbg=black ctermfg=blue  cterm=bold guibg=#262626 guifg=#ff8700
 " hi DiffDelete ctermbg=black ctermfg=131       cterm=none
 
 " }}}
+" Coc: {{{
+
+hi! link CocErrorSign GruvboxRed
+
+" }}}
 " Html: {{{
 
 hi! link htmlTag GruvboxBlue

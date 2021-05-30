@@ -1,7 +1,7 @@
 #!/bin/node
-const CONF_FILE = '/home/zorzi/.config/monitors.json'
+const CONF_FILE = '/home/zorzi/.config/monitors.json';
 
-import { cmd } from "./shell.js";
+import { cmd, sourceCmd } from './shell.js';
 import { readFileSync, readFile, writeFile } from 'fs';
 import { createHash as hash } from 'crypto';
 let laptop = null;
@@ -17,7 +17,7 @@ try {
         process.exit(1);
     }
 } catch (err) {
-    config = {}
+    config = {};
 }
 
 /**
@@ -31,23 +31,25 @@ function md5(str) {
  * Finds file in a directory
  */
 async function findFiles(dir, fileName) {
-    return cmd(`find ${ dir } -name "${ fileName }" 2> /dev/null || exit 0`)
+    return cmd(`find ${dir} -name "${fileName}" 2> /dev/null || exit 0`);
 }
 
 /**
  * Returns the hexadecimal content of a file
  */
 async function hexRead(filePath) {
-    return cmd(`xxd -p ${ filePath }`)
-        .then(res => res.replace(/\s+/g, ''));
+    return cmd(`xxd -p ${filePath}`).then(res => {
+        return res.replace(/\s+/g, '');
+    });
 }
 
 /**
  * Retreives all the plugged monitors, according to Xrandr
  */
 async function getXrandrMonitorsNames() {
-    return cmd("xrandr | grep 'connected'")
-        .then(res => res.split('\n').map(line => line.split(/\s+/).shift()));
+    return cmd("xrandr | grep 'connected'").then(res =>
+        res.split('\n').map(line => line.split(/\s+/).shift())
+    );
 }
 
 /**
@@ -56,28 +58,27 @@ async function getXrandrMonitorsNames() {
  * @return {{index: number, profiles: {name: string, priority: number}[]}[]}
  */
 async function getSoundCards() {
-    return cmd("pacmd list-cards")
-        .then(cards => {
-            cards = cards.split(/index: /g);
-            cards = cards.map(card => {
-                let index = card.match(/^\s*\d/);
-                if (index) index = Number(index[0]);
-                let profiles = card.match(/(?:output|input):[^\n]+/g) || []
-                profiles = profiles.map(profile => {
+    return cmd('pacmd list-cards').then(cards => {
+        cards = cards.split(/index: /g);
+        cards = cards.map(card => {
+            let index = card.match(/^\s*\d/);
+            if (index) index = Number(index[0]);
+            let profiles = card.match(/(?:output|input):[^\n]+/g) || [];
+            profiles = profiles
+                .map(profile => {
                     let priority = profile.match(/priority (\d+)/);
-                    if (!!priority)
-                        priority = Number(priority[1]);
-                    else
-                        priority = 0
+                    if (!!priority) priority = Number(priority[1]);
+                    else priority = 0;
                     return {
                         name: profile.replace(/: .*$/, ''),
-                        priority
+                        priority,
                     };
-                }).sort((a, b) => b.priority - a.priority);
-                return { index, profiles };
-            });
-            return cards.filter(card => card.profiles.length );
+                })
+                .sort((a, b) => b.priority - a.priority);
+            return { index, profiles };
         });
+        return cards.filter(card => card.profiles.length);
+    });
 }
 
 /**
@@ -88,12 +89,16 @@ async function setSoundProfileFor(monitor) {
         let profile = '';
         if (monitor.isLaptop() || !monitor.config.sound) {
             // no HDMI
-            profile = card.profiles.find(profile => !profile.name.toLowerCase().includes('hdmi'))
-            if (!profile) profile = card.profiles[0]
+            profile = card.profiles.find(
+                profile => !profile.name.toLowerCase().includes('hdmi')
+            );
+            if (!profile) profile = card.profiles[0];
         } else {
             // HDMI
-            profile = card.profiles.find(profile => profile.name.toLowerCase().includes('hdmi'))
-            if (!profile) profile = card.profiles[0]
+            profile = card.profiles.find(profile =>
+                profile.name.toLowerCase().includes('hdmi')
+            );
+            if (!profile) profile = card.profiles[0];
         }
         cmd(`pacmd set-card-profile ${card.index} ${profile.name}`);
     }
@@ -109,15 +114,13 @@ class Monitor {
      * @param {string} folder The path of the folder containing the monitor infos
      */
     constructor(hash, name, folder) {
-        this.name = name
-        this.hash = hash
-        this.folder = folder
+        this.name = name;
+        this.hash = hash;
+        this.folder = folder;
 
-        if (this.isLaptop())
-            this.hash = 'laptop'
+        if (this.isLaptop()) this.hash = 'laptop';
 
-        if (!(this.hash in config))
-            config[this.hash] = {};
+        if (!(this.hash in config)) config[this.hash] = {};
 
         config[this.hash] = {
             alias: config[this.hash].alias || 'New monitor',
@@ -125,7 +128,7 @@ class Monitor {
             primary: config[this.hash].primary || false,
             dimensions: config[this.hash].dimensions || '',
             sound: config[this.hash].sound || false,
-            cmd: config[this.hash].cmd || ''
+            cmd: config[this.hash].cmd || '',
         };
 
         this.config = config[this.hash];
@@ -136,13 +139,19 @@ class Monitor {
      * name as `this.name`, for some reason...
      */
     async getXrandrName() {
-        return getXrandrMonitorsNames()
-            .then(names => {
-                return names.find(name =>
-                    name.replace(/-.*/, '').replace(/[^a-zA-Z]/g, '').toLowerCase()
-                    === this.name.replace(/-.*/, '').replace(/[^a-zA-Z]/g, '').toLowerCase()
-                )
-            })
+        return getXrandrMonitorsNames().then(names => {
+            return names.find(
+                name =>
+                    name
+                        .replace(/-.*/, '')
+                        .replace(/[^a-zA-Z]/g, '')
+                        .toLowerCase() ===
+                    this.name
+                        .replace(/-.*/, '')
+                        .replace(/[^a-zA-Z]/g, '')
+                        .toLowerCase()
+            );
+        });
     }
 
     /**
@@ -153,10 +162,14 @@ class Monitor {
             readFile(this.folder + '/modes', 'utf8', (err, modes) => {
                 if (err) reject(err);
                 modes = modes.trim().split(/\s+/);
-                modes = modes.reduce((acc, mode, idx) => modes.indexOf(mode) === idx ? [...acc, mode] : acc, [])
+                modes = modes.reduce(
+                    (acc, mode, idx) =>
+                        modes.indexOf(mode) === idx ? [...acc, mode] : acc,
+                    []
+                );
                 resolve(modes);
-            })
-        })
+            });
+        });
     }
 
     /**
@@ -170,30 +183,30 @@ class Monitor {
      * Runs the commands to setup the configuration for this monitor.
      */
     async executeConfig() {
-        if (this.config.cmd)
-            return cmd(this.config.cmd)
+        if (this.config.cmd) return cmd(this.config.cmd);
 
         let command = 'xrandr ';
         if (this.isLaptop()) {
-            command += `--output ${ await this.getXrandrName() } --auto --primary --rotate normal `
+            command += `--output ${await this.getXrandrName()} --auto --primary --rotate normal `;
         } else {
-            const laptopName = await laptop.getXrandrName()
-            command += `--output ${ laptopName } --auto --rotate normal `;
+            const laptopName = await laptop.getXrandrName();
+            command += `--output ${laptopName} --auto --rotate normal `;
             command += this.config.primary ? '' : '--primary ';
             if (laptop.config.dimensions)
-                command += `--mode ${ this.config.dimensions } `;
+                command += `--mode ${this.config.dimensions} `;
 
-            command += `--output ${ await this.getXrandrName() } --auto --rotate normal `
+            command += `--output ${await this.getXrandrName()} --auto --rotate normal `;
             command += this.config.primary ? '--primary ' : '';
             if (this.config.dimensions)
-                command += `--mode ${ this.config.dimensions } `;
-            command += {
-                same: '--same-as ',
-                right: '--right-of ',
-                left: '--left-of ',
-                top: '--above ',
-                bottom: '--below '
-            }[this.config.side] + laptopName;
+                command += `--mode ${this.config.dimensions} `;
+            command +=
+                {
+                    same: '--same-as ',
+                    right: '--right-of ',
+                    left: '--left-of ',
+                    top: '--above ',
+                    bottom: '--below ',
+                }[this.config.side] + laptopName;
         }
 
         setSoundProfileFor(this);
@@ -216,11 +229,9 @@ async function updateConfig(currentHash) {
         return 0;
     });
     sortedProps = [...sortedProps, ...Object.keys(laptop.config)];
-    writeFile(CONF_FILE, JSON.stringify(config, sortedProps, 4), (err) => {
-        if (err)
-            console.error('err', err);
-        else
-            console.log('config updated');
+    writeFile(CONF_FILE, JSON.stringify(config, sortedProps, 4), err => {
+        if (err) console.error('err', err);
+        else console.log('config updated');
     });
 }
 
@@ -235,67 +246,72 @@ async function getMonitors() {
             files = files.split('\n').filter(file => file);
             const monitors = [];
             for (const file of files) {
-                let name = file.match(/card\d\/card\d-(?<name>[^/]+)/)
+                let name = file.match(/card\d\/card\d-(?<name>[^/]+)/);
                 try {
-                    name = name.groups.name
+                    name = name.groups.name;
                 } catch (err) {
-                    name = ''
+                    name = '';
                 }
                 const hexa = await hexRead(file);
-                monitors.push(new Monitor(
-                    md5(hexa),
-                    name,
-                    file.replace(/\/[^/]*$/, '')
-                ));
+                if (hexa) {
+                    monitors.push(
+                        new Monitor(
+                            md5(hexa),
+                            name,
+                            file.replace(/\/[^/]*$/, '')
+                        )
+                    );
+                }
             }
-            return monitors
+            return monitors;
         })
-        .catch(err => console.error(err))
+        .catch(err => console.error(err));
 }
 
-getMonitors()
-    .then(async monitors => {
-        laptop = monitors.find(mon => mon.isLaptop());
-        if (monitors.length > 1)
-            monitors = monitors.filter(mon => !mon.isLaptop())
+getMonitors().then(async monitors => {
+    laptop = monitors.find(mon => mon.isLaptop());
+    if (monitors.length > 1) monitors = monitors.filter(mon => !mon.isLaptop());
 
-        const monitor = monitors[0];
+    const monitor = monitors[0];
 
-        let args = process.argv.slice(2);
+    let args = process.argv.slice(2);
 
-        if (args.includes('--get-hash')) {
-            console.log(monitor.hash)
-            process.exit(0);
-        }
+    if (args.includes('--get-hash')) {
+        console.log(monitor.hash);
+        process.exit(0);
+    }
 
-        if (args.includes('--get-alias')) {
-            console.log(monitor.config.alias)
-            process.exit(0);
-        }
+    if (args.includes('--get-alias')) {
+        console.log(monitor.config.alias);
+        process.exit(0);
+    }
 
-        if (args.includes('--edit')) {
-            console.log('The current configuration is the 1st one in the config file.');
-            console.log('If the dimensions are messed up, you can use the "monitors_rescale.sh" script.');
-            console.log('Here are the available dimensions: ');
-            console.log(await monitor.getModes());
-            cmd(`kitty nvim ${CONF_FILE} &`)
-                .then(() => {
-                    console.log('Done!')
-                    cmd('monitors.js')
-                })
+    if (args.includes('--edit')) {
+        console.log(
+            'The current configuration is the 1st one in the config file.'
+        );
+        console.log(
+            'If the dimensions are messed up, you can use the "monitors_rescale.sh" script.'
+        );
+        console.log('Here are the available dimensions: ');
+        console.log(await monitor.getModes());
+        cmd(`kitty nvim ${CONF_FILE}`)
+            .then(() => {
+                console.log('Done!');
+                cmd('monitors.js');
+            })
             .catch(err => {
-                console.log('err', err)
+                console.log('err', err);
             });
-            return;
-        }
+        return;
+    }
 
-        try {
-            await monitor.executeConfig()
-            await getSoundCards();
-        } catch (err) {
-            console.error('err', err);
-        }
+    try {
+        await monitor.executeConfig();
+        await getSoundCards();
+    } catch (err) {
+        console.error('err', err);
+    }
 
-
-        updateConfig(monitor.hash);
-    })
+    updateConfig(monitor.hash);
+});
