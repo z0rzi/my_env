@@ -21,8 +21,6 @@ Array.prototype['asyncMap'] = async function (mapFn) {
     const arr = this;
     const promises = [];
     const out = [];
-    for (const elem of arr)
-        promises.push(mapFn(elem));
     // starting all the promises side by side
     for (const elem of arr)
         promises.push(mapFn(elem));

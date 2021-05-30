@@ -10,7 +10,7 @@ export { NO_MATCH_FOUND };
  *
  * @returns The result as 1 string
  */
-export async function cmd(command, cut_lines = false) {
+export async function cmd(command, cut_lines = false, trim = true) {
     return new Promise((resolve, reject) => {
         child_process.exec(command, (err, stdout, stderr) => {
             if (!!stdout) {
@@ -18,7 +18,7 @@ export async function cmd(command, cut_lines = false) {
                     return resolve(stdout.trim());
                 return resolve(stdout
                     .split('\n')
-                    .map(line => line.trim())
+                    .map(line => (trim ? line.trim() : line))
                     .filter(e => !!e));
             }
             if (stderr)

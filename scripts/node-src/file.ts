@@ -185,23 +185,26 @@ export class File {
     /**
      * Displays this file and all of its children
      */
-    toString(): string {
+    async toString(): Promise<string> {
         if (this.isGitIgnored()) return '';
+
+        const fileGitStatus = await git.getFileState(this.path);
 
         if (this.isDirectory) {
             this.explore();
             this.icon = ICONS.folder_open;
         }
 
-        let out = `${this.icon} ${this.name}`;
+        let out = `${this.icon} ${fileGitStatus} ${this.name}`;
         if (this.isDirectory && this.children.length) {
             out += '\n┆   ';
-            out += this.children
-                .map(kid => {
+            out += (
+                await this.children.asyncMap<string>(async kid => {
                     if (!kid.isGitIgnored())
-                        return kid.toString().replace(/\n/g, '\n┆   ');
+                        return (await kid.toString()).replace(/\n/g, '\n┆   ');
                     return '';
                 })
+            )
                 .filter(strKid => !!strKid)
                 .join('\n┆   ');
         }
@@ -311,5 +314,7 @@ if (/file\.js$/.test(process.argv[1])) {
 
     inPath = path.resolve(inPath);
 
-    console.log(new File(inPath).toString());
+    (async () => {
+        console.log(await new File(inPath).toString());
+    })();
 }

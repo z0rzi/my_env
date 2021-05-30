@@ -15,7 +15,8 @@ export { NO_MATCH_FOUND };
  */
 export async function cmd(
     command: string,
-    cut_lines = false
+    cut_lines = false,
+    trim = true
 ): Promise<string | string[]> {
     return new Promise((resolve, reject) => {
         child_process.exec(command, (err, stdout, stderr) => {
@@ -25,7 +26,7 @@ export async function cmd(
                 return resolve(
                     stdout
                         .split('\n')
-                        .map(line => line.trim())
+                        .map(line => (trim ? line.trim() : line))
                         .filter(e => !!e)
                 );
             }
