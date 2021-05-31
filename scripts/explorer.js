@@ -3,6 +3,7 @@ import path from 'path';
 import './Array.js';
 import { Cli, CliColor } from './cli.js';
 import { File } from './file.js';
+import { GitFileState } from './git.js';
 import { ICONS } from './icons.js';
 import { Prompt } from './prompt.js';
 import { NO_ARGS_PROVIDED, openFile } from './shell.js';
@@ -14,6 +15,7 @@ class ExplorerFile extends File {
         this.parent = null;
         this.opened = false;
         this._showHidden = false;
+        this._gitOnly = false;
         if (this.opened)
             this.open();
     }
@@ -28,6 +30,17 @@ class ExplorerFile extends File {
         else
             this.parent.showHidden = show;
     }
+    get gitOnly() {
+        if (!this.parent)
+            return this._gitOnly;
+        return this.parent.gitOnly;
+    }
+    set gitOnly(show) {
+        if (!this.parent)
+            this._gitOnly = show;
+        else
+            this.parent.gitOnly = show;
+    }
     toggleHidden() {
         this.showHidden = !this.showHidden;
     }
@@ -35,7 +48,7 @@ class ExplorerFile extends File {
         const timeStamp = new Date().valueOf();
         if (openStartTime && timeStamp - openStartTime > 500)
             return;
-        this.opened = !this.opened;
+        this.opened = !!recursive || !this.opened;
         if (!this.children.length)
             this.explore();
         if (recursive > 0) {
@@ -45,10 +58,30 @@ class ExplorerFile extends File {
             });
         }
     }
-    get visibleChildren() {
-        if (this.showHidden)
-            return this.children;
-        return this.children.filter(kid => !kid.isHiddenFile());
+    async isVisible() {
+        if (!this.showHidden && this.isHiddenFile())
+            return false;
+        if (this.gitOnly) {
+            const gitState = await this.getGitState();
+            if (gitState === GitFileState.NONE ||
+                gitState === GitFileState.IGNORED)
+                return false;
+        }
+        return true;
+    }
+    async getClosestVisible() {
+        if (await this.isVisible())
+            return this;
+        let f = this;
+        while (!(await f.isVisible())) {
+            f =
+                f.previousSibling ??
+                    f.parent;
+        }
+        return f;
+    }
+    async getVisibleChildren() {
+        return await this.children.asyncFilter(async (kid) => await kid.isVisible());
     }
     fromPath(path) {
         return new ExplorerFile(path);
@@ -84,10 +117,15 @@ class ExplorerFile extends File {
         this.open();
         return this;
     }
-    draw(cli, offset = 0, drawKids = true, emphasis = false) {
+    async draw(cli, offset = 0, options) {
+        options = Object.assign({
+            drawKids: true,
+            emphasis: false,
+        }, options);
         if (!this.showHidden && this.isHiddenFile())
             return;
-        const truePosition = this.position - offset;
+        const gitStateIcon = await this.getGitState();
+        const truePosition = (await this.getPosition()) - offset;
         if (truePosition > cli.maxHeight)
             return;
         if (this.isDirectory)
@@ -103,7 +141,7 @@ class ExplorerFile extends File {
                 iconStyle = { color: this.iconColor };
             cli.write(`${this.icon} `, iconStyle);
             const textStyle = { ...this.textStyle };
-            if (emphasis)
+            if (options.emphasis)
                 textStyle.underline = true;
             if (!this.isDirectory && /\./.test(this.name)) {
                 const root = this.name.replace(/\.[^.]*$/, '');
@@ -114,67 +152,75 @@ class ExplorerFile extends File {
             else {
                 cli.write(`${this.name}`, textStyle ?? {});
             }
+            cli.write(` ${gitStateIcon}`, { italic: true });
         }
-        if (this.isDirectory && this.opened && drawKids) {
-            for (const kid of this.visibleChildren) {
-                kid.draw(cli, offset);
+        if (this.isDirectory && this.opened && options.drawKids) {
+            for (const kid of await this.getVisibleChildren()) {
+                await kid.draw(cli, offset, options);
             }
         }
     }
-    get position() {
+    async getPosition() {
         if (!this.parent)
             return 0;
-        return this.parent.getChildAbsolutePos(this);
+        return await this.parent.getChildAbsolutePos(this);
     }
-    get height() {
-        if (!this.showHidden && this.isHiddenFile())
+    async getHeight() {
+        if (!(await this.isVisible()))
             return 0;
         if (!this.isDirectory || !this.opened)
             return 1;
         let height = 1;
-        for (const kid of this.children)
-            height += kid.height;
+        for (const kid of await this.getVisibleChildren())
+            height += await kid.getHeight();
         return height;
     }
     get width() {
         return this.depth * INDENT.length + this.name.length + 2;
     }
-    get previous() {
+    async getPrevious() {
         if (!this.parent)
             return this;
-        const f = this;
-        const idx = f.parent.visibleChildren.indexOf(f);
+        const siblings = await this.parent.getVisibleChildren();
+        const idx = siblings.indexOf(this);
         if (idx === 0)
             return this.parent;
-        let prev = f.parent.visibleChildren[idx - 1];
-        while (prev.isDirectory && prev.visibleChildren.length && prev.opened)
-            prev = prev.visibleChildren[prev.visibleChildren.length - 1];
+        let prev = siblings[idx - 1];
+        let prevKids = await prev.getVisibleChildren();
+        while (prev.isDirectory && prevKids.length && prev.opened) {
+            prev = prevKids[prevKids.length - 1];
+            prevKids = await prev.getVisibleChildren();
+        }
         return prev;
     }
-    get next() {
-        if (this.isDirectory && this.opened && this.visibleChildren.length)
-            return this.visibleChildren[0];
+    async getNext() {
+        if (this.isDirectory && this.opened) {
+            const kids = await this.getVisibleChildren();
+            if (kids.length)
+                return kids[0];
+        }
         if (!this.parent)
             return this;
         let f = this;
         while (true) {
-            const idx = f.parent.visibleChildren.indexOf(f);
-            if (f.parent.visibleChildren.length > idx + 1)
-                return f.parent.visibleChildren[idx + 1];
+            const kids = await f.parent.getVisibleChildren();
+            const idx = kids.indexOf(f);
+            if (kids.length > idx + 1)
+                return kids[idx + 1];
             f = f.parent;
             if (!f.parent)
                 break;
         }
         return this;
     }
-    getChildAbsolutePos(child) {
+    async getChildAbsolutePos(child) {
         if (!this.isDirectory || !this.opened || !this.children.length)
             return -1;
-        let pos = this.position + 1;
-        for (const kid of this.visibleChildren) {
+        let pos = (await this.getPosition()) + 1;
+        for (const kid of await this.getVisibleChildren()) {
             if (kid === child)
                 return pos;
-            pos += kid.height;
+            pos += await kid.getHeight();
         }
         return -1;
     }
@@ -182,11 +228,11 @@ class ExplorerFile extends File {
 class Explorer {
     constructor(path, onFileOpen) {
         this.height = -1;
-        this.isDead = false;
         this.cli = null;
         this.selectionPos = 0;
         this.lastOffset = 0;
         this.offset = 0;
+        this.gitOnlyMode = false;
         this.showHidden = false;
         this.fileOpenListener = null;
         this.rootFile = new ExplorerFile(path);
@@ -208,35 +254,33 @@ class Explorer {
         this.previousFile = this._currentFile;
         this._currentFile = newFile;
     }
-    end() {
-        this.isDead = true;
-    }
-    correctOffset() {
-        if (this.currentFile.position - this.offset < 0) {
+    async correctOffset() {
+        const curfilepos = await this.currentFile.getPosition();
+        if (curfilepos - this.offset < 0) {
             // current file above screen
-            this.offset = this.currentFile.position;
+            this.offset = curfilepos;
         }
-        if (this.currentFile.position - this.offset > this.cli.maxHeight) {
+        if (curfilepos - this.offset >= this.cli.maxHeight) {
             // current file below screen
-            this.offset = this.currentFile.position - this.cli.maxHeight;
+            this.offset = curfilepos - this.cli.maxHeight;
         }
     }
-    refreshScreen() {
-        this.correctOffset();
-        this.rootFile.draw(this.cli, this.offset);
-        this.cli.goToLine(this.currentFile.position - this.offset);
-        this.clearAfterLast();
-        this.refreshEmphasis();
+    async refreshScreen() {
+        await this.correctOffset();
+        await this.rootFile.draw(this.cli, this.offset);
+        this.cli.goToLine((await this.currentFile.getPosition()) - this.offset);
+        await this.refreshEmphasis();
+        await this.clearAfterLast();
     }
-    refreshDisplay() {
-        this.correctOffset();
+    async refreshDisplay() {
+        await this.correctOffset();
         if (this.offset !== this.lastOffset) {
             this.lastOffset = this.offset;
-            return this.refreshScreen();
+            return await this.refreshScreen();
         }
         let file = this.currentFile;
         while (file) {
-            file.draw(this.cli, this.offset);
+            await file.draw(this.cli, this.offset);
             let nextFile = file.nextSibling;
             while (!!file && !nextFile) {
                 nextFile = file.nextSibling;
@@ -244,22 +288,28 @@ class Explorer {
             }
             file = nextFile;
         }
-        this.clearAfterLast();
-        this.refreshEmphasis();
-        this.cli.goToLine(this.currentFile.position - this.offset);
+        await this.clearAfterLast();
+        await this.refreshEmphasis();
+        this.cli.goToLine((await this.currentFile.getPosition()) - this.offset);
     }
-    clearAfterLast() {
-        this.cli.goToLine(this.rootFile.height - this.offset - 1);
+    async clearAfterLast() {
+        this.cli.goToLine((await this.rootFile.getHeight()) - this.offset - 1);
         while (this.cli.y < this.cli.maxHeight) {
             this.cli.down();
             this.cli.clearLine();
         }
     }
-    refreshEmphasis() {
+    async refreshEmphasis() {
         if (this.previousFile)
-            this.previousFile.draw(this.cli, this.offset, false, false);
+            await this.previousFile.draw(this.cli, this.offset, {
+                drawKids: false,
+                emphasis: false,
+            });
         if (this.currentFile)
-            this.currentFile.draw(this.cli, this.offset, false, true);
+            await this.currentFile.draw(this.cli, this.offset, {
+                drawKids: false,
+                emphasis: true,
+            });
     }
     async createPrompt(initValue = '', col = this.currentFile.width - this.currentFile.name.length, line = this.cli.y) {
         return new Promise((resolve, reject) => {
@@ -271,9 +321,9 @@ class Explorer {
                 resolve(text);
                 return true;
             };
-            p.onCancel = () => {
+            p.onCancel = async () => {
                 this.cli.toggleCursor(false);
-                this.refreshEmphasis();
+                await this.refreshEmphasis();
                 reject();
                 return true;
             };
@@ -282,19 +332,19 @@ class Explorer {
     //
     // Actions
     //
-    open(recursive = false) {
+    async open(recursive = false) {
         if (!this.currentFile.isDirectory)
             this.fileOpenListener(this.currentFile);
         else {
-            this.currentFile.open(recursive ? 5 : 0);
-            this.refreshDisplay();
+            await this.currentFile.open(recursive ? 5 : 0);
+            await this.refreshDisplay();
         }
     }
-    close(recursive = false) {
+    async close(recursive = false) {
         this.currentFile = this.currentFile.close(recursive);
         this.refreshDisplay();
     }
-    createNew(isDir = false) {
+    async createNew(isDir = false) {
         let newfile = null;
         if (this.currentFile.isDirectory && this.currentFile.opened) {
             newfile = this.currentFile.createChild('_explorer_internal', isDir);
@@ -305,83 +355,87 @@ class Explorer {
             return;
         this.currentFile = newfile;
         this.refreshDisplay();
-        this.createPrompt()
-            .then(text => {
+        try {
+            const text = await this.createPrompt();
             this.currentFile.rename(text);
-            this.refreshDisplay();
-        })
-            .catch(() => {
+            await this.refreshDisplay();
+        }
+        catch (err) {
+            // prompt cancel
             const file = this.currentFile;
-            this.currentFile = this.currentFile.next;
+            this.currentFile = await this.currentFile.getClosestVisible();
             if (this.currentFile === file)
-                this.currentFile = this.currentFile.previous;
+                this.currentFile = await this.currentFile.getPrevious();
             file.remove().then(this.refreshDisplay.bind(this));
-        });
-        this.refreshDisplay();
+        }
     }
-    changeRoot() {
+    async changeRoot() {
         // Change root dir
         if (this.currentFile.isDirectory) {
             this.rootFile = this.currentFile;
             this.rootFile.parent = null;
-            this.refreshDisplay();
+            await this.refreshDisplay();
         }
     }
-    rename() {
-        this.createPrompt(this.currentFile.name)
-            .then(text => {
+    async rename() {
+        try {
+            const text = await this.createPrompt(this.currentFile.name);
             this.currentFile.rename(text);
             this.refreshDisplay();
-        })
-            .catch(() => { });
+        }
+        catch (err) {
+            // prompt cancel
+        }
     }
-    goUp(toFirst) {
+    async goUp(toFirst) {
         if (toFirst) {
-            this.currentFile = this.currentFile.parent.visibleChildren[0];
+            this.currentFile = (await this.currentFile.parent.getVisibleChildren())[0];
         }
         else {
-            this.currentFile = this.currentFile.previous;
+            this.currentFile = await this.currentFile.getPrevious();
         }
-        if (this.offset > 0 && this.currentFile.position - this.offset <= 0) {
+        if (this.offset > 0 &&
+            (await this.currentFile.getPosition()) - this.offset <= 0) {
             this.refreshDisplay();
         }
         else {
-            this.refreshEmphasis();
+            await this.refreshEmphasis();
         }
     }
-    goDown(toLast) {
+    async goDown(toLast) {
         if (toLast) {
-            const siblings = this.currentFile.parent.visibleChildren;
+            const siblings = await this.currentFile.parent.getVisibleChildren();
             this.currentFile = siblings[siblings.length - 1];
         }
         else
-            this.currentFile = this.currentFile.next;
-        if (this.currentFile.position - this.offset > this.cli.maxHeight) {
+            this.currentFile = await this.currentFile.getNext();
+        if ((await this.currentFile.getPosition()) - this.offset >
+            this.cli.maxHeight) {
             this.refreshDisplay();
         }
         else {
             this.refreshEmphasis();
         }
     }
-    remove() {
+    async remove() {
         this.cli.goToCol(this.currentFile.width + 1);
         this.cli.write('Sure? ');
-        this.createPrompt('', this.currentFile.width + 1 + 'Sure? '.length)
-            .then(text => {
+        try {
+            const text = await this.createPrompt('', this.currentFile.width + 1 + 'Sure? '.length);
             if (text === 'yes') {
                 const file = this.currentFile;
-                this.currentFile = this.currentFile.next;
+                this.currentFile = await this.currentFile.getNext();
                 if (this.currentFile === file)
-                    this.currentFile = this.currentFile.previous;
+                    this.currentFile = await this.currentFile.getPrevious();
                 file.remove().then(this.refreshDisplay.bind(this));
             }
-            this.refreshDisplay();
-        })
-            .catch(() => { });
+            await this.refreshDisplay();
+        }
+        catch (err) {
+            // prompt cancel
+        }
     }
-    onInput(keyName, ctrl, shift) {
-        if (this.isDead)
-            return;
+    async onInput(keyName, ctrl, shift) {
         if (keyName === 'space')
             keyName = ' ';
         if (keyName.length === 1) {
@@ -399,9 +453,16 @@ class Explorer {
                 case 'x':
                     this.close(ctrl || shift);
                     break;
+                case 'g':
+                    this.gitOnlyMode = !this.gitOnlyMode;
+                    this.rootFile.gitOnly = this.gitOnlyMode;
+                    this.currentFile =
+                        await this.currentFile.getClosestVisible();
+                    await this.refreshScreen();
+                    break;
                 case 'z':
                     this.offset =
-                        this.currentFile.position -
+                        (await this.currentFile.getPosition()) -
                             ((this.cli.maxHeight / 2) >> 0);
                     if (this.offset < 0)
                         this.offset = 0;
@@ -412,29 +473,34 @@ class Explorer {
                     break;
                 case '.':
                     this.rootFile.toggleHidden();
-                    this.refreshScreen();
+                    this.currentFile =
+                        await this.currentFile.getClosestVisible();
+                    await this.refreshScreen();
             }
         }
         else {
             switch (keyName) {
                 case 'f5':
                     this.currentFile = this.currentFile.refreshChildren();
-                    this.refreshScreen();
+                    await this.refreshScreen();
                     break;
                 case 'left':
-                    this.close(ctrl || shift);
+                    await this.close(ctrl || shift);
                     break;
                 case 'right':
-                    this.open(ctrl || shift);
+                    await this.open(ctrl || shift);
+                    break;
+                case 'return':
+                    await this.open(ctrl || shift);
                     break;
                 case 'up':
-                    this.goUp(shift || ctrl);
+                    await this.goUp(shift || ctrl);
                     break;
                 case 'down':
-                    this.goDown(ctrl || shift);
+                    await this.goDown(ctrl || shift);
                     break;
                 case 'delete':
-                    this.remove();
+                    await this.remove();
                     break;
                 case 'backspace':
                     if (this.currentFile.parent) {
@@ -451,7 +517,7 @@ class Explorer {
                     break;
             }
         }
-        this.cli.goToLine(this.currentFile.position - this.offset);
+        this.cli.goToLine((await this.currentFile.getPosition()) - this.offset);
     }
 }
 async function explore(path) {
@@ -471,7 +537,11 @@ if (/explorer\.js$/.test(process.argv[1])) {
     const cli = new Cli();
     const exp = new Explorer(path.resolve(inPath), file => {
         cli.offHitKey();
+        const editorSave = process.env['EDITOR'];
+        if (exp.gitOnlyMode)
+            process.env['EDITOR'] = 'codediff';
         openFile(file.path).then(() => {
+            process.env['EDITOR'] = editorSave;
             cli.onKeyHit(exp.onInput.bind(exp));
             cli.toggleCursor(false);
         });

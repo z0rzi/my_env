@@ -939,6 +939,7 @@
             \     '^iff': "if () {\<CR>}<UP><ESC>f(a!",
             \     '^forr': "for () {\<CR>}<UP><ESC>f(a!",
             \     '\%(for\s*([^)]*\)\@<=in': "of",
+            \     '\%(\[[^\]]*\)\@<=\s*=': "\<ESC>F[f]a = !",
             \     '^\(if\|for\|while\|switch\)\s\+\([^([:blank:]][^(]\+\)': "$1 ($2)\<LEFT>",
             \     'c': "const",
             \     'prom': "new Promise((resolve, reject) => {})\<LEFT>\<LEFT>!",

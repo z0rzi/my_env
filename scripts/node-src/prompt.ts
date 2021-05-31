@@ -1,6 +1,6 @@
 import { Cli } from './cli.js';
 
-type PromptCallback = (typedText: string) => boolean;
+type PromptCallback = (typedText: string) => boolean | Promise<boolean>;
 export class Prompt {
     cli: Cli = null;
 
@@ -34,7 +34,7 @@ export class Prompt {
         ctrl?: boolean,
         shift?: boolean,
         alt?: boolean
-    ) => boolean = null;
+    ) => boolean | Promise<boolean> = null;
 
     _oldKbListener = null;
 
@@ -66,13 +66,14 @@ export class Prompt {
         this.cli.toggleCursor(true);
     }
 
-    promptInputListener(
+    async promptInputListener(
         keyName: string,
         ctrl: boolean,
         shift: boolean,
         alt: boolean
-    ): void {
-        if (this.onKeyHit && !this.onKeyHit(keyName, ctrl, shift, alt)) return;
+    ): Promise<void> {
+        if (this.onKeyHit && !(await this.onKeyHit(keyName, ctrl, shift, alt)))
+            return;
 
         if (keyName === 'space') keyName = ' ';
         const oldText = this.value;
@@ -132,12 +133,12 @@ export class Prompt {
                     break;
 
                 case 'return':
-                    if (this.onConfirm && this.onConfirm(this.value))
+                    if (this.onConfirm && (await this.onConfirm(this.value)))
                         this.destroy();
                     break;
 
                 case 'escape':
-                    if (this.onCancel && this.onCancel(this.value))
+                    if (this.onCancel && (await this.onCancel(this.value)))
                         this.destroy();
                     break;
             }
@@ -145,7 +146,7 @@ export class Prompt {
         if (
             this.onChange &&
             oldText !== this.value &&
-            this.onChange(this.value)
+            (await this.onChange(this.value))
         )
             this.destroy();
     }

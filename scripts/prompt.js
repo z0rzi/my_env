@@ -49,8 +49,8 @@ export class Prompt {
         this.cli.loadPos();
         this.cli.toggleCursor(true);
     }
-    promptInputListener(keyName, ctrl, shift, alt) {
-        if (this.onKeyHit && !this.onKeyHit(keyName, ctrl, shift, alt))
+    async promptInputListener(keyName, ctrl, shift, alt) {
+        if (this.onKeyHit && !(await this.onKeyHit(keyName, ctrl, shift, alt)))
             return;
         if (keyName === 'space')
             keyName = ' ';
@@ -107,18 +107,18 @@ export class Prompt {
                     this.caretPos++;
                     break;
                 case 'return':
-                    if (this.onConfirm && this.onConfirm(this.value))
+                    if (this.onConfirm && (await this.onConfirm(this.value)))
                         this.destroy();
                     break;
                 case 'escape':
-                    if (this.onCancel && this.onCancel(this.value))
+                    if (this.onCancel && (await this.onCancel(this.value)))
                         this.destroy();
                     break;
             }
         }
         if (this.onChange &&
             oldText !== this.value &&
-            this.onChange(this.value))
+            (await this.onChange(this.value)))
             this.destroy();
     }
 }

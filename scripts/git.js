@@ -12,6 +12,7 @@ class GitStatus {
         this.deleted = [];
         this._readyResolve = null;
         this.ready = new Promise(resolve => (this._readyResolve = resolve));
+        this.isNotARepo = false;
         this.gitRoot = getRootPath(path);
         this.refresh();
     }
@@ -48,12 +49,22 @@ class GitStatus {
         }
     }
     async refresh() {
-        const rawStatus = (await cmd(`cd ${this.gitRoot}; git status --porcelain=1 --ignored`, true, false));
-        rawStatus.forEach(line => this.handleRawLine(line));
+        try {
+            const rawStatus = (await cmd(`cd ${this.gitRoot}; git status --porcelain=1`, 
+            // `cd ${this.gitRoot}; git status --porcelain=1 --ignored`,
+            true, false));
+            rawStatus.forEach(line => this.handleRawLine(line));
+        }
+        catch (err) {
+            // this is probably not a git repo
+            this.isNotARepo = true;
+        }
         if (this._readyResolve)
             this._readyResolve();
     }
     async getFileState(filepath) {
+        if (this.isNotARepo)
+            return GitFileState.NOT_GIT;
         filepath = getRelativePath(filepath);
         await this.ready;
         if (this.added.includes(filepath))
@@ -108,10 +119,11 @@ class GitCache {
 export var GitFileState;
 (function (GitFileState) {
     GitFileState["NONE"] = " ";
-    GitFileState["MODIFIED"] = "*";
+    GitFileState["MODIFIED"] = "~";
     GitFileState["DELETED"] = "-";
     GitFileState["ADDED"] = "+";
-    GitFileState["IGNORED"] = "_";
+    GitFileState["IGNORED"] = "\u2237";
+    GitFileState["NOT_GIT"] = "_";
 })(GitFileState || (GitFileState = {}));
 /**
  * Returns all the unstaged files

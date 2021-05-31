@@ -16,6 +16,7 @@ export class File {
         this.name = '';
         this.icon = '';
         this._gitFilters = [/\/\.git\//];
+        this._cachedGitState = null;
         path = path.replace(/\/+/g, '/').replace(/\/$/g, '');
         this.path = path;
         try {
@@ -103,8 +104,30 @@ export class File {
             this.parseGitIgnore();
         return kidsNames;
     }
-    get gitState() {
-        return GitFileState.NONE;
+    async getGitState() {
+        if (!this._cachedGitState) {
+            let state = await git.getFileState(this.path);
+            if (this.isDirectory) {
+                this.explore();
+            }
+            if (!this.isGitIgnored() && state === GitFileState.NONE) {
+                let kidStates = [];
+                for (const kid of this.children)
+                    kidStates.push(await kid.getGitState());
+                kidStates = kidStates.uniq();
+                if (kidStates.includes(GitFileState.ADDED) &&
+                    kidStates.includes(GitFileState.DELETED))
+                    state = GitFileState.MODIFIED;
+                else if (kidStates.includes(GitFileState.MODIFIED))
+                    state = GitFileState.MODIFIED;
+                else if (kidStates.includes(GitFileState.ADDED))
+                    state = GitFileState.ADDED;
+                else if (kidStates.includes(GitFileState.DELETED))
+                    state = GitFileState.DELETED;
+            }
+            this._cachedGitState = state;
+        }
+        return this._cachedGitState;
     }
     findParent() {
         const newPath = path.resolve(this.path + '/../');

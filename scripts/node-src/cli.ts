@@ -1,4 +1,3 @@
-import { clearLine } from 'readline';
 import { Key, Keyboard } from './keyboard.js';
 import { cmd } from './shell.js';
 

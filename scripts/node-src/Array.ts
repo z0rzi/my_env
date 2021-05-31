@@ -6,8 +6,13 @@ declare global {
         /** sorts the array by alphabetical order */
         alphasort: (accessor: (v: T) => string) => T[];
 
-        /** sorts the array by alphabetical order */
+        /** A map with an async function */
         asyncMap: <V>(mapFn: (elem: T) => Promise<V>) => Promise<V[]>;
+
+        /** A filter with an async function */
+        asyncFilter: <T>(
+            filterFn: (elem: T) => Promise<boolean>
+        ) => Promise<T[]>;
     }
 }
 
@@ -44,6 +49,25 @@ Array.prototype['asyncMap'] = async function <V>(
 
     // Waiting all the promises
     for (const p of promises) out.push(await p);
+
+    return out;
+};
+
+Array.prototype['asyncFilter'] = async function <T>(
+    mapFn: (elem: T) => Promise<boolean>
+): Promise<T[]> {
+    const arr = this as Array<T>;
+    const out = [] as T[];
+
+    // starting all the promises side by side
+    const promises = arr.map(elem => mapFn(elem));
+
+    // Waiting all the promises
+    let i = 0;
+    for (const p of promises) {
+        if (await p) out.push(arr[i]);
+        i++;
+    }
 
     return out;
 };

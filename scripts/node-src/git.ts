@@ -59,17 +59,26 @@ class GitStatus {
 
     private _readyResolve = null;
     ready = new Promise(resolve => (this._readyResolve = resolve));
+    isNotARepo = false;
     async refresh(): Promise<void> {
-        const rawStatus = (await cmd(
-            `cd ${this.gitRoot}; git status --porcelain=1 --ignored`,
-            true,
-            false
-        )) as string[];
-        rawStatus.forEach(line => this.handleRawLine(line));
+        try {
+            const rawStatus = (await cmd(
+                `cd ${this.gitRoot}; git status --porcelain=1`,
+                // `cd ${this.gitRoot}; git status --porcelain=1 --ignored`,
+                true,
+                false
+            )) as string[];
+            rawStatus.forEach(line => this.handleRawLine(line));
+        } catch (err) {
+            // this is probably not a git repo
+            this.isNotARepo = true;
+        }
         if (this._readyResolve) this._readyResolve();
     }
 
     async getFileState(filepath: string): Promise<GitFileState> {
+        if (this.isNotARepo) return GitFileState.NOT_GIT;
+
         filepath = getRelativePath(filepath);
 
         await this.ready;
@@ -122,10 +131,12 @@ class GitCache {
 
 export enum GitFileState {
     NONE = ' ',
-    MODIFIED = '*',
+    MODIFIED = '~',
     DELETED = '-',
     ADDED = '+',
-    IGNORED = '_',
+    IGNORED = '∷',
+
+    NOT_GIT = '_',
 }
 
 /**

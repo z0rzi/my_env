@@ -132,8 +132,34 @@ export class File {
         return kidsNames;
     }
 
-    get gitState(): GitFileState {
-        return GitFileState.NONE;
+    _cachedGitState = null as GitFileState;
+    async getGitState(): Promise<GitFileState> {
+        if (!this._cachedGitState) {
+            let state = await git.getFileState(this.path);
+            if (this.isDirectory) {
+                this.explore();
+            }
+            if (!this.isGitIgnored() && state === GitFileState.NONE) {
+                let kidStates = [] as GitFileState[];
+                for (const kid of this.children)
+                    kidStates.push(await kid.getGitState());
+                kidStates = kidStates.uniq();
+                if (
+                    kidStates.includes(GitFileState.ADDED) &&
+                    kidStates.includes(GitFileState.DELETED)
+                )
+                    state = GitFileState.MODIFIED;
+                else if (kidStates.includes(GitFileState.MODIFIED))
+                    state = GitFileState.MODIFIED;
+                else if (kidStates.includes(GitFileState.ADDED))
+                    state = GitFileState.ADDED;
+                else if (kidStates.includes(GitFileState.DELETED))
+                    state = GitFileState.DELETED;
+            }
+            this._cachedGitState = state;
+        }
+
+        return this._cachedGitState;
     }
 
     findParent(): File {

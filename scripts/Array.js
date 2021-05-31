@@ -29,5 +29,19 @@ Array.prototype['asyncMap'] = async function (mapFn) {
         out.push(await p);
     return out;
 };
+Array.prototype['asyncFilter'] = async function (mapFn) {
+    const arr = this;
+    const out = [];
+    // starting all the promises side by side
+    const promises = arr.map(elem => mapFn(elem));
+    // Waiting all the promises
+    let i = 0;
+    for (const p of promises) {
+        if (await p)
+            out.push(arr[i]);
+        i++;
+    }
+    return out;
+};
 export {};
 //# sourceMappingURL=Array.js.map
