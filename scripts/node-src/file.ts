@@ -132,6 +132,23 @@ export class File {
         return kidsNames;
     }
 
+    async getAllChildren(absolutePaths = false): Promise<string[]> {
+        if (!this.isDirectory) return [this.path];
+
+        if (!this.children || !this.children.length) this.explore();
+
+        let res = [] as string[];
+        for (const kid of this.children) {
+            if (kid.isGitIgnored()) continue;
+
+            res.push(...(await kid.getAllChildren(true)));
+        }
+        if (!absolutePaths) {
+            res = res.map(path => './' + path.slice(this.path.length));
+        }
+        return res;
+    }
+
     _cachedGitState = null as GitFileState;
     async getGitState(): Promise<GitFileState> {
         if (!this._cachedGitState) {

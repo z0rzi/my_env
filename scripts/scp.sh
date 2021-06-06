@@ -1,10 +1,21 @@
 #!/bin/bash
 
+source=''
+target=''
+zip=''
+
 function parse_arg {
     arg=$@
     if [ -f "$arg" ] || [ -d "$arg" ]; then
         # Local file
-        printf "$arg"
+        if [ "$zip" ]; then
+            echo "Zipping file..." > /dev/stderr
+            zip -r "$arg.zip" "$arg" > /dev/stderr
+            echo "Done zipping!" > /dev/stderr
+            printf "$arg.zip"
+        else
+            printf "$arg"
+        fi
         return
     fi
 
@@ -18,6 +29,7 @@ function parse_arg {
     fi
     if [[ "$arg" =~ =[^=]+$ ]]; then
         path=${arg##*=}
+        [[ "$path" =~ /[^/.]*$ ]] && path="$path/"
         arg=${arg%=*}
     fi
     if [[ "$arg" =~ :[^:]+$ ]]; then
@@ -28,22 +40,32 @@ function parse_arg {
         host=$arg
     fi
 
-    cmd=""
 
-    # "USAGE = 'scp.sh <FILE> [user@]12.34.56.78[:22][=path]'"
+    cmd="scp://"
 
-    [ "$port" ] && cmd="-P ${port} "
+    # scp://[user@]host[:port][/path]
+
     [ "$user" ] && cmd="${cmd}${user}@"
     [ "$host" ] && cmd="${cmd}${host}" || exit 1
-    [ "$path" ] && cmd="${cmd}:${path}"
+    [ "$port" ] && cmd="${cmd}:${port}"
+    [ "$path" ] && cmd="${cmd}/${path}"
 
-    echo -n "$cmd"
+    echo -n "${cmd}"
 }
 
+while [ $# -gt 0 ]; do
+    if [ "$1" = "--zip" ]; then
+        zip=1
+    else
+        [ "$source" ] && target=$1 || source=$1
+    fi
+    shift
+done
 
-if [ $# -ne 2 ]; then
-    echo "USAGE = 'scp.sh file|[user@]12.34.56.78[:22][=path] file|[user@]12.34.56.78[:22][=path]'"
+
+if [ ! "$source" ] || [ ! "$target" ]; then
+    echo "USAGE = 'scp.sh [--zip] file|[user@]12.34.56.78[:22][=path] file|[user@]12.34.56.78[:22][=path]'"
     exit 1
 fi
 
-scp -r `parse_arg $1` `parse_arg $2`
+scp -r `parse_arg $source` `parse_arg $target`

@@ -10,21 +10,31 @@ export { NO_MATCH_FOUND };
  *
  * @returns The result as 1 string
  */
-export async function cmd(command, cut_lines = false, trim = true) {
+export async function cmd(command, opts = {
+    cutLines: false,
+    trim: true,
+    acceptFailure: false,
+}) {
+    opts = Object.assign({
+        cutLines: false,
+        trim: true,
+        acceptFailure: false,
+    }, opts);
     return new Promise((resolve, reject) => {
         child_process.exec(command, (err, stdout, stderr) => {
             if (!!stdout) {
-                if (!cut_lines)
+                if (!opts.cutLines)
                     return resolve(stdout.trim());
                 return resolve(stdout
                     .split('\n')
-                    .map(line => (trim ? line.trim() : line))
+                    .map(line => (opts ? line.trim() : line))
                     .filter(e => !!e));
             }
             if (stderr)
                 return reject(stderr);
             if (err) {
-                if (err.message.includes('Command failed')) {
+                if (err.message.includes('Command failed') &&
+                    !opts.acceptFailure) {
                     console.log('Failed while trying to execute the following command:');
                     console.log('');
                     console.log('    ' + command);

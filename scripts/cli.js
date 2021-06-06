@@ -65,6 +65,7 @@ class Cli {
             this.hitListener(key.key, key.ctrl, key.shift, key.alt);
         }).bind(this);
         this.hitListener = null;
+        this._borrowList = {};
         this.kb = Keyboard.getInstance();
         this.clearScreen();
         this.refreshTermMetas().then(() => {
@@ -313,6 +314,13 @@ class Cli {
     onKeyHit(cb) {
         this.kb.onKeyPress(this.onKeyPress);
         this.hitListener = cb;
+    }
+    borrowHitKey(key, cb) {
+        this._borrowList[key] = this.hitListener;
+        this.onKeyHit(cb);
+    }
+    giveBackHitKey(key) {
+        this.onKeyHit(this._borrowList[key]);
     }
     offHitKey() {
         this.kb.offKeyPress();

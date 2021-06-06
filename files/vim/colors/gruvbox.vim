@@ -583,8 +583,7 @@ call s:HL('LineNr', s:bg4, s:number_column)
 call s:HL('SignColumn', s:none, s:sign_column)
 
 " Line used for closed folds
-" call s:HL('Folded', s:green, s:bg1, s:italic)
-highlight Folded ctermfg=DarkGreen ctermbg=none
+call s:HL('Folded', s:green, s:bg1, s:italic)
 
 " Column where folds are displayed
 call s:HL('FoldColumn', s:gray, s:bg1)
@@ -940,10 +939,10 @@ call s:HL('multiple_cursors_visual', s:none, s:bg2)
 " hi! link diffNewFile GruvboxYellow
 " hi! link diffLine GruvboxBlue
 
-hi DiffChange ctermbg=black ctermfg=none      cterm=none guibg=#262626 guifg=#8787af gui=reverse
-hi DiffAdd    ctermbg=black ctermfg=darkgreen cterm=bold guibg=#262626 guifg=#87af87 gui=reverse
-hi DiffDelete ctermbg=black ctermfg=131       cterm=none guibg=#262626 guifg=#af5f5f gui=reverse
-hi DiffText   ctermbg=black ctermfg=blue  cterm=bold guibg=#262626 guifg=#ff8700 gui=reverse
+hi DiffText   ctermbg=black ctermfg=blue      cterm=bold guibg=none guifg=none gui=bold
+hi DiffChange ctermbg=black ctermfg=none      cterm=none guibg=#263738 guifg=none gui=bold
+hi DiffAdd    ctermbg=black ctermfg=darkgreen cterm=bold guibg=#2d3826 guifg=#87af87 gui=bold
+hi DiffDelete ctermbg=black ctermfg=131       cterm=none guibg=#382626 guifg=#af5f5f gui=bold
 " hi DiffText   ctermbg=none  ctermfg=none      cterm=none
 " hi DiffChange ctermbg=none  ctermfg=none      cterm=none
 " hi DiffAdd    ctermbg=black ctermfg=darkgreen cterm=bold

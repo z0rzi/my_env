@@ -3,6 +3,7 @@ import path from 'path';
 import './Array.js';
 import { Cli, CliColor } from './cli.js';
 import { File } from './file.js';
+import { fuzzyFind } from './fuzzyFinder.js';
 import { GitFileState } from './git.js';
 import { ICONS } from './icons.js';
 import { Prompt } from './prompt.js';
@@ -57,6 +58,18 @@ class ExplorerFile extends File {
                     kid.open(recursive - 1, openStartTime || timeStamp);
             });
         }
+    }
+    async openToPath(path) {
+        if (!this.isDirectory ||
+            path === this.path ||
+            !path.startsWith(this.path))
+            return this;
+        if (!this.opened)
+            await this.open();
+        for (const kid of this.children)
+            if (path.startsWith(kid.path))
+                return kid.openToPath(path);
+        return this;
     }
     async isVisible() {
         if (!this.showHidden && this.isHiddenFile())
@@ -435,6 +448,22 @@ class Explorer {
             // prompt cancel
         }
     }
+    async fuzzySearch() {
+        const allKids = await this.currentFile.getAllChildren();
+        this.cli.toggleCursor(true);
+        let choice;
+        try {
+            choice = await fuzzyFind(allKids, undefined, this.cli);
+        }
+        catch (err) {
+            this.cli.toggleCursor(false);
+            return;
+        }
+        const path = this.currentFile.path + choice.label.replace(/^\.\//, '');
+        this.currentFile = await this.currentFile.openToPath(path);
+        this.cli.toggleCursor(false);
+        return;
+    }
     async onInput(keyName, ctrl, shift) {
         if (keyName === 'space')
             keyName = ' ';
@@ -458,6 +487,10 @@ class Explorer {
                     this.rootFile.gitOnly = this.gitOnlyMode;
                     this.currentFile =
                         await this.currentFile.getClosestVisible();
+                    await this.refreshScreen();
+                    break;
+                case 's':
+                    await this.fuzzySearch();
                     await this.refreshScreen();
                     break;
                 case 'z':

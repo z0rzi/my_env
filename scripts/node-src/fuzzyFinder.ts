@@ -26,7 +26,8 @@ class FuzzyFinder<T = unknown> {
     constructor(
         choices: Choice<T>[],
         selectCallback: (choice: Choice<T>) => unknown,
-        scoreLimit = 0.5
+        scoreLimit = 0.5,
+        cli = null
     ) {
         this.scoreLimit = scoreLimit;
         choices.forEach((choice, idx) => {
@@ -34,9 +35,9 @@ class FuzzyFinder<T = unknown> {
             choice.tags = `${formatNum(idx, 4)} ${choice.tags}`;
         });
         this.choices = choices;
-        this._qs = new QuickScore(choices, ['tags']);
+        this._qs = new QuickScore(choices, ['label', 'tags']);
         this.height = Math.min(this.height, choices.length + 1);
-        this.cli = new Cli(this.height);
+        this.cli = cli ?? new Cli(this.height);
 
         this.cli.waitForReady.then(() => {
             this.height = this.cli.maxHeight;
@@ -101,9 +102,21 @@ class FuzzyFinder<T = unknown> {
 
         const res = this._qs.search<Choice<T>>(this.search);
 
-        return res
-            .filter(elem => elem.score > this.scoreLimit)
-            .map(elem => elem.item)
+        const out = res
+            .filter(
+                elem =>
+                    elem.score > this.scoreLimit ||
+                    // Checking for exact matches
+                    Object.values(elem.matches).some(
+                        subMatches => subMatches.length === 1
+                    )
+            )
+            .map(elem => {
+                return {
+                    ...elem.item,
+                    _matches: elem.matches.label,
+                };
+            })
             .sort((a, b) => {
                 const aNum = Number(a.tags.slice(0, 4));
                 const bNum = Number(b.tags.slice(0, 4));
@@ -113,6 +126,8 @@ class FuzzyFinder<T = unknown> {
                 return aNum - bNum;
             })
             .slice(0, this.height - 1);
+
+        return out;
     }
 
     /**
@@ -157,7 +172,24 @@ class FuzzyFinder<T = unknown> {
         this.cli.clearToEndOfLine();
 
         const choice = this.filteredChoices[index];
-        this.cli.write(choice.label, { bold: this.selectionPos === index });
+        if (choice._matches && choice._matches.length) {
+            let idx = 0;
+            for (const [start, end] of choice._matches) {
+                this.cli.write(choice.label.slice(idx, start), {
+                    bold: index === this.selectionPos,
+                });
+                this.cli.write(choice.label.slice(start, end), {
+                    color: CliColor.GREEN,
+                    bold: index === this.selectionPos,
+                });
+                idx = end;
+            }
+            this.cli.write(choice.label.slice(idx), {
+                bold: index === this.selectionPos,
+            });
+        } else {
+            this.cli.write(choice.label, { bold: index === this.selectionPos });
+        }
 
         if (this.debugMode)
             this.cli.write(' - ' + choice.tags.replace(/^[^a-zA-Z]*/, ''), {
@@ -191,15 +223,17 @@ function formatNum(num: number | string, length = 4) {
     return String(num).length >= length ? num : formatNum('0' + num, length);
 }
 
-type Choice<T = unknown> = {
+export type Choice<T = unknown> = {
     label: string;
     tags: string;
     payload?: T;
+    _matches?: number[][];
 };
 
 async function fuzzyFind<T = unknown>(
     choices: Choice<T>[] | string[],
-    scoreLimit = 0.5
+    scoreLimit = 0.5,
+    cli = null
 ): Promise<Choice> {
     if (!Array.isArray(choices)) throw new Error('Choices must be an array!');
     if (!choices.length) throw new Error('No empty array!');
@@ -216,13 +250,10 @@ async function fuzzyFind<T = unknown>(
                 if (!choice) reject();
                 return resolve(choice);
             },
-            scoreLimit
+            scoreLimit,
+            cli
         );
     });
 }
 
 export { FuzzyFinder, fuzzyFind };
-
-function reject() {
-    throw new Error('Function not implemented.');
-}

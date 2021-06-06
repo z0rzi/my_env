@@ -8,6 +8,18 @@ const NO_ARGS_PROVIDED = process.argv.length <= 2;
 export { HOME, CWD, NO_ARGS_PROVIDED };
 export { NO_MATCH_FOUND };
 
+export async function cmd(
+    command: string,
+    opts?: Partial<{ cutLines: false; trim: boolean; acceptFailure: boolean }>
+): Promise<string>;
+export async function cmd(
+    command: string,
+    opts?: Partial<{ cutLines: true; trim: boolean; acceptFailure: boolean }>
+): Promise<string[]>;
+export async function cmd(
+    command: string,
+    opts?: Partial<{ cutLines: boolean; trim: boolean; acceptFailure: boolean }>
+): Promise<string | string[]>;
 /**
  * Runs a shell command
  *
@@ -15,18 +27,33 @@ export { NO_MATCH_FOUND };
  */
 export async function cmd(
     command: string,
-    cut_lines = false,
-    trim = true
+    opts: Partial<{
+        cutLines: boolean;
+        trim: boolean;
+        acceptFailure: boolean;
+    }> = {
+        cutLines: false,
+        trim: true,
+        acceptFailure: false,
+    }
 ): Promise<string | string[]> {
+    opts = Object.assign(
+        {
+            cutLines: false,
+            trim: true,
+            acceptFailure: false,
+        },
+        opts
+    );
     return new Promise((resolve, reject) => {
         child_process.exec(command, (err, stdout, stderr) => {
             if (!!stdout) {
-                if (!cut_lines) return resolve(stdout.trim());
+                if (!opts.cutLines) return resolve(stdout.trim());
 
                 return resolve(
                     stdout
                         .split('\n')
-                        .map(line => (trim ? line.trim() : line))
+                        .map(line => (opts ? line.trim() : line))
                         .filter(e => !!e)
                 );
             }
@@ -34,7 +61,10 @@ export async function cmd(
             if (stderr) return reject(stderr);
 
             if (err) {
-                if (err.message.includes('Command failed')) {
+                if (
+                    err.message.includes('Command failed') &&
+                    !opts.acceptFailure
+                ) {
                     console.log(
                         'Failed while trying to execute the following command:'
                     );

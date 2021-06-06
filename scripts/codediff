@@ -2,7 +2,13 @@
 
 while [ "$1" = "--" ]; do shift; done
 
-editor=nvim
+editor="nvim"
+explorer="$HOME/.local/bin/custom/explorer.js"
+
+function create_empty_file {
+    echo '' > /tmp/.empty
+    echo "/tmp/.empty"
+}
 
 if [ -d "$1" ] && [ -d "$2" ]; then
     # Opening folders
@@ -13,8 +19,7 @@ if [ -d "$1" ] && [ -d "$2" ]; then
 #     echo $remote
 
     export EDITOR="$HOME/.local/bin/custom/codediff"
-    # ranger $local
-    $HOME/.local/bin/custom/explorer.js $remote
+    $explorer $remote
 elif [ -f "$1" ] && [ -f "$2" ]; then
     # Opening folders
     local=`realpath $1`
@@ -25,42 +30,53 @@ elif [ -f "$1" ] && [ -f "$2" ]; then
             nvim -d $local $remote
             ;;
     esac
-elif [ "`git rev-parse --show-toplevel`" ]; then
-    # We are in a git directory
-    if [ -d "$1" ]; then
-        git difftool --dir-diff $1
-    elif [ -f "$1" ]; then
-        git difftool $1
-    else
-        if [ ! -f "$file" ]; then
-            echo "Could not find '$1'"
-            sleep 5
-            exit 1
-        fi
-    fi
 else
-    # Opening a file
-    file="$1"
-
-    if [ ! -f "$file" ]; then
-        echo "File '$file' not found!"
+    if [ ! -f "$1" ] && [ ! -d "$1" ]; then
+        echo "'$1' not a file and not a directory..."
         sleep 5
         exit 1
     fi
 
-    if [[ "$file" =~ /right/ ]]; then
-        right=`realpath $file`
-        left=`realpath ${file/right/left}`
-    elif [[ "$file" =~ /left/ ]]; then
-        left=`realpath $file`
-        right=`realpath ${file/left/right}`
+    file="$1"
+    real_file="`realpath $1`"
+
+    if [[ "$file" =~ /right/ ]] || [[ "$file" =~ /left/ ]]; then
+
+        # There is a left/right arborescence, we compare between left and right
+
+        if [[ "$file" =~ /right/ ]]; then
+            right=$real_file
+            [ -e "${file/right/left}" ] && left=`realpath ${file/right/left}` || left=`create_empty_file`
+        elif [[ "$file" =~ /left/ ]]; then
+            left=$real_file
+            [ -e "${file/left/right}" ] && right=`realpath ${file/left/right}` || right=`create_empty_file`
+        fi
+
+        case "$editor" in
+            "nvim")
+                nvim -d $left $right
+                ;;
+        esac
     else
-        $editor "`realpath $file`"
-        exit 0
+        cd ${real_file%/*}
+        git_root=`git rev-parse --show-toplevel 2> /dev/null`
+
+        if [ "$git_root" ]; then
+            # We are in a git directory
+            cd $git_root
+            relative_file=`realpath --relative-to="$git_root" "$real_file"`
+            if [ -d "$relative_file" ]; then
+                git difftool --dir-diff HEAD:"$relative_file" "$relative_file"
+            elif [ -f "$relative_file" ]; then
+                git difftool  HEAD:"$relative_file" "$relative_file"
+            fi
+        else
+            # Well, we tried everything, we just open the file...
+            if [ -f "$real_file" ]; then
+                $editor $real_file
+            elif [ -d "$real_file" ]; then
+                $explorer $real_file
+            fi
+        fi
     fi
-    case "$editor" in
-        "nvim")
-            nvim -d $left $right
-            ;;
-    esac
 fi

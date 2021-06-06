@@ -2,7 +2,7 @@ import { QuickScore } from 'quick-score';
 import { Cli, CliColor } from './cli.js';
 import { Prompt } from './prompt.js';
 class FuzzyFinder {
-    constructor(choices, selectCallback, scoreLimit = 0.5) {
+    constructor(choices, selectCallback, scoreLimit = 0.5, cli = null) {
         this.height = 100;
         this.selectorWidth = 3;
         this.isDead = false;
@@ -21,9 +21,9 @@ class FuzzyFinder {
             choice.tags = `${formatNum(idx, 4)} ${choice.tags}`;
         });
         this.choices = choices;
-        this._qs = new QuickScore(choices, ['tags']);
+        this._qs = new QuickScore(choices, ['label', 'tags']);
         this.height = Math.min(this.height, choices.length + 1);
-        this.cli = new Cli(this.height);
+        this.cli = cli ?? new Cli(this.height);
         this.cli.waitForReady.then(() => {
             this.height = this.cli.maxHeight;
             const p = new Prompt(this.cli, this.height - 1, 0);
@@ -79,9 +79,16 @@ class FuzzyFinder {
         if (!this.search)
             return this.choices.slice(0, this.height - 1);
         const res = this._qs.search(this.search);
-        return res
-            .filter(elem => elem.score > this.scoreLimit)
-            .map(elem => elem.item)
+        const out = res
+            .filter(elem => elem.score > this.scoreLimit ||
+            // Checking for exact matches
+            Object.values(elem.matches).some(subMatches => subMatches.length === 1))
+            .map(elem => {
+            return {
+                ...elem.item,
+                _matches: elem.matches.label,
+            };
+        })
             .sort((a, b) => {
             const aNum = Number(a.tags.slice(0, 4));
             const bNum = Number(b.tags.slice(0, 4));
@@ -91,6 +98,7 @@ class FuzzyFinder {
             return aNum - bNum;
         })
             .slice(0, this.height - 1);
+        return out;
     }
     /**
      * Updates the selection arrow
@@ -131,7 +139,25 @@ class FuzzyFinder {
         this.cli.goTo(this.height - 2 - index, this.selectorWidth);
         this.cli.clearToEndOfLine();
         const choice = this.filteredChoices[index];
-        this.cli.write(choice.label, { bold: this.selectionPos === index });
+        if (choice._matches && choice._matches.length) {
+            let idx = 0;
+            for (const [start, end] of choice._matches) {
+                this.cli.write(choice.label.slice(idx, start), {
+                    bold: index === this.selectionPos,
+                });
+                this.cli.write(choice.label.slice(start, end), {
+                    color: CliColor.GREEN,
+                    bold: index === this.selectionPos,
+                });
+                idx = end;
+            }
+            this.cli.write(choice.label.slice(idx), {
+                bold: index === this.selectionPos,
+            });
+        }
+        else {
+            this.cli.write(choice.label, { bold: index === this.selectionPos });
+        }
         if (this.debugMode)
             this.cli.write(' - ' + choice.tags.replace(/^[^a-zA-Z]*/, ''), {
                 color: CliColor.BLACK,
@@ -156,7 +182,7 @@ class FuzzyFinder {
 function formatNum(num, length = 4) {
     return String(num).length >= length ? num : formatNum('0' + num, length);
 }
-async function fuzzyFind(choices, scoreLimit = 0.5) {
+async function fuzzyFind(choices, scoreLimit = 0.5, cli = null) {
     if (!Array.isArray(choices))
         throw new Error('Choices must be an array!');
     if (!choices.length)
@@ -171,11 +197,8 @@ async function fuzzyFind(choices, scoreLimit = 0.5) {
             if (!choice)
                 reject();
             return resolve(choice);
-        }, scoreLimit);
+        }, scoreLimit, cli);
     });
 }
 export { FuzzyFinder, fuzzyFind };
-function reject() {
-    throw new Error('Function not implemented.');
-}
 //# sourceMappingURL=fuzzyFinder.js.map

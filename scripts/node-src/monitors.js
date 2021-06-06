@@ -47,9 +47,18 @@ async function hexRead(filePath) {
  * Retreives all the plugged monitors, according to Xrandr
  */
 async function getXrandrMonitorsNames() {
-    return cmd("xrandr | grep 'connected'").then(res =>
+    return cmd("xrandr | grep '\\bconnected'").then(res =>
         res.split('\n').map(line => line.split(/\s+/).shift())
     );
+}
+
+/**
+ * Retreives all the disconected monitors, according to Xrandr
+ */
+async function getXrandrDisconnectedMonitorsNames() {
+    return cmd("xrandr | grep '\\bdisconnected'", { acceptFailure: true })
+        .then(res => res.split('\n').map(line => line.split(/\s+/).shift()))
+        .catch(() => []);
 }
 
 /**
@@ -186,6 +195,12 @@ class Monitor {
         if (this.config.cmd) return cmd(this.config.cmd);
 
         let command = 'xrandr ';
+        const disconnected = await getXrandrDisconnectedMonitorsNames();
+        if (disconnected && disconnected.length) {
+            disconnected.forEach(name => {
+                command += `--output ${name} --off `;
+            });
+        }
         if (this.isLaptop()) {
             command += `--output ${await this.getXrandrName()} --auto --primary --rotate normal `;
         } else {
@@ -210,6 +225,8 @@ class Monitor {
         }
 
         setSoundProfileFor(this);
+
+        console.log('cmd', command);
 
         return cmd(command);
     }
@@ -289,9 +306,6 @@ getMonitors().then(async monitors => {
     if (args.includes('--edit')) {
         console.log(
             'The current configuration is the 1st one in the config file.'
-        );
-        console.log(
-            'If the dimensions are messed up, you can use the "monitors_rescale.sh" script.'
         );
         console.log('Here are the available dimensions: ');
         console.log(await monitor.getModes());

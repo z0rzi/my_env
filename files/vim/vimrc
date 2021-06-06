@@ -296,6 +296,8 @@
 
         call winrestview(save)
     endfunction
+    nnoremap d/ <CMD>M dgn<CR>
+    nnoremap c/ :<C-u>M cgn
     command! -range -nargs=+  MacroToAll call DoAtEach(<q-args>, '<count>')
     command! -range -nargs=+  M call DoAtEach(<q-args>, '<count>')
 
@@ -1276,7 +1278,7 @@
         let g:ctrlsf_context = '-B 3 -A 3'
         let g:ctrlsf_default_root = 'cwd'
         let g:ctrlsf_default_view_mode = 'compact'
-        let g:ctrlsf_regex_pattern = 1
+        let g:ctrlsf_regex_pattern = 0
         let g:ctrlsf_winsize = '40%'
         let g:ctrlsf_mapping = {
             \ "chgmode": "<TAB>",
@@ -1635,10 +1637,10 @@
             xnoremap <LEADER>* :JsDoc<CR>
 
         " CtrlSF
-            nnoremap <C-f> :CtrlSF ''<LEFT>
-            nnoremap <C-s> :let @/ = '<C-r>=expand('<cword>')<CR>'<CR>:CtrlSF '\b<C-r>=@/<CR>\b'<CR>:CtrlSFFocus<CR>
-            xnoremap <C-f> <ESC>:let @/ = escape(getline('.')[col("'<")-1 : col("'>")-1], '.\\[]')<CR>:CtrlSF "<C-r>=escape(@/, '"()')<CR>"<LEFT>
-            xnoremap <C-s> <ESC>:let @/ = escape(getline('.')[col("'<")-1 : col("'>")-1], '.\\[]')<CR>:CtrlSF "<C-r>=escape(@/, '"()')<CR>"<CR>
+            nnoremap <C-f> :CtrlSF -R ''<LEFT>
+            nnoremap <C-s> :let @/ = '<C-r>=expand('<cword>')<CR>'<CR>:CtrlSF -R '\b<C-r>=@/<CR>\b'<CR>:CtrlSFFocus<CR>
+            xnoremap <C-f> <ESC>:let @/ = escape(getline('.')[col("'<")-1 : col("'>")-1], '.\\[]')<CR>:CtrlSF -R "<C-r>=escape(@/, '"()')<CR>"<LEFT>
+            xnoremap <C-s> <ESC>:let @/ = escape(getline('.')[col("'<")-1 : col("'>")-1], '.\\[]')<CR>:CtrlSF -R "<C-r>=escape(@/, '"()')<CR>"<CR>
 
         " CoC
             nnoremap <C-q> :CocAction<CR>

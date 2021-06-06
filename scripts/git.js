@@ -50,9 +50,10 @@ class GitStatus {
     }
     async refresh() {
         try {
-            const rawStatus = (await cmd(`cd ${this.gitRoot}; git status --porcelain=1`, 
-            // `cd ${this.gitRoot}; git status --porcelain=1 --ignored`,
-            true, false));
+            const rawStatus = (await cmd(`cd ${this.gitRoot}; git status --porcelain=1`, {
+                cutLines: true,
+                trim: false,
+            }));
             rawStatus.forEach(line => this.handleRawLine(line));
         }
         catch (err) {
@@ -123,14 +124,16 @@ export var GitFileState;
     GitFileState["DELETED"] = "-";
     GitFileState["ADDED"] = "+";
     GitFileState["IGNORED"] = "\u2237";
-    GitFileState["NOT_GIT"] = "_";
+    GitFileState["NOT_GIT"] = "  ";
 })(GitFileState || (GitFileState = {}));
 /**
  * Returns all the unstaged files
  */
 export async function getUnstaged() {
     const root = getRootPath();
-    return cmd(`git ls-files -m --full-name ${root}`, true);
+    return cmd(`git ls-files -m --full-name ${root}`, {
+        cutLines: true,
+    });
 }
 export async function getFileState(path) {
     let stats = GitCache.getInstance().getGitStatus(path);
@@ -142,10 +145,12 @@ export async function getFileState(path) {
     return stats.getFileState(path);
 }
 export async function getBranches() {
-    return cmd('git branch', true);
+    return cmd('git branch', { cutLines: true });
 }
 export async function getFilesDiff(commit1, commit2) {
-    return cmd(`git diff --name-only ${commit1} ${commit2}`, true);
+    return cmd(`git diff --name-only ${commit1} ${commit2}`, {
+        cutLines: true,
+    });
 }
 export function cwdInGitDir(wd = './') {
     return !!getRootPath(wd);

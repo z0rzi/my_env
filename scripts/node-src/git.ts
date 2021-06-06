@@ -64,9 +64,10 @@ class GitStatus {
         try {
             const rawStatus = (await cmd(
                 `cd ${this.gitRoot}; git status --porcelain=1`,
-                // `cd ${this.gitRoot}; git status --porcelain=1 --ignored`,
-                true,
-                false
+                {
+                    cutLines: true,
+                    trim: false,
+                }
             )) as string[];
             rawStatus.forEach(line => this.handleRawLine(line));
         } catch (err) {
@@ -136,7 +137,7 @@ export enum GitFileState {
     ADDED = '+',
     IGNORED = '∷',
 
-    NOT_GIT = '_',
+    NOT_GIT = '  ',
 }
 
 /**
@@ -144,9 +145,9 @@ export enum GitFileState {
  */
 export async function getUnstaged(): Promise<string[]> {
     const root = getRootPath();
-    return cmd(`git ls-files -m --full-name ${root}`, true) as Promise<
-        string[]
-    >;
+    return cmd(`git ls-files -m --full-name ${root}`, {
+        cutLines: true,
+    });
 }
 
 export async function getFileState(path: string): Promise<GitFileState> {
@@ -161,16 +162,16 @@ export async function getFileState(path: string): Promise<GitFileState> {
 }
 
 export async function getBranches(): Promise<string[]> {
-    return cmd('git branch', true) as Promise<string[]>;
+    return cmd('git branch', { cutLines: true });
 }
 
 export async function getFilesDiff(
     commit1: string,
     commit2: string
 ): Promise<string[]> {
-    return cmd(`git diff --name-only ${commit1} ${commit2}`, true) as Promise<
-        string[]
-    >;
+    return cmd(`git diff --name-only ${commit1} ${commit2}`, {
+        cutLines: true,
+    });
 }
 
 export function cwdInGitDir(wd = './'): boolean {

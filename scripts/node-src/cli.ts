@@ -357,6 +357,23 @@ class Cli {
         this.hitListener = cb;
     }
 
+    _borrowList = {};
+    borrowHitKey(
+        key: string,
+        cb: (
+            keyname: string,
+            ctrl?: boolean,
+            shift?: boolean,
+            alt?: boolean
+        ) => unknown
+    ): void {
+        this._borrowList[key] = this.hitListener;
+        this.onKeyHit(cb);
+    }
+    giveBackHitKey(key: string): void {
+        this.onKeyHit(this._borrowList[key]);
+    }
+
     offHitKey(): void {
         this.kb.offKeyPress();
         this.hitListener = null;
