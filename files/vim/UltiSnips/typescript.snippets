@@ -2,17 +2,26 @@ priority 50
 
 extends javascript
 
+snippet singleton "Creates a Singleton Class" b
+class ${1:Singleton} {
+	static _instance: $1;
+	static getInstance(): $1 {
+		if (!$1._instance) $1._instance = new $1($2);
+		return $1._instance;
+	}
+}
+endsnippet
+
 snippet init_ng_component "Creates an Angular component" b
 import { Component, OnInit } from '@angular/core';
 
 @Component({
-    selector: 'app${1/([A-Z])/-\l$1/g}',
-    templateUrl: './${1/^[A-Z]/\l$0/}.component.html',
+	selector: 'app${1/([A-Z])/-\l$1/g}',
+	templateUrl: './${1/^[A-Z]/\l$0/}.component.html',
 })
 export class ${1:Something}Component implements OnInit {
-
-    ngOnInit() {
-    }
+	ngOnInit() {
+	}
 }
 endsnippet
 

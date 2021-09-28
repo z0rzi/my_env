@@ -4,12 +4,17 @@ minivim   nvim -u NONE
 tinyvim   nvim -u NONE
 vimtiny   nvim -u NONE
 
+feh feh --auto-rotate
+
 vimhtml nvim /tmp/_(random).html
+vimcss nvim /tmp/_(random).css
 vimjs nvim /tmp/_(random).js
+vimjson nvim /tmp/_(random).json
 vimts nvim /tmp/_(random).ts
 vimcss nvim /tmp/_(random).css
 vimsql nvim /tmp/_(random).sql
 vimpy nvim /tmp/_(random).py
+vimtxt nvim /tmp/_(random).txt
 
 bc bc -l
 

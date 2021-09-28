@@ -1,15 +1,30 @@
 #
 # Completions for docker-compose
 #
+set subcommands build create events exec images kill logs pause port ps pull push restart rm run scale start stop top unpause up
 
 function __fish_docker_using_command
   set cmd (commandline -opc)
   if [ (count $cmd) -gt 1 ]
-    if [ $argv[1] = $cmd[2] ]
-      return 0
+    for word in $cmd
+      if [ $argv[1] = $word ]
+        return 0
+      end
     end
   end
   return 1
+end
+
+function __fish_docker_compose_subcommand_used
+  set cmd (commandline -opc)
+  for sub in $subcommands
+    for word in $cmd
+      if [ $word = $sub ]
+        return 1
+      end
+    end
+  end
+  return 0
 end
 
 function __fish_docker_compose_file_path --description \
@@ -47,7 +62,8 @@ end
 complete -c docker-compose -e
 
 # Base docker-compose flags
-complete -c docker-compose -s f -l file -r         -d "Specify an alternate compose file"
+
+complete -c docker-compose -s f -l file -r -F      -d "Specify an alternate compose file"
 complete -c docker-compose -s p -l project-name -x -d "Specify an alternate project name"
 complete -c docker-compose -l verbose              -d "Show more output"
 complete -c docker-compose -s H -l host -x         -d "Daemon socket to connect to"
@@ -61,32 +77,32 @@ complete -c docker-compose -s h -l help            -d "Print usage"
 complete -c docker-compose -s v -l version         -d "Print version and exit"
 
 # All docker-compose commands
-complete -c docker-compose -n '__fish_use_subcommand' -xa build   --description "Build or rebuild services"
-complete -c docker-compose -n '__fish_use_subcommand' -xa bundle  --description "Generate a Docker bundle from the Compose file"
-complete -c docker-compose -n '__fish_use_subcommand' -xa config  --description "Validate and print compose configuration"
-complete -c docker-compose -n '__fish_use_subcommand' -xa create  --description "Create containers without starting them"
-complete -c docker-compose -n '__fish_use_subcommand' -xa down    --description "Stop and remove all container resources"
-complete -c docker-compose -n '__fish_use_subcommand' -xa events  --description "Monitor events from containers"
-complete -c docker-compose -n '__fish_use_subcommand' -xa exec    --description "Execute a command in a running container"
-complete -c docker-compose -n '__fish_use_subcommand' -xa help    --description "Get help on a command"
-complete -c docker-compose -n '__fish_use_subcommand' -xa images  --description "List images"
-complete -c docker-compose -n '__fish_use_subcommand' -xa kill    --description "Kill containers"
-complete -c docker-compose -n '__fish_use_subcommand' -xa logs    --description "View output from containers"
-complete -c docker-compose -n '__fish_use_subcommand' -xa pause   --description "Pause services"
-complete -c docker-compose -n '__fish_use_subcommand' -xa port    --description "Print the public port for a port binding"
-complete -c docker-compose -n '__fish_use_subcommand' -xa ps      --description "List containers"
-complete -c docker-compose -n '__fish_use_subcommand' -xa pull    --description "Pulls service images"
-complete -c docker-compose -n '__fish_use_subcommand' -xa push    --description "Push service images"
-complete -c docker-compose -n '__fish_use_subcommand' -xa restart --description "Restart services"
-complete -c docker-compose -n '__fish_use_subcommand' -xa rm      --description "Remove stopped containers"
-complete -c docker-compose -n '__fish_use_subcommand' -xa run     --description "Run a one-off command"
-complete -c docker-compose -n '__fish_use_subcommand' -xa scale   --description "Set number of containers for a service"
-complete -c docker-compose -n '__fish_use_subcommand' -xa start   --description "Start services"
-complete -c docker-compose -n '__fish_use_subcommand' -xa stop    --description "Stop services"
-complete -c docker-compose -n '__fish_use_subcommand' -xa top     --description "Display the running processes"
-complete -c docker-compose -n '__fish_use_subcommand' -xa unpause --description "Unpause services"
-complete -c docker-compose -n '__fish_use_subcommand' -xa up      --description "Create and start containers"
-complete -c docker-compose -n '__fish_use_subcommand' -xa version --description "Show the Docker-Compose version information"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa build   --description "Build or rebuild services"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa bundle  --description "Generate a Docker bundle from the Compose file"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa config  --description "Validate and print compose configuration"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa create  --description "Create containers without starting them"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa down    --description "Stop and remove all container resources"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa events  --description "Monitor events from containers"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa exec    --description "Execute a command in a running container"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa help    --description "Get help on a command"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa images  --description "List images"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa kill    --description "Kill containers"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa logs    --description "View output from containers"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa pause   --description "Pause services"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa port    --description "Print the public port for a port binding"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa ps      --description "List containers"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa pull    --description "Pulls service images"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa push    --description "Push service images"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa restart --description "Restart services"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa rm      --description "Remove stopped containers"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa run     --description "Run a one-off command"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa scale   --description "Set number of containers for a service"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa start   --description "Start services"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa stop    --description "Stop services"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa top     --description "Display the running processes"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa unpause --description "Unpause services"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa up      --description "Create and start containers"
+complete -c docker-compose -n '__fish_docker_compose_subcommand_used' -xa version --description "Show the Docker-Compose version information"
 
 # docker-compose commands that take services
 for subcmd in build create events exec images kill logs pause port ps pull push restart rm run scale start stop top unpause up

@@ -298,9 +298,20 @@
     endfunction
     nnoremap d/ <CMD>M dgn<CR>
     nnoremap c/ :<C-u>M cgn
+    noremap M :M<SPACE>
     command! -range -nargs=+  MacroToAll call DoAtEach(<q-args>, '<count>')
     command! -range -nargs=+  M call DoAtEach(<q-args>, '<count>')
 
+    function JsAutoForOf()
+        let view = winsaveview()
+        norm! $
+        call search('\%(let\|const\|var\)\s*\zs\w*s\>', 'bc')
+        let line = getline('.')[col('.') - 1:]
+        let word = matchstr(line, '^\w\+s\>')
+        call winrestview(view)
+
+        return "for (const ".word[:-2]." of ".word.") {\<CR>}\<ESC>ko"
+    endfunction
     function! ParseErrorLine(errLine)
         let data = split(a:errLine, ':')
         let filename = remove(data, 0)
@@ -722,9 +733,12 @@
 
         let winnr = nvim_open_win(bufnr, v:false, opts)
 
-        let props = GetHighlightProps('Normal')
+        let props = GetHighlightProps('Comment')
 
-        exe "hi Pop cterm=italic ctermbg=" . props.bg . " ctermfg=245"
+        let prefix = 'cterm'
+        if &termguicolors | let prefix='gui' | endif
+
+        exe "hi Pop cterm=italic gui=italic " . prefix . "bg=" . props.bg . " ctermfg=245 guifg=#928374"
         call setwinvar(winnr, '&winhighlight', 'NormalFloat:Pop')
 
         call MapToNextMove('exe "norm!:bd!' . bufnr . '\<CR>"')
@@ -869,8 +883,14 @@
     endfunction
 
     function! AngularHtmlGotoImplementation()
-        let func_name = expand('<cword>')
+        let word_under_cursor = expand('<cword>')
         let saveview = winsaveview()
+
+        if search('</\?[a-zA_Z-]*\%#', 'n')
+            " Cursor on xml anchor
+            exe "CtrlSF -R 'selector:.*" . word_under_cursor . "'"
+            return
+        endif
 
         let path = expand('%:h')
         let html_file = expand('%:t')
@@ -895,10 +915,17 @@
         exe 'e ' . path . '/' . script_file
 
         call cursor(1, 1)
-        if ! search('^\s*\%(private\|public\)\?\s*\zs' . func_name . '\ze\s*(')
-            exe 'e ' . path . '/' . html_file
-            call winrestview(saveview)
+
+        if
+            \ search('\<\%(private\|public\|get\|set\)\s\+\zs' . word_under_cursor . '\>') ||
+            \ search('\s\zs' . word_under_cursor . '\>') ||
+            \ search('\<' . word_under_cursor . '\>')
+            return
         endif
+
+        " Nothing found...
+        exe 'e ' . path . '/' . html_file
+        call winrestview(saveview)
     endfunction
     autocmd! FileType html nnoremap <buffer> <C-]> <CMD>call AngularHtmlGotoImplementation()<CR>
 
@@ -938,12 +965,19 @@
             \   },
             \   'javascript': {
             \     'l': "let",
+            \     'c': "const",
+            \     '^log': "console.log();\<LEFT>\<LEFT>!",
+            \     'import \(cors\|express\|fs\|path\)': "import $1 from '$1';!",
+            \     'import \(\w*\) ': "import $1 from '$1';!",
             \     '^iff': "if () {\<CR>}<UP><ESC>f(a!",
-            \     '^forr': "for () {\<CR>}<UP><ESC>f(a!",
+            \     '^forr': "\<C-r>=JsAutoForOf()\<CR>!",
             \     '\%(for\s*([^)]*\)\@<=in': "of",
+            \     'if\s*(!\([^)]*in\)': "if (!($1)<\LEFT>",
+            \     'if\s*(\([^)]*\)not in': "if (!($1)<\LEFT>in",
+            \     'if\s*(!\([^)]*instanceof\)': "if (!($1)<\LEFT>",
+            \     'if\s*(\([^)]*\)not instanceof': "if (!($1)<\LEFT>instanceof",
             \     '\%(\[[^\]]*\)\@<=\s*=': "\<ESC>F[f]a = !",
             \     '^\(if\|for\|while\|switch\)\s\+\([^([:blank:]][^(]\+\)': "$1 ($2)\<LEFT>",
-            \     'c': "const",
             \     'prom': "new Promise((resolve, reject) => {})\<LEFT>\<LEFT>!",
             \     '^ret': "return",
             \     'req$': "require('')\<LEFT>\<LEFT>!",
@@ -1012,6 +1046,7 @@
         call AddMapping('i', "<CR>", 'SmartPumComplete("<CR>")')
         nmap <silent> <C-]> <Plug>(coc-implementation)
         nmap <silent> <F12> <Plug>(coc-references)
+        nmap <silent> <F6> <CMD>call CocAction('runCommand', 'cSpell.toggleEnableSpellChecker')<CR>
 
         " Use K to show documentation in preview window.
         nnoremap <silent> <F1> :call <SID>show_documentation()<CR>
@@ -1191,11 +1226,6 @@
         let g:gitgutter_sign_removed_above_and_below = '▎'
         let g:gitgutter_sign_removed_first_line = '▎'
 
-    " Minimap
-        " let g:minimap_auto_start = 1
-        autocmd! VimEnter * if !&diff | exe "Minimap" | endif
-        nnoremap <F4> <CMD>call minimap#vim#HighlightSearch()<CR>
-
     " Import Cost
         let g:import_cost_show_gzipped = 0
 
@@ -1366,8 +1396,8 @@
         " 
         " Pretty editor
         " 
-            " minimap
-            Plugin 'z0rzi/minimap.vim'
+            " " minimap
+            " Plugin 'z0rzi/minimap.vim'
 
             " visual indents
             Plugin 'Yggdroot/indentLine'
@@ -1421,6 +1451,7 @@
         nnoremap >> i<C-t><ESC>
         nnoremap Y y$
         nnoremap YY <CMD>let v = winsaveview()<CR>ggyG<CMD>call winrestview(v)<CR>
+        nnoremap VV ggVG
         nnoremap vv v$h
         nnoremap <CR> <CMD>call SearchPair()<CR>
         onoremap <CR> v<CMD>call SearchPair()<CR>
@@ -1448,7 +1479,7 @@
         " nnoremap <F3> :set hlsearch!<CR>
         nnoremap <F3> <CMD>noh<CR>
         " Plugin: GitGutter
-        nmap <F5> <CMD>redraw!<CR><CMD>GitGutter<CR><CMD>set foldmethod=expr<CR><CMD>AdaptIndent<CR><CMD>MinimapToggle<CR><CMD>MinimapToggle<CR>
+        nmap <F5> <CMD>redraw!<CR><CMD>GitGutter<CR><CMD>set foldmethod=expr<CR><CMD>AdaptIndent<CR>
 
         " Fast selection wrap
             xnoremap "" c""<ESC>Pgvlolo
@@ -1517,11 +1548,11 @@
                 endif
                 let @/ = @/
                 let flags = ''
-                if !exists('s:minimap_search') | let s:minimap_search = '' | endif
-                if s:minimap_search != @/
-                    let s:minimap_search = @/
-                    call minimap#vim#HighlightSearch()
-                endif
+                " if !exists('s:minimap_search') | let s:minimap_search = '' | endif
+                " if s:minimap_search != @/
+                "     let s:minimap_search = @/
+                "     call minimap#vim#HighlightSearch()
+                " endif
                 if a:backward | let flags .= 'b' | endif
                 call search(@/, flags)
                 call histadd('/', @/)
@@ -1647,14 +1678,13 @@
             nnoremap <S-q> :CocCommand<CR>
 
             nnoremap <LEADER>= <CMD>call CocAction('format')<CR>
-            autocmd BufEnter *.ts nnoremap <buffer> <LEADER>= <CMD>CocCommand tsserver.organizeImports<CR><CMD>CocCommand tsserver.executeAutofix<CR><CMD>call CocAction('format')<CR>
 
             " Tab to go through completion list
             inoremap <silent><expr> <TAB>
                   \ pumvisible() ? "\<C-n>":
                   \ <SID>check_back_space() ? "\<TAB>":
                   \ coc#refresh()
-            inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+            inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : coc#refresh()
 
             nnoremap <F2> :CocCommand explorer<CR>
 
@@ -1892,7 +1922,7 @@
             call setline(line('.'), getline('.')[:col-1] . '</'.tag.'>' . getline('.')[col:])
             call setpos('.', [0, line('.'), col + 1, 0])
         endfunction
-        autocmd FileType html,php,javascript,javascriptreact inoremap >> <CMD>call CloseXmlTag()<CR>
+        autocmd FileType html,php,javascript,typescriptreact,javascriptreact inoremap >> <CMD>call CloseXmlTag()<CR>
 
     " Correcting FZF buffer | Plugin: FZF
         autocmd! FileType fzf
@@ -1906,6 +1936,7 @@
 
     " Unsupported files formats
         autocmd BufEnter *.abnf set filetype=abnf
+        autocmd BufEnter *.flux set filetype=flux
         autocmd BufEnter *.fish set filetype=fish
         autocmd BufNewFile,BufRead *.vue set filetype=vue
         autocmd BufNewFile,BufRead *.coffee set filetype=coffee
@@ -1921,7 +1952,7 @@
     " Highlight current selection
         let s:last_mode = 'n'
         let s:sel_matches = ''
-        hi SelectionOthers cterm=bold,underline ctermbg=NONE ctermfg=none
+        hi SelectionOthers cterm=bold,underline ctermbg=NONE ctermfg=none gui=bold,underline guibg=NONE guifg=none
         function! SelectionToRx(selText)
             return substitute(escape(a:selText, '/\\^$*.[~'), '\%(\s\|\n\)\+', '\\%(\\s\\|\\n\\)\\+', 'g')
         endfunction

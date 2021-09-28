@@ -1,4 +1,3 @@
-
 # Launching aliases
 while read line
     echo $line | read alias cmd
@@ -23,4 +22,4 @@ end
 
 export TERM=xterm
 
-bind \ct 'commandline -t (rg --files | fzf)'
+fzf_configure_bindings --directory=\cf

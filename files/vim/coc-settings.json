@@ -10,8 +10,6 @@
 
       "angular.trace.server": "off",
       "angular.log": "off",
-      "suggest.floatEnable": true,
-      "suggest.disableMenuShortcut": true,
 
       "angular.enable-experimental-ivy-prompt": false,
 
@@ -49,6 +47,10 @@
       "javascript.format.enabled": true,
       "javascript.suggest.completeFunctionCalls": true,
 
+      "suggest.snippetIndicator": " ↦ ",
+      "suggest.echodocSupport": true,
+      "suggest.floatEnable": true,
+      "suggest.disableMenuShortcut": true,
       "suggest.autoTrigger": "always",
       "suggest.enablePreview": true,
       "suggest.localityBonus": true,
@@ -64,6 +66,9 @@
       "eslint.run": "onType",
       "eslint.packageManager": "yarn",
       "eslint.options": {  },
+
+      "cSpellExt.enableDictionaries": ["french"],
+      "cSpell.language": "en,fr",
 
       "explorer.mouseMode": "singleclick",
       "explorer.icon.enableVimDevicons": true,
@@ -206,5 +211,16 @@
                   ]
             }
       },
-      "angular.experimental-ivy": true
+      "angular.experimental-ivy": true,
+      "cSpell.userWords": [
+        "aryballe's",
+        "diagadis",
+        "grafana",
+        "noeud",
+        "plotly",
+        "unhover",
+        "usalon",
+        "zorzi"
+      ],
+      "cSpell.enabled": true
 }
