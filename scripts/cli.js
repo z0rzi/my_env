@@ -1,9 +1,12 @@
+import { __awaiter } from "tslib";
 import { Keyboard } from './keyboard.js';
 import { cmd } from './shell.js';
-async function getCursorPosition() {
-    return new Promise(resolve => {
-        getPositionRetry(true, (x, y) => {
-            resolve({ x, y });
+function getCursorPosition() {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise(resolve => {
+            getPositionRetry(true, (x, y) => {
+                resolve({ x, y });
+            });
         });
     });
 }
@@ -75,18 +78,36 @@ class Cli {
                 this._termMetas.width = Math.min(cols, this._termMetas.width);
             if (xOffset > 0)
                 this._termMetas.offset.cols = xOffset;
-            if (yOffset > 0)
-                this._termMetas.offset.lines = yOffset;
+            if (yOffset > 0) {
+                if (this._termMetas.height - yOffset < 10) {
+                    console.log('\n'.repeat(10 - (this._termMetas.height - yOffset)));
+                    this._termMetas.offset.lines = 10;
+                }
+                else {
+                    this._termMetas.offset.lines = yOffset;
+                }
+            }
+            this.clearScreen();
             this.isReady = true;
         });
     }
     get maxWidth() {
         return this._termMetas.width - this._termMetas.offset.cols;
     }
-    async refreshTermMetas() {
-        this._termMetas.height = await cmd('tput lines').then(Number);
-        this._termMetas.width = await cmd('tput cols').then(Number);
-        this._termMetas.offset.lines = await getCursorPosition().then(({ y }) => y);
+    refreshTermMetas() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this._termMetas.height = yield cmd('tput lines').then(Number);
+            this._termMetas.width = yield cmd('tput cols').then(Number);
+            this._termMetas.offset.lines = yield getCursorPosition().then(({ y: yOffset }) => {
+                if (this._termMetas.height - yOffset < 10) {
+                    console.log('\n'.repeat(13));
+                    return 10;
+                }
+                else {
+                    return yOffset;
+                }
+            });
+        });
     }
     color(color) {
         process.stdout.write(`\x1b[0;${90 + color}m`);
@@ -114,7 +135,7 @@ class Cli {
         if (availableSpace < this.maxHeight) {
             this.savePos('__updateHeight__');
             this.goTo(oldHeight, 0);
-            console.log('\n'.repeat(this.maxHeight - oldHeight));
+            console.log('\n'.repeat(Math.max(1, this.maxHeight - oldHeight)));
             this.y = this.maxHeight;
             this.loadPos('__updateHeight__');
             this._termMetas.offset.lines =

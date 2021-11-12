@@ -77,7 +77,14 @@ class Cli {
         this._termMetas.height = await cmd('tput lines').then(Number);
         this._termMetas.width = await cmd('tput cols').then(Number);
         this._termMetas.offset.lines = await getCursorPosition().then(
-            ({ y }) => y
+            ({ y: yOffset }) => {
+                if (this._termMetas.height - yOffset < 10) {
+                    console.log('\n'.repeat(13));
+                    return 10;
+                } else {
+                    return yOffset;
+                }
+            }
         );
     }
 
@@ -90,7 +97,18 @@ class Cli {
             if (cols > 0)
                 this._termMetas.width = Math.min(cols, this._termMetas.width);
             if (xOffset > 0) this._termMetas.offset.cols = xOffset;
-            if (yOffset > 0) this._termMetas.offset.lines = yOffset;
+            if (yOffset > 0) {
+                if (this._termMetas.height - yOffset < 10) {
+                    console.log(
+                        '\n'.repeat(10 - (this._termMetas.height - yOffset))
+                    );
+                    this._termMetas.offset.lines = 10;
+                } else {
+                    this._termMetas.offset.lines = yOffset;
+                }
+            }
+
+            this.clearScreen();
 
             this.isReady = true;
         });
@@ -132,7 +150,7 @@ class Cli {
             this.savePos('__updateHeight__');
 
             this.goTo(oldHeight, 0);
-            console.log('\n'.repeat(this.maxHeight - oldHeight));
+            console.log('\n'.repeat(Math.max(1, this.maxHeight - oldHeight)));
             this.y = this.maxHeight;
 
             this.loadPos('__updateHeight__');

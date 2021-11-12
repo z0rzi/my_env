@@ -54,7 +54,7 @@ end
 
 function __fish_docker_compose_all_services --description \
         'List all services in docker-compose.yml.'
-  command docker-compose config --services
+  command docker-compose config --services 2> /dev/null
 end
 
 

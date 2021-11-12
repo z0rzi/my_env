@@ -1,3 +1,4 @@
+import { __awaiter } from "tslib";
 export class Prompt {
     constructor(cli, line, col) {
         this.cli = null;
@@ -41,6 +42,7 @@ export class Prompt {
     }
     redraw() {
         this.cli.toggleCursor(false);
+        this.cli.goToLine(this.line);
         this.cli.savePos();
         this.cli.goToCol(this.col);
         this.cli.clearToEndOfLine();
@@ -49,77 +51,79 @@ export class Prompt {
         this.cli.loadPos();
         this.cli.toggleCursor(true);
     }
-    async promptInputListener(keyName, ctrl, shift, alt) {
-        if (this.onKeyHit && !(await this.onKeyHit(keyName, ctrl, shift, alt)))
-            return;
-        if (keyName === 'space')
-            keyName = ' ';
-        const oldText = this.value;
-        if (ctrl) {
-            switch (keyName) {
-                case 'a':
-                    this.caretPos = 0;
-                    break;
-                case 'e':
-                    this.caretPos = this.value.length;
-                    break;
-                case 'u':
-                    this.value = this.value.slice(this.caretPos);
-                    this.caretPos = 0;
-                    break;
-                case 'w':
-                    const cutBit = this.value
-                        .slice(0, this.caretPos)
-                        .replace(/(?:^|\s)\S*$/, '');
-                    this.value = cutBit + this.value.slice(this.caretPos);
-                    this.caretPos = cutBit.length;
-                    break;
-            }
-        }
-        else if (keyName.length === 1) {
-            if (shift)
-                keyName = keyName.toUpperCase();
-            this.value =
-                this.value.slice(0, this.caretPos) +
-                    keyName +
-                    this.value.slice(this.caretPos);
-            this.caretPos++;
-        }
-        else {
-            switch (keyName) {
-                case 'backspace':
-                    if (this.caretPos === 0)
+    promptInputListener(keyName, ctrl, shift, alt) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.onKeyHit && !(yield this.onKeyHit(keyName, ctrl, shift, alt)))
+                return;
+            if (keyName === 'space')
+                keyName = ' ';
+            const oldText = this.value;
+            if (ctrl) {
+                switch (keyName) {
+                    case 'a':
+                        this.caretPos = 0;
                         break;
-                    this.value =
-                        this.value.slice(0, this.caretPos - 1) +
-                            this.value.slice(this.caretPos, this.value.length);
-                    this.caretPos--;
-                    break;
-                case 'delete':
-                    this.value =
-                        this.value.slice(0, this.caretPos) +
-                            this.value.slice(this.caretPos + 1, this.value.length);
-                    break;
-                case 'left':
-                    this.caretPos--;
-                    break;
-                case 'right':
-                    this.caretPos++;
-                    break;
-                case 'return':
-                    if (this.onConfirm && (await this.onConfirm(this.value)))
-                        this.destroy();
-                    break;
-                case 'escape':
-                    if (this.onCancel && (await this.onCancel(this.value)))
-                        this.destroy();
-                    break;
+                    case 'e':
+                        this.caretPos = this.value.length;
+                        break;
+                    case 'u':
+                        this.value = this.value.slice(this.caretPos);
+                        this.caretPos = 0;
+                        break;
+                    case 'w':
+                        const cutBit = this.value
+                            .slice(0, this.caretPos)
+                            .replace(/(?:^|\s)\S*$/, '');
+                        this.value = cutBit + this.value.slice(this.caretPos);
+                        this.caretPos = cutBit.length;
+                        break;
+                }
             }
-        }
-        if (this.onChange &&
-            oldText !== this.value &&
-            (await this.onChange(this.value)))
-            this.destroy();
+            else if (keyName.length === 1) {
+                if (shift)
+                    keyName = keyName.toUpperCase();
+                this.value =
+                    this.value.slice(0, this.caretPos) +
+                        keyName +
+                        this.value.slice(this.caretPos);
+                this.caretPos++;
+            }
+            else {
+                switch (keyName) {
+                    case 'backspace':
+                        if (this.caretPos === 0)
+                            break;
+                        this.value =
+                            this.value.slice(0, this.caretPos - 1) +
+                                this.value.slice(this.caretPos, this.value.length);
+                        this.caretPos--;
+                        break;
+                    case 'delete':
+                        this.value =
+                            this.value.slice(0, this.caretPos) +
+                                this.value.slice(this.caretPos + 1, this.value.length);
+                        break;
+                    case 'left':
+                        this.caretPos--;
+                        break;
+                    case 'right':
+                        this.caretPos++;
+                        break;
+                    case 'return':
+                        if (this.onConfirm && (yield this.onConfirm(this.value)))
+                            this.destroy();
+                        break;
+                    case 'escape':
+                        if (this.onCancel && (yield this.onCancel(this.value)))
+                            this.destroy();
+                        break;
+                }
+            }
+            if (this.onChange &&
+                oldText !== this.value &&
+                (yield this.onChange(this.value)))
+                this.destroy();
+        });
     }
 }
 //# sourceMappingURL=prompt.js.map

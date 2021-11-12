@@ -17,6 +17,10 @@ elif [ "$1" = "killall" ]; then
     shift
     docker kill $@ `\docker ps -aq`
 
+elif [ "$1" = "stopall" ]; then
+    shift
+    docker stop $@ `\docker ps -aq`
+
 elif [[ "$1" =~ (remove|rm)all ]]; then
     shift
     docker rm $@ `\docker ps -aq`

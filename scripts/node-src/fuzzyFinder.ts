@@ -11,6 +11,7 @@ class FuzzyFinder<T = unknown> {
     _qs: QuickScore = null;
 
     cli: Cli = null;
+    prompt: Prompt = null;
     search = '';
     selectionPos = 0;
 
@@ -18,10 +19,38 @@ class FuzzyFinder<T = unknown> {
 
     debugMode = false;
 
-    choices: Choice<T>[] = [];
+    private _choices: Choice<T>[] = [];
+    public get choices(): Choice<T>[] {
+        return this._choices;
+    }
+    public set choices(choices0: Choice<T>[]) {
+        this._choices = choices0;
+        this._qs = new QuickScore(choices0, ['label', 'tags']);
+        if (this.cli) {
+            this.height = Math.max(
+                this.height,
+                Math.min(this.cli._termMetas.height, choices0.length + 1)
+            );
+        } else {
+            this.height = 15;
+        }
+        if (this.cli) {
+            this.cli.savePos();
+            this.cli.clearScreen();
+            this.cli.loadPos();
+            this.cli.updateHeight(this.height);
+        }
+        if (this.prompt) {
+            this.prompt.line = this.height - 1;
+            this.prompt.redraw();
+        }
+        this.refreshAllResults();
+    }
 
     filteredChoices: Choice<T>[] = [];
     selectCb = null;
+
+    onSearchChange = null;
 
     constructor(
         choices: Choice<T>[],
@@ -35,20 +64,20 @@ class FuzzyFinder<T = unknown> {
             choice.tags = `${formatNum(idx, 4)} ${choice.tags}`;
         });
         this.choices = choices;
-        this._qs = new QuickScore(choices, ['label', 'tags']);
-        this.height = Math.min(this.height, choices.length + 1);
         this.cli = cli ?? new Cli(this.height);
 
         this.cli.waitForReady.then(() => {
             this.height = this.cli.maxHeight;
-            const p = new Prompt(this.cli, this.height - 1, 0);
-            p.onChange = (text: string) => {
+            this.prompt = new Prompt(this.cli, this.height - 1, 0);
+            this.prompt.onChange = (text: string) => {
+                if (this.onSearchChange) this.onSearchChange(text);
+
                 this.search = text;
 
                 this.refreshAllResults();
                 return false;
             };
-            p.onKeyHit = (key: string) => {
+            this.prompt.onKeyHit = (key: string) => {
                 switch (key) {
                     case 'f1':
                         this.debugMode = !this.debugMode;
@@ -70,7 +99,7 @@ class FuzzyFinder<T = unknown> {
 
                 return true;
             };
-            p.onConfirm = () => {
+            this.prompt.onConfirm = () => {
                 if (this.filteredChoices[this.selectionPos]) {
                     this.selectCb(this.filteredChoices[this.selectionPos]);
                     this.end();
@@ -78,7 +107,7 @@ class FuzzyFinder<T = unknown> {
                 }
                 return false;
             };
-            p.onCancel = () => {
+            this.prompt.onCancel = () => {
                 this.selectCb();
                 this.cli.offHitKey();
                 this.end();
@@ -198,7 +227,7 @@ class FuzzyFinder<T = unknown> {
     }
 
     refreshAllResults(): void {
-        if (this.isDead) return;
+        if (this.isDead || !this.cli) return;
         this.cli.savePos('refresh');
 
         this.filteredChoices = this.filterResults();

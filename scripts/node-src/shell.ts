@@ -170,7 +170,7 @@ export function mapArgs(
             if (rx.test(arg)) {
                 matchFound = true;
                 const matchres = arg.match(rx);
-                map[strRx](arg, matchres.groups);
+                map[strRx](arg, { ...matchres.groups });
                 if (!opts.multiMatch) return;
             }
         }

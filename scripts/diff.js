@@ -1,4 +1,5 @@
 #!/bin/node
+import { __awaiter } from "tslib";
 import { cmd, mapArgs } from './shell.js';
 let options = [];
 let files = [];
@@ -61,12 +62,14 @@ main()
     .catch(e => {
     console.log('e', e);
 });
-async function main() {
-    const res = await cmd(`diff ${options.join(' ')} ${files.join(' ')}`);
-    const diffs = res.split(/\n(?=[0-9,]+[acd][0-9,]+\n)/g);
-    diffs.forEach(elem => {
-        const d = new Diff(elem);
-        console.log(d.toString());
+function main() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const res = yield cmd(`diff ${options.join(' ')} ${files.join(' ')}`);
+        const diffs = res.split(/\n(?=[0-9,]+[acd][0-9,]+\n)/g);
+        diffs.forEach(elem => {
+            const d = new Diff(elem);
+            console.log(d.toString());
+        });
     });
 }
 //# sourceMappingURL=diff.js.map

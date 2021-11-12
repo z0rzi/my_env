@@ -21,6 +21,11 @@ export class File {
 
     _gitFilters: RegExp[] = [/\/\.git\//];
 
+    get content(): string {
+        if (this.isDirectory) return '';
+        return fs.readFileSync(this.path).toString();
+    }
+
     get gitFilters(): RegExp[] {
         return [
             ...(this.parent ? this.parent.gitFilters : []),

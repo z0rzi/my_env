@@ -1,7 +1,20 @@
 const specialCharacs = {
-    '&eacute;': 'é', '&egrave;': 'è', '&ecirc;': 'ê', '&euml;': 'ë',
-    '&aacute;': 'á', '&agrave;': 'à', '&acirc;': 'â', '&auml;': 'ä',
-    '&uacute;': 'ú', '&ugrave;': 'ù', '&ucirc;': 'û', '&uuml;': 'ü',
+    '&gt;': '>',
+    '&lt;': '<',
+    '&nbsp;': ' ',
+    '&#x27;': "'",
+    '&eacute;': 'é',
+    '&egrave;': 'è',
+    '&ecirc;': 'ê',
+    '&euml;': 'ë',
+    '&aacute;': 'á',
+    '&agrave;': 'à',
+    '&acirc;': 'â',
+    '&auml;': 'ä',
+    '&uacute;': 'ú',
+    '&ugrave;': 'ù',
+    '&ucirc;': 'û',
+    '&uuml;': 'ü',
 };
 export class HtmlNode {
     constructor(rawHtml) {
@@ -37,7 +50,9 @@ export class HtmlNode {
         this.innerHTML = content;
     }
     get _total_length() {
-        return this._opening_tag_length + this._content_length + this._closing_tag_length;
+        return (this._opening_tag_length +
+            this._content_length +
+            this._closing_tag_length);
     }
     isTextNode() {
         return !!this.text;
@@ -95,7 +110,7 @@ export class HtmlNode {
                 if (tag !== this.tag)
                     throw new Error('Tags are not matching!');
                 this._content_length = initialLength - rawContent.length;
-                let lengthBeforeCut = rawContent.length;
+                const lengthBeforeCut = rawContent.length;
                 rawContent = rawContent.replace(/^<\/\w+>/, '');
                 this._closing_tag_length = lengthBeforeCut - rawContent.length;
                 break;
@@ -103,8 +118,10 @@ export class HtmlNode {
         }
     }
     get innerText() {
-        if (this.isTextNode())
+        if (this.isTextNode()) {
+            this.decodeSpecial();
             return this.text;
+        }
         if (this.tag === 'br')
             return '\n';
         return this.children.map(kid => kid.innerText).join('');
@@ -117,7 +134,8 @@ export class HtmlNode {
             out += '#' + this.props['id'];
         if (this.children.length) {
             out += ' {\n  ';
-            out += this.children.map(kid => kid.toString().replace(/\n/g, '\n  '))
+            out += this.children
+                .map(kid => kid.toString().replace(/\n/g, '\n  '))
                 .join(', \n  ');
             out += '\n}';
         }

@@ -1,22 +1,39 @@
 const specialCharacs = {
-    '&eacute;': 'é', '&egrave;': 'è', '&ecirc;': 'ê', '&euml;': 'ë',
-    '&aacute;': 'á', '&agrave;': 'à', '&acirc;': 'â', '&auml;': 'ä',
-    '&uacute;': 'ú', '&ugrave;': 'ù', '&ucirc;': 'û', '&uuml;': 'ü',
-}
+    '&gt;': '>',
+    '&lt;': '<',
+    '&nbsp;': ' ',
+    '&#x27;': "'",
+    '&eacute;': 'é',
+    '&egrave;': 'è',
+    '&ecirc;': 'ê',
+    '&euml;': 'ë',
+    '&aacute;': 'á',
+    '&agrave;': 'à',
+    '&acirc;': 'â',
+    '&auml;': 'ä',
+    '&uacute;': 'ú',
+    '&ugrave;': 'ù',
+    '&ucirc;': 'û',
+    '&uuml;': 'ü',
+};
 
 export class HtmlNode {
-    children: HtmlNode[] = []
-    selfClosing = false
-    text: string = ''
-    tag: string = ''
-    props = {}
-    id = ''
+    children: HtmlNode[] = [];
+    selfClosing = false;
+    text = '';
+    tag = '';
+    props = {};
+    id = '';
 
-    _opening_tag_length = 0
-    _closing_tag_length = 0
+    _opening_tag_length = 0;
+    _closing_tag_length = 0;
     _content_length = 0;
     get _total_length(): number {
-        return this._opening_tag_length + this._content_length + this._closing_tag_length;
+        return (
+            this._opening_tag_length +
+            this._content_length +
+            this._closing_tag_length
+        );
     }
 
     constructor(rawHtml: string) {
@@ -26,12 +43,11 @@ export class HtmlNode {
             return;
         }
 
-        const matches = rawHtml.match(/^<(?<tag>\w+\b)(?<props>[^>]*?)(?<selfClosing>\/?)\s*>(?<content>.*)$/)
+        const matches = rawHtml.match(
+            /^<(?<tag>\w+\b)(?<props>[^>]*?)(?<selfClosing>\/?)\s*>(?<content>.*)$/
+        );
 
-        let tag: string,
-            props: string,
-            selfClosing: string,
-            content: string;
+        let tag: string, props: string, selfClosing: string, content: string;
 
         try {
             tag = matches.groups.tag;
@@ -56,11 +72,15 @@ export class HtmlNode {
     parseProps(rawProps: string) {
         this.props = {};
 
-        const rawList = rawProps.match(/(?<key>\w+)=(?<value>"[^"]*"|'[^']*'|\d*)/g);
+        const rawList = rawProps.match(
+            /(?<key>\w+)=(?<value>"[^"]*"|'[^']*'|\d*)/g
+        );
         if (!rawList) return;
 
         rawList.forEach(rawProp => {
-            const matches = rawProp.match(/^(?<key>\w+)=(?<value>".*"|'.*'|\d*)$/);
+            const matches = rawProp.match(
+                /^(?<key>\w+)=(?<value>".*"|'.*'|\d*)$/
+            );
             try {
                 let { key, value } = matches.groups;
                 value = value.replace(/^['"]|['"]$/g, '');
@@ -69,7 +89,7 @@ export class HtmlNode {
             } catch (err) {
                 return;
             }
-        })
+        });
     }
 
     get outerHTML(): string {
@@ -79,15 +99,15 @@ export class HtmlNode {
         Object.entries(this.props).forEach(([key, val]) => {
             arrayProps.push(`${key}="${val}"`);
         });
-        return `<${this.tag}${arrayProps.length? ' ' + arrayProps.join(' '): ''}${this.selfClosing? '/>': `>${this.innerHTML}</${this.tag}>`}`;
+        return `<${this.tag}${
+            arrayProps.length ? ' ' + arrayProps.join(' ') : ''
+        }${this.selfClosing ? '/>' : `>${this.innerHTML}</${this.tag}>`}`;
     }
 
     get innerHTML(): string {
         if (this.isTextNode()) return this.text;
 
-        return this.children.map(
-            kid => kid.outerHTML
-        ).join('');
+        return this.children.map(kid => kid.outerHTML).join('');
     }
 
     set innerHTML(rawContent: string) {
@@ -110,12 +130,11 @@ export class HtmlNode {
             const matches = rawContent.match(/^<\/(?<tag>\w+)>/);
             if (!!matches) {
                 const { tag } = matches.groups;
-                if (tag !== this.tag)
-                    throw new Error('Tags are not matching!');
+                if (tag !== this.tag) throw new Error('Tags are not matching!');
 
                 this._content_length = initialLength - rawContent.length;
 
-                let lengthBeforeCut = rawContent.length;
+                const lengthBeforeCut = rawContent.length;
                 rawContent = rawContent.replace(/^<\/\w+>/, '');
 
                 this._closing_tag_length = lengthBeforeCut - rawContent.length;
@@ -125,7 +144,10 @@ export class HtmlNode {
     }
 
     get innerText(): string {
-        if (this.isTextNode()) return this.text;
+        if (this.isTextNode()) {
+            this.decodeSpecial();
+            return this.text;
+        }
         if (this.tag === 'br') return '\n';
         return this.children.map(kid => kid.innerText).join('');
     }
@@ -133,14 +155,14 @@ export class HtmlNode {
     toString(): string {
         if (this.isTextNode()) return `"${this.text}"`;
         let out = this.tag;
-        if ('id' in this.props)
-            out += '#' + this.props['id'];
+        if ('id' in this.props) out += '#' + this.props['id'];
 
         if (this.children.length) {
-            out += ' {\n  '
-            out += this.children.map(kid => kid.toString().replace(/\n/g, '\n  '))
-                .join(', \n  ')
-            out += '\n}'
+            out += ' {\n  ';
+            out += this.children
+                .map(kid => kid.toString().replace(/\n/g, '\n  '))
+                .join(', \n  ');
+            out += '\n}';
         }
 
         return out;
@@ -160,7 +182,7 @@ export class HtmlNode {
 
     decodeSpecial(): void {
         if (!this.isTextNode()) {
-            this.children.forEach(kid => kid.decodeSpecial())
+            this.children.forEach(kid => kid.decodeSpecial());
             return;
         }
 

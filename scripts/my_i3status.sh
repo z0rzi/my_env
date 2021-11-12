@@ -12,6 +12,7 @@ SCROLL_DOWN=5
 
 JSON_PARSER="/home/zorzi/.my_env/scripts/parse_json.js"
 AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
+WEATHER_TOOL="/home/zorzi/.my_env/scripts/meteo.js"
 
 #
 # DATA
@@ -296,77 +297,29 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
         }
 
     # WEATHER
-        function getWeather {
-            now=`date +%y%m%d%H%M`
-            if [ ! -f "/tmp/.weather_check_time" ] || [ ! -f "/tmp/.weather" ]; then
-                echo $now > /tmp/.weather_check_time
-                before=0
-            else
-                before=`cat /tmp/.weather_check_time | trim`
+        function _get_weather {
+            weather_cache='/tmp/.weather'
+            if [ ! -f $weather_cache ]; then
+                $WEATHER_TOOL --save="$weather_cache"
             fi
-
-            if [ "$before" -lt $((now - 60)) ]; then
-                # Every 60 mins
-                echo $now > /tmp/.weather_check_time
-                read lat lng <<< "$(getLatLng)"
-
-                # Api from https://rapidapi.com/ClimaCell/api/climacell?endpoint=apiendpoint_d775527a-c5c0-44f6-9c34-9c943f7b8131
-                curl --request GET \
-                    -o /tmp/.weather \
-                    --url 'https://climacell-microweather-v1.p.rapidapi.com/weather/realtime?unit_system=si&fields=temp,weather_code,sunrise,sunset&lat='$lat'&lon='$lng \
-                    --header 'x-rapidapi-host: climacell-microweather-v1.p.rapidapi.com' \
-                    --header 'x-rapidapi-key: bc4ad2bf7bmsh6cedd1de54adf93p11ad86jsneae68ced3020'
-            fi
-            $JSON_PARSER "`cat /tmp/.weather`" "%(|temp|value) %(|weather_code|value) %(|sunrise|value) %(|sunset|value)" | trim
-        }
-        function weather_getIcon {
-            case "$1" in
-                "rain" | "rain_heavy" | "freezing_rain" | "freezing_rain_light" | "freezing_rain_heavy" | "freezing_drizzle" | "drizzle")
-                    icon=$ICON_WEATHER_RAIN
-                    ;;
-                "rain_light")
-                    icon=$ICON_WEATHER_RAINSUN
-                    ;;
-                "snow" | "snow_heavy" | "snow_light" | "flurries")
-                    icon=$ICON_WEATHER_SNOW
-                    ;;
-                "ice_pellets" | "ice_pellets_heavy" | "ice_pellets_light" | "tstorm")
-                    icon=$ICON_WEATHER_STORMRAIN
-                    ;;
-                "fog" | "fog_light" | "cloudy" | "mostly_cloudy")
-                    icon=$ICON_WEATHER_CLOUDY0
-                    ;;
-                "partly_cloudy" | "partly_cloudy_night")
-                    icon=$ICON_WEATHER_CLOUDY1
-                    ;;
-                "mostly_clear" | "mostly_clear_night")
-                    icon=$ICON_WEATHER_CLOUDY2
-                    ;;
-                "clear" | "clear_night")
-                    icon=$ICON_WEATHER_SUN
-                    ;;
-                *)
-                    icon='❓'
-                    ;;
-            esac
-            printf $icon
+            $WEATHER_TOOL --load="$weather_cache" $1
         }
         function weather_text {
-            read temp code _ <<< `getWeather`
-            icon=`weather_getIcon $code`
-            printf " $icon $temp° "
+            printf " `_get_weather short` "
         }
         function weather_click {
-            if [ "$1" = "$CLICK_RIGHT" ]; then
-                read temp code raw_rise raw_set <<< `getWeather`
-
-                icon=`weather_getIcon $code`
-                rise=`date -d "$raw_rise" +%H:%M`
-                set=`date -d "$raw_set" +%H:%M`
-                notify-send "$icon $temp° | $code" "🌅 $rise  ➜  $set 🌇" -t 5000
-                return
-            fi
             rm /tmp/.weather
+            if [ "$1" = "$CLICK_RIGHT" ]; then
+
+                title=''
+                description=''
+                while read line; do
+                    [[ "$line" =~ ^\s*$ ]] && continue
+
+                    [ "$title" ] && description="$description\n$line" || title=$line
+                done <<< `_get_weather long 2> /dev/null`
+                notify-send "$title" "$description" -t 5000
+            fi
         }
 
 

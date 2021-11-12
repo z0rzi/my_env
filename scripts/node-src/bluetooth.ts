@@ -1,20 +1,7 @@
 #!/bin/node
 
-import { FuzzyFinder } from './cli.js';
-import { exec } from 'child_process';
-
-/**
- * Runs a shell command
- */
-async function cmd(c) {
-    return new Promise((resolve, reject) => {
-        exec(c, (err, stdout, stderr) => {
-            if (err) reject(err);
-            if (!stdout && stderr) reject(stderr);
-            resolve(stdout.trim());
-        });
-    });
-}
+import { fuzzyFind, FuzzyFinder } from './fuzzyFinder.js';
+import { cmd } from './shell.js';
 
 async function is_bluetooth_started() {
     try {
@@ -27,10 +14,8 @@ async function is_bluetooth_started() {
 
 /**
  * Returns the devices as {id: '1:1:1:1', name: 'Device'}
- *
- * @return {Promise<{id: string, name: string}>}
  */
-async function get_devices() {
+async function get_devices(): Promise<{ id: string; name: string }[]> {
     const raw = await cmd('bluetoothctl devices');
     return raw.split('\n').map(line => ({
         id: line.split(/\s+/)[1],
@@ -38,36 +23,38 @@ async function get_devices() {
     }));
 }
 
-/**
- * @param device_id {string}
- */
-async function connect_to(device_id) {
-    return cmd('bluetoothctl connect ' + device_id);
+async function reset_connection_with(device_id: string): Promise<void> {
+    await cmd(`bluetoothctl untrust ${device_id}`);
+    await cmd(`bluetoothctl remove ${device_id}`);
+    await cmd(`bluetoothctl --timeout 3 scan on`);
+    const res = await cmd(`bluetoothctl connect ${device_id}`);
+    await cmd(`bluetoothctl scan off`);
+    console.log('res', res);
+    if (res.includes('Failed')) {
+        throw 'Connection with this device could not be established...';
+    }
+    if (res.includes('not available')) {
+        throw 'Device is not available...';
+    }
+}
+
+async function connect_to(device_id: string): Promise<string> {
+    const res = await cmd('bluetoothctl connect ' + device_id);
+    if (res.includes('Failed')) {
+        try {
+            await reset_connection_with(device_id);
+        } catch (err) {
+            return 'Could not connect to device...';
+        }
+    }
+    return 'Connected to device.';
 }
 
 /**
  * @param options {string[]}
  */
-async function fuzzy_select(options) {
-    return new Promise((resolve, reject) => {
-        const fufi = new FuzzyFinder(
-            options.map(opt => ({label: opt, tags: opt})),
-            (choice) => resolve(choice.label)
-        );
-    })
-    // try {
-    //     await cmd(
-    //         `kitty bash -c "echo -e '${options.join(
-    //             '\n'
-    //         )}' | fzf > /tmp/.bluetooth.txt"`
-    //     );
-    // } catch (err) {
-    //     // nothing to worry about
-    // }
-
-    // const choosen = await cmd('cat /tmp/.bluetooth.txt');
-
-    // return choosen;
+async function fuzzy_select(options: string[]): Promise<string> {
+    return fuzzyFind(options).then(choice => choice.label);
 }
 
 start();
@@ -99,9 +86,10 @@ async function start() {
     const choice_name = await fuzzy_select(devices.map(d => d.name));
     const choice = devices.find(dev => dev.name === choice_name);
     try {
-        res = await connect_to(choice.id);
+        const res = await connect_to(choice.id);
         console.log(res);
     } catch (err) {
         console.log(err.message);
     }
+    process.exit(0);
 }

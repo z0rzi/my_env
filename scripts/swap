@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ $# -ne 2 ] || [ ! -e "$1" ] || [ ! -e "$2" ]; then
+    echo "Utility to swap the names of 2 files"
+    echo ""
+    echo "USAGE = 'swap <file1> <file2>'"
+fi
+
+mv "$1" ___swap___
+mv "$2" "$1"
+mv ___swap___ "$2"

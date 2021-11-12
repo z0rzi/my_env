@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
+    "target": "es2015",
     "moduleResolution": "Node",
     "allowSyntheticDefaultImports": true,
     "allowJs": true,

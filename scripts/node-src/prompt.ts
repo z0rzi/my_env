@@ -55,6 +55,7 @@ export class Prompt {
     _lastValue = '';
     redraw(): void {
         this.cli.toggleCursor(false);
+        this.cli.goToLine(this.line);
         this.cli.savePos();
 
         this.cli.goToCol(this.col);

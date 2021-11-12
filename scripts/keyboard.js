@@ -1,4 +1,5 @@
 #!/bin/node
+import { __awaiter } from "tslib";
 const MODIFIDERS = [
     {
         rx: /^(27-91-)(?:49-)?(\d+-)?59-5[0-6]-(\d+)$/,
@@ -82,83 +83,87 @@ export class Keyboard {
             this._instance = new Keyboard();
         return this._instance;
     }
-    async getOneKey() {
-        process.stdin.setRawMode(true);
-        return new Promise((resolve, reject) => {
-            process.stdin.once('data', data => {
-                if (!this.callback) {
-                    return reject();
+    getOneKey() {
+        return __awaiter(this, void 0, void 0, function* () {
+            process.stdin.setRawMode(true);
+            return new Promise((resolve, reject) => {
+                process.stdin.once('data', data => {
+                    if (!this.callback) {
+                        return reject();
+                    }
+                    const byteArray = [...data];
+                    if (byteArray.length > 0 && byteArray[0] === 3) {
+                        console.log('^C');
+                        process.exit(1);
+                    }
+                    return resolve(buffToCode(data));
+                });
+            }).then(keyCode => {
+                let mods = {
+                    shift: false,
+                    ctrl: false,
+                    alt: false,
+                };
+                // Looking for modifiers
+                for (const modifier of MODIFIDERS) {
+                    if (modifier.rx.test(keyCode)) {
+                        mods = modifier.mod(keyCode);
+                        keyCode = keyCode.replace(modifier.rx, modifier.replacement);
+                    }
                 }
-                const byteArray = [...data];
-                if (byteArray.length > 0 && byteArray[0] === 3) {
-                    console.log('^C');
-                    process.exit(1);
+                // Exact matches with keymaps
+                if (String(keyCode) in KEYCODES) {
+                    let out = { key: '' };
+                    if (typeof KEYCODES[String(keyCode)] === 'string') {
+                        out = { key: KEYCODES[String(keyCode)] };
+                    }
+                    else {
+                        out = KEYCODES[String(keyCode)];
+                    }
+                    return Object.assign(mods, out);
                 }
-                return resolve(buffToCode(data));
-            });
-        }).then(keyCode => {
-            let mods = {
-                shift: false,
-                ctrl: false,
-                alt: false,
-            };
-            // Looking for modifiers
-            for (const modifier of MODIFIDERS) {
-                if (modifier.rx.test(keyCode)) {
-                    mods = modifier.mod(keyCode);
-                    keyCode = keyCode.replace(modifier.rx, modifier.replacement);
-                }
-            }
-            // Exact matches with keymaps
-            if (String(keyCode) in KEYCODES) {
-                let out = { key: '' };
-                if (typeof KEYCODES[String(keyCode)] === 'string') {
-                    out = { key: KEYCODES[String(keyCode)] };
-                }
-                else {
-                    out = KEYCODES[String(keyCode)];
-                }
-                return Object.assign(mods, out);
-            }
-            // Normal printable characters ([a-z0-9])
-            let cara = String.fromCharCode(Number(keyCode));
-            if (/^[^\x00-\x1F\x80-\x9F]+$/.test(cara)) {
-                if (/[A-Z]/.test(cara)) {
-                    mods.shift = true;
-                    cara = cara.toLowerCase();
-                }
-                return Object.assign({ key: cara }, mods);
-            }
-            if (Number(keyCode)) {
-                cara = String.fromCharCode(Number(keyCode) + 96);
-                if (/[a-z]/.test(cara)) {
-                    mods.ctrl = true;
+                // Normal printable characters ([a-z0-9])
+                let cara = String.fromCharCode(Number(keyCode));
+                if (/^[^\x00-\x1F\x80-\x9F]+$/.test(cara)) {
+                    if (/[A-Z]/.test(cara)) {
+                        mods.shift = true;
+                        cara = cara.toLowerCase();
+                    }
                     return Object.assign({ key: cara }, mods);
                 }
-            }
-            return Object.assign({
-                key: keyCode,
-            }, mods);
+                if (Number(keyCode)) {
+                    cara = String.fromCharCode(Number(keyCode) + 96);
+                    if (/[a-z]/.test(cara)) {
+                        mods.ctrl = true;
+                        return Object.assign({ key: cara }, mods);
+                    }
+                }
+                return Object.assign({
+                    key: keyCode,
+                }, mods);
+            });
         });
     }
-    async onKeyPress(cb) {
-        this.callback = cb;
-        if (this.rolling)
-            return;
-        this.rolling = true;
-        process.stdin.resume();
-        while (true) {
-            if (!this.callback)
-                break;
-            try {
-                const key = await this.getOneKey();
-                this.callback(key);
+    onKeyPress(cb) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.callback = cb;
+            if (this.rolling)
+                return;
+            this.rolling = true;
+            process.stdin.resume();
+            while (true) {
+                if (!this.callback)
+                    break;
+                try {
+                    const key = yield this.getOneKey();
+                    this.callback(key);
+                }
+                catch (err) {
+                    break;
+                }
             }
-            catch (err) {
-                break;
-            }
-        }
-        this.rolling = false;
+            this.rolling = false;
+        });
     }
     offKeyPress() {
         this.callback = null;

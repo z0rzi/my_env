@@ -636,10 +636,14 @@ class Explorer {
                         this.currentFile = this.currentFile.parent;
                         this.currentFile.close();
                     } else {
-                        this.rootFile =
-                            this.rootFile.findParent() as ExplorerFile;
-                        this.currentFile = this.rootFile;
-                        this.rootFile.open();
+                        try {
+                            this.rootFile =
+                                this.rootFile.findParent() as ExplorerFile;
+                            this.currentFile = this.rootFile;
+                            this.rootFile.open();
+                        } catch (err) {
+                            // we're probably at `/`, we do nothing
+                        }
                     }
                     this.refreshDisplay();
                     break;

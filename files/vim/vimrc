@@ -259,7 +259,7 @@
             let @/ = substitute(@/, '\\%[<>]\d\+l', '', 'g')
             let searchSave = @/
 
-            while search(@/, 'W') && matchnr > 0
+            while search(@/, 'c') && matchnr > 0
                 exe "exe \"norm! " . substitute(substitute(a:macro, '<>', '\<ESC>', 'g'), '<[a-zA-Z-]\+>\|"', '\\&', 'gi') . '"'
 
                 let @/ = searchSave
@@ -648,6 +648,33 @@
         let cmd = 'ls --color=never -t $(rg . --files) 2> /dev/null'
         silent! exe fzf#run({'source': cmd, 'sink': 'e', 'options': s:fzf_options, 'down':'40%'})
     endfunction
+    function! FZFUpOneDir()
+        if !exists('b:fzf_lookup_dir') || b:fzf_lookup_dir == ''
+            let b:fzf_lookup_dir = expand('%:h')
+        else
+            let b:fzf_lookup_dir = fnamemodify(b:fzf_lookup_dir, ':h')
+        end
+        echo b:fzf_lookup_dir
+        call MapToNextMove('let b:fzf_lookup_dir = ""')
+    endfunction
+    function! OpenRanger()
+        if !exists('b:fzf_lookup_dir') || b:fzf_lookup_dir == ''
+            let dir = expand('%:h')
+        else
+            let dir = b:fzf_lookup_dir
+        end
+        exe "terminal ranger " . dir
+        " sil! exe "!kitty ranger " . dir
+    endfunction
+    function! FZFFindFileInSameDir()
+        if !exists('b:fzf_lookup_dir') || b:fzf_lookup_dir == ''
+            let dir = expand('%:h')
+        else
+            let dir = b:fzf_lookup_dir
+        end
+        let cmd = 'ls --color=never -t $(find '.dir.' -type f -maxdepth 1) 2> /dev/null'
+        silent! exe fzf#run({'source': cmd, 'sink': 'e', 'options': s:fzf_options, 'down':'40%'})
+    endfunction
     function! s:FZFOpenVimOutput(str)
         let thefile = matchstr(a:str, '^.\{-\}\ze:')
         let theline = matchstr(a:str, '^.\{-\}:\zs\d\+\ze:')
@@ -929,6 +956,31 @@
     endfunction
     autocmd! FileType html nnoremap <buffer> <C-]> <CMD>call AngularHtmlGotoImplementation()<CR>
 
+    function! AngularSwitchFile()
+        let path = expand('%:h')
+        let current_file = expand('%:t')
+
+        let other_file = ''
+        if match(current_file, '\.html$') >= 1
+            let extensions = ['ts', 'js']
+        else
+            let extensions = ['html', 'htm']
+        endif
+
+        for ext in extensions
+            let other_file = matchstr(current_file, '^.*\.') . ext
+            if filereadable(path . '/' . other_file)
+                break
+            endif
+        endfor
+        if ! filereadable(path . '/' . other_file)
+            let other_file = matchstr(current_file, '^.*\.') . extensions[0]
+        endif
+
+        return path . '/' . other_file
+    endfunction
+    autocmd! BufEnter *html,*ts,*js nnoremap <buffer> <LEADER>w <CMD>exec "e " . AngularSwitchFile()<CR>
+
 " 
 " PLUGINS CONFIG
 " 
@@ -980,6 +1032,7 @@
             \     '^\(if\|for\|while\|switch\)\s\+\([^([:blank:]][^(]\+\)': "$1 ($2)\<LEFT>",
             \     'prom': "new Promise((resolve, reject) => {})\<LEFT>\<LEFT>!",
             \     '^ret': "return",
+            \     ')\s*ret': ") return",
             \     'req$': "require('')\<LEFT>\<LEFT>!",
             \     'aw': "await",
             \     '^ii': "if(  )\<LEFT>\<LEFT>!",
@@ -1449,6 +1502,8 @@
 " 
     " Basic Vim Shortcuts
         nnoremap >> i<C-t><ESC>
+        inoremap <<SPACE> <<SPACE>
+        inoremap << <<
         nnoremap Y y$
         nnoremap YY <CMD>let v = winsaveview()<CR>ggyG<CMD>call winrestview(v)<CR>
         nnoremap VV ggVG
@@ -1749,6 +1804,9 @@
 
         " FZF
             nnoremap <C-p> <CMD>call FZFFindFile()<CR>
+            nnoremap <CS-o> <CMD>call FZFUpOneDir()<CR>
+            nnoremap <CS-i> <CMD>call OpenRanger()<CR>
+            nnoremap <CS-p> <CMD>call FZFFindFileInSameDir()<CR>
             nnoremap <LEADER>u <CMD>call FZFUnicode()<CR>
 
         " Commentary
@@ -1887,8 +1945,11 @@
 " 
 " AUTOCMD
 " 
-    " auto delete empty lines on insert leave
-        " autocmd InsertLeave * sil!s/^\s*$//
+    " go to insert mode when open terminal window
+        autocmd TermEnter,TermOpen * startinsert | set nonu
+        autocmd TermLeave * stopinsert | set nu
+        autocmd TermClose * call feedkeys("\<SPACE>") | set nu
+
 
     " taking back position at buffer open
         autocmd BufReadPost * silent!norm!g;

@@ -1,5 +1,7 @@
-import fs from 'fs';
-import { parsePath, toAbsolutePath } from './files.js';
+import fs, { existsSync } from 'fs';
+import path from 'path';
+import ignore from 'ignore';
+import { toAbsolutePath } from './files.js';
 import { cmd } from './shell.js';
 
 class GitStatus {
@@ -179,20 +181,12 @@ export function cwdInGitDir(wd = './'): boolean {
 }
 
 export function getRootPath(wd = './'): string {
-    let { path } = parsePath(wd);
-
-    const cachedRoot = GitCache.getInstance().getGitRoot(path);
-    if (cachedRoot) return cachedRoot;
-
-    while (path) {
-        if (fs.existsSync(`${path}/.git`)) {
-            GitCache.getInstance().addGitRoot(path);
-            return path;
-        }
-
-        path = path.replace(/[^\/]*.$/, '');
+    wd = path.resolve(wd);
+    while (true) {
+        if (existsSync(path.join(wd, '.git'))) return wd;
+        wd = path.dirname(wd);
+        if (wd === '/' || wd === '.') break;
     }
-
     return '';
 }
 
@@ -200,7 +194,92 @@ export function getRootPath(wd = './'): string {
  * Gives the current path relative to the git root
  */
 export function getRelativePath(wd = './'): string {
-    const { path, file } = parsePath(wd);
     const root = getRootPath(wd);
-    return (path + file).replace(root, '/');
+    return path.relative(root, toAbsolutePath(wd));
+}
+
+/**
+ * Looks for an eventual `.gitignore` file at the specified path
+ * @return An ignore rule per array item
+ */
+export function getGitIgnoreAt(dirPath: string): string[] {
+    const filePath = path.join(dirPath, '.gitignore');
+    if (!fs.existsSync(filePath)) return [];
+    const content = fs.readFileSync(filePath).toString();
+    return content.trim().split(/\s*\n\s*/g);
+}
+
+type CustomIgnore = {
+    path: string;
+    ignorer: ReturnType<typeof ignore>;
+};
+/**
+ * Explores a directory recursively, searching for a file which name matches the
+ * pattern. Avoids the gitignore'ed files
+ *
+ * @param dirPath The directory where the search starts
+ * @param searchRx A regexp corresponding to the file name
+ * @param callback To be called when a file is found
+ * @param parentsIgnores for internal usage
+ */
+export function searchFile(
+    dirPath: string,
+    searchRx: RegExp,
+    callback: (filePath: string) => unknown,
+    parentsIgnores: CustomIgnore[] = [],
+    firstRecur = true
+): void {
+    const addIgnoreFrom = (dirPath: string, ignores: CustomIgnore[]) => {
+        const gitIgnoreContent = getGitIgnoreAt(dirPath);
+        if (gitIgnoreContent.length) {
+            ignores.push({
+                path: dirPath,
+                ignorer: ignore().add([...gitIgnoreContent]),
+            });
+        }
+        return ignores;
+    };
+    if (firstRecur) {
+        // Making sure this is a directory
+        if (!fs.statSync(dirPath).isDirectory()) {
+            if (searchRx.test(path.parse(dirPath).base)) callback(dirPath);
+            return;
+        }
+
+        // check if there are .gitignore in parent directories
+        const root = getRootPath(dirPath);
+        let tmpPath = path.resolve(dirPath);
+        while (true) {
+            parentsIgnores = addIgnoreFrom(tmpPath, parentsIgnores);
+            if (!path.relative(tmpPath, root)) break;
+            tmpPath = path.dirname(tmpPath);
+            if (tmpPath === '.' || tmpPath === '/') break;
+        }
+    }
+
+    parentsIgnores = addIgnoreFrom(dirPath, [...parentsIgnores]);
+    if (!dirPath.startsWith('/')) dirPath = path.join(getRootPath(), dirPath);
+
+    const kids = fs.readdirSync(dirPath, { withFileTypes: true }).map(kid => ({
+        name: kid.name,
+        isDir: kid.isDirectory(),
+        isFile: kid.isFile(),
+        path: path.join(dirPath, kid.name),
+    }));
+
+    for (const kid of kids) {
+        let kidOk = true;
+        for (const parentIgnore of parentsIgnores) {
+            const relativePath = path.relative(parentIgnore.path, kid.path);
+            if (parentIgnore.ignorer.ignores(relativePath)) {
+                kidOk = false;
+                break;
+            }
+        }
+        if (!kidOk) continue;
+
+        if (kid.isFile && searchRx.test(kid.name)) callback(kid.path);
+        if (kid.isDir)
+            searchFile(kid.path, searchRx, callback, parentsIgnores, false);
+    }
 }

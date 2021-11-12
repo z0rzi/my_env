@@ -1,3 +1,4 @@
+import { __awaiter } from "tslib";
 import { QuickScore } from 'quick-score';
 import { Cli, CliColor } from './cli.js';
 import { Prompt } from './prompt.js';
@@ -8,31 +9,33 @@ class FuzzyFinder {
         this.isDead = false;
         this._qs = null;
         this.cli = null;
+        this.prompt = null;
         this.search = '';
         this.selectionPos = 0;
         this.scoreLimit = 0.5;
         this.debugMode = false;
-        this.choices = [];
+        this._choices = [];
         this.filteredChoices = [];
         this.selectCb = null;
+        this.onSearchChange = null;
         this.scoreLimit = scoreLimit;
         choices.forEach((choice, idx) => {
             // prefixing tags with index so they can be sorted by last usage
             choice.tags = `${formatNum(idx, 4)} ${choice.tags}`;
         });
         this.choices = choices;
-        this._qs = new QuickScore(choices, ['label', 'tags']);
-        this.height = Math.min(this.height, choices.length + 1);
-        this.cli = cli ?? new Cli(this.height);
+        this.cli = cli !== null && cli !== void 0 ? cli : new Cli(this.height);
         this.cli.waitForReady.then(() => {
             this.height = this.cli.maxHeight;
-            const p = new Prompt(this.cli, this.height - 1, 0);
-            p.onChange = (text) => {
+            this.prompt = new Prompt(this.cli, this.height - 1, 0);
+            this.prompt.onChange = (text) => {
+                if (this.onSearchChange)
+                    this.onSearchChange(text);
                 this.search = text;
                 this.refreshAllResults();
                 return false;
             };
-            p.onKeyHit = (key) => {
+            this.prompt.onKeyHit = (key) => {
                 switch (key) {
                     case 'f1':
                         this.debugMode = !this.debugMode;
@@ -50,7 +53,7 @@ class FuzzyFinder {
                 }
                 return true;
             };
-            p.onConfirm = () => {
+            this.prompt.onConfirm = () => {
                 if (this.filteredChoices[this.selectionPos]) {
                     this.selectCb(this.filteredChoices[this.selectionPos]);
                     this.end();
@@ -58,7 +61,7 @@ class FuzzyFinder {
                 }
                 return false;
             };
-            p.onCancel = () => {
+            this.prompt.onCancel = () => {
                 this.selectCb();
                 this.cli.offHitKey();
                 this.end();
@@ -69,6 +72,30 @@ class FuzzyFinder {
             this.moveSelection();
             this.cli.goTo(this.height - 1, 0);
         });
+    }
+    get choices() {
+        return this._choices;
+    }
+    set choices(choices0) {
+        this._choices = choices0;
+        this._qs = new QuickScore(choices0, ['label', 'tags']);
+        if (this.cli) {
+            this.height = Math.max(this.height, Math.min(this.cli._termMetas.height, choices0.length + 1));
+        }
+        else {
+            this.height = 15;
+        }
+        if (this.cli) {
+            this.cli.savePos();
+            this.cli.clearScreen();
+            this.cli.loadPos();
+            this.cli.updateHeight(this.height);
+        }
+        if (this.prompt) {
+            this.prompt.line = this.height - 1;
+            this.prompt.redraw();
+        }
+        this.refreshAllResults();
     }
     end() {
         this.isDead = true;
@@ -84,10 +111,7 @@ class FuzzyFinder {
             // Checking for exact matches
             Object.values(elem.matches).some(subMatches => subMatches.length === 1))
             .map(elem => {
-            return {
-                ...elem.item,
-                _matches: elem.matches.label,
-            };
+            return Object.assign(Object.assign({}, elem.item), { _matches: elem.matches.label });
         })
             .sort((a, b) => {
             const aNum = Number(a.tags.slice(0, 4));
@@ -164,7 +188,7 @@ class FuzzyFinder {
             });
     }
     refreshAllResults() {
-        if (this.isDead)
+        if (this.isDead || !this.cli)
             return;
         this.cli.savePos('refresh');
         this.filteredChoices = this.filterResults();
@@ -182,22 +206,24 @@ class FuzzyFinder {
 function formatNum(num, length = 4) {
     return String(num).length >= length ? num : formatNum('0' + num, length);
 }
-async function fuzzyFind(choices, scoreLimit = 0.5, cli = null) {
-    if (!Array.isArray(choices))
-        throw new Error('Choices must be an array!');
-    if (!choices.length)
-        throw new Error('No empty array!');
-    choices = choices.map((choice) => {
-        if (typeof choice === 'string')
-            return { label: choice, tags: choice };
-        return choice;
-    });
-    return new Promise((resolve, reject) => {
-        new FuzzyFinder(choices, choice => {
-            if (!choice)
-                reject();
-            return resolve(choice);
-        }, scoreLimit, cli);
+function fuzzyFind(choices, scoreLimit = 0.5, cli = null) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!Array.isArray(choices))
+            throw new Error('Choices must be an array!');
+        if (!choices.length)
+            throw new Error('No empty array!');
+        choices = choices.map((choice) => {
+            if (typeof choice === 'string')
+                return { label: choice, tags: choice };
+            return choice;
+        });
+        return new Promise((resolve, reject) => {
+            new FuzzyFinder(choices, choice => {
+                if (!choice)
+                    reject();
+                return resolve(choice);
+            }, scoreLimit, cli);
+        });
     });
 }
 export { FuzzyFinder, fuzzyFind };

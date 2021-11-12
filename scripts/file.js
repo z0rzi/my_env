@@ -1,4 +1,5 @@
 #!/bin/node
+import { __awaiter } from "tslib";
 import fs from 'fs';
 import path from 'path';
 import './Array.js';
@@ -28,6 +29,11 @@ export class File {
         this.isDirectory = fs.lstatSync(path).isDirectory();
         this.refreshIcon();
         this.name = path.replace(/^.*\//, '');
+    }
+    get content() {
+        if (this.isDirectory)
+            return '';
+        return fs.readFileSync(this.path).toString();
     }
     get gitFilters() {
         return [
@@ -104,46 +110,50 @@ export class File {
             this.parseGitIgnore();
         return kidsNames;
     }
-    async getAllChildren(absolutePaths = false) {
-        if (!this.isDirectory)
-            return [this.path];
-        if (!this.children || !this.children.length)
-            this.explore();
-        let res = [];
-        for (const kid of this.children) {
-            if (kid.isGitIgnored())
-                continue;
-            res.push(...(await kid.getAllChildren(true)));
-        }
-        if (!absolutePaths) {
-            res = res.map(path => './' + path.slice(this.path.length));
-        }
-        return res;
-    }
-    async getGitState() {
-        if (!this._cachedGitState) {
-            let state = await git.getFileState(this.path);
-            if (this.isDirectory) {
+    getAllChildren(absolutePaths = false) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.isDirectory)
+                return [this.path];
+            if (!this.children || !this.children.length)
                 this.explore();
+            let res = [];
+            for (const kid of this.children) {
+                if (kid.isGitIgnored())
+                    continue;
+                res.push(...(yield kid.getAllChildren(true)));
             }
-            if (!this.isGitIgnored() && state === GitFileState.NONE) {
-                let kidStates = [];
-                for (const kid of this.children)
-                    kidStates.push(await kid.getGitState());
-                kidStates = kidStates.uniq();
-                if (kidStates.includes(GitFileState.ADDED) &&
-                    kidStates.includes(GitFileState.DELETED))
-                    state = GitFileState.MODIFIED;
-                else if (kidStates.includes(GitFileState.MODIFIED))
-                    state = GitFileState.MODIFIED;
-                else if (kidStates.includes(GitFileState.ADDED))
-                    state = GitFileState.ADDED;
-                else if (kidStates.includes(GitFileState.DELETED))
-                    state = GitFileState.DELETED;
+            if (!absolutePaths) {
+                res = res.map(path => './' + path.slice(this.path.length));
             }
-            this._cachedGitState = state;
-        }
-        return this._cachedGitState;
+            return res;
+        });
+    }
+    getGitState() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this._cachedGitState) {
+                let state = yield git.getFileState(this.path);
+                if (this.isDirectory) {
+                    this.explore();
+                }
+                if (!this.isGitIgnored() && state === GitFileState.NONE) {
+                    let kidStates = [];
+                    for (const kid of this.children)
+                        kidStates.push(yield kid.getGitState());
+                    kidStates = kidStates.uniq();
+                    if (kidStates.includes(GitFileState.ADDED) &&
+                        kidStates.includes(GitFileState.DELETED))
+                        state = GitFileState.MODIFIED;
+                    else if (kidStates.includes(GitFileState.MODIFIED))
+                        state = GitFileState.MODIFIED;
+                    else if (kidStates.includes(GitFileState.ADDED))
+                        state = GitFileState.ADDED;
+                    else if (kidStates.includes(GitFileState.DELETED))
+                        state = GitFileState.DELETED;
+                }
+                this._cachedGitState = state;
+            }
+            return this._cachedGitState;
+        });
     }
     findParent() {
         const newPath = path.resolve(this.path + '/../');
@@ -187,26 +197,28 @@ export class File {
     /**
      * Displays this file and all of its children
      */
-    async toString() {
-        if (this.isGitIgnored())
-            return '';
-        const fileGitStatus = await git.getFileState(this.path);
-        if (this.isDirectory) {
-            this.explore();
-            this.icon = ICONS.folder_open;
-        }
-        let out = `${this.icon} ${fileGitStatus} ${this.name}`;
-        if (this.isDirectory && this.children.length) {
-            out += '\n┆   ';
-            out += (await this.children.asyncMap(async (kid) => {
-                if (!kid.isGitIgnored())
-                    return (await kid.toString()).replace(/\n/g, '\n┆   ');
+    toString() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.isGitIgnored())
                 return '';
-            }))
-                .filter(strKid => !!strKid)
-                .join('\n┆   ');
-        }
-        return out;
+            const fileGitStatus = yield git.getFileState(this.path);
+            if (this.isDirectory) {
+                this.explore();
+                this.icon = ICONS.folder_open;
+            }
+            let out = `${this.icon} ${fileGitStatus} ${this.name}`;
+            if (this.isDirectory && this.children.length) {
+                out += '\n┆   ';
+                out += (yield this.children.asyncMap((kid) => __awaiter(this, void 0, void 0, function* () {
+                    if (!kid.isGitIgnored())
+                        return (yield kid.toString()).replace(/\n/g, '\n┆   ');
+                    return '';
+                })))
+                    .filter(strKid => !!strKid)
+                    .join('\n┆   ');
+            }
+            return out;
+        });
     }
     /**
      * Does git ignore this file?
@@ -254,27 +266,29 @@ export class File {
     //
     // CRUD
     //
-    async remove() {
-        try {
-            if (this.isDirectory) {
-                fs.rmdirSync(this.path, { recursive: true });
-            }
-            else {
-                fs.rmSync(this.path);
-            }
-        }
-        catch (err) {
-            if (err) {
-                try {
-                    await cmd('gksu rm -rf "' + this.path + '"');
+    remove() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (this.isDirectory) {
+                    fs.rmdirSync(this.path, { recursive: true });
                 }
-                catch (err) {
-                    console.error('Error while deleting file:\n', err);
-                    process.exit(1);
+                else {
+                    fs.rmSync(this.path);
                 }
             }
-        }
-        this.parent.removeChild(this.name);
+            catch (err) {
+                if (err) {
+                    try {
+                        yield cmd('gksu rm -rf "' + this.path + '"');
+                    }
+                    catch (err) {
+                        console.error('Error while deleting file:\n', err);
+                        process.exit(1);
+                    }
+                }
+            }
+            this.parent.removeChild(this.name);
+        });
     }
     createChild(name, directory = false) {
         if (/\//g.test(name))
@@ -307,8 +321,8 @@ if (/file\.js$/.test(process.argv[1])) {
     else
         inPath = process.argv[2];
     inPath = path.resolve(inPath);
-    (async () => {
-        console.log(await new File(inPath).toString());
-    })();
+    (() => __awaiter(void 0, void 0, void 0, function* () {
+        console.log(yield new File(inPath).toString());
+    }))();
 }
 //# sourceMappingURL=file.js.map
