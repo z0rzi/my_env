@@ -22,9 +22,9 @@ type Emoji = {
 };
 
 function codeToEmoji(code: string): string {
+    if (!code) return '';
     code = code.trim();
     if (code.length === 4) return String.fromCharCode(parseInt(code, 16));
-    if (!code) return null;
     if (/\s/.test(code)) {
         return code
             .trim()

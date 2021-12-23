@@ -659,12 +659,24 @@
     endfunction
     function! OpenRanger()
         if !exists('b:fzf_lookup_dir') || b:fzf_lookup_dir == ''
-            let dir = expand('%:h')
+            let dir = expand('%')
         else
             let dir = b:fzf_lookup_dir
         end
-        exe "terminal ranger " . dir
-        " sil! exe "!kitty ranger " . dir
+        let copy_save = @+
+        let enter_cmd = "eval fm.move(right=1) if fm.thisfile.is_directory else fm.execute_console(\\'chain shell -f bash -c \"realpath \\\%f | xclip -sel clip\"; quit\\')"
+        sil! exe
+                    \ "!kitty --title floating" .
+                    \ " ranger" .
+                    \ " --cmd 'map <CR> ".enter_cmd."'" .
+                    \ " --cmd 'map <RIGHT> ".enter_cmd."'" .
+                    \ " --cmd 'map q eval fm.execute_console(\\'chain shell -f bash -c \"echo -n | xclip -sel clip\"; quit\\')'" .
+                    \ " " . dir
+        sleep 50m
+        if filereadable(trim(@+))
+            exe "e " . trim(@+)
+            let @+ = copy_save
+        endif
     endfunction
     function! FZFFindFileInSameDir()
         if !exists('b:fzf_lookup_dir') || b:fzf_lookup_dir == ''
@@ -837,7 +849,8 @@
         let matches = {
                     \ '{': '}',
                     \ '(': ')',
-                    \ '\[': '\]'
+                    \ '\[': '\]',
+                    \ '<': '>'
                     \ }
 
         let closest_brace = [
@@ -872,20 +885,54 @@
 
         exe (line_start).','.(line_end-1).'s/\n//'
         sil!s/\S\zs\s\+/ /g
-        sil!s/[\[(]\zs\s\+//g
-        sil!s/\s\+\ze[\])]//g
+        sil!s/[\[(<]\zs\s\+//g
+        sil!s/\s\+\ze[\])>]//g
 
         call cursor(start_pos[0], start_pos[1])
     endfunction
-
+    function! SetIndent(ind, ...)
+        let line = get(a:, 1, line('.'))
+        let old_indent = indent(line)
+        call setline(line, repeat(' ', a:ind) . getline(line)[old_indent:])
+    endfunction
+    function! UnpackHtml(start_pos, end_pos, chars)
+        let start_indent = indent(a:start_pos[0])
+        call search('\s\+\|[''"]\|>')
+        let cur_pos = [ line('.'), col('.') ]
+        let cur_cara = getline('.')[col('.')-1]
+        while cur_cara != '>'
+            if cur_cara == '"' || cur_cara == "'"
+                call SearchQuotePair(cur_cara)
+                call search('\s\+\|[''"]\|>')
+                let cur_pos = [ line('.'), col('.') ]
+                let cur_cara = getline('.')[col('.')-1]
+                continue
+            endif
+            if !IsSyn('string', line('.'), col('.'))
+                exe "norm i\<CR>"
+                call SetIndent(start_indent + &tabstop)
+            endif
+            call search('\s\+\|[''"]\|>')
+            let cur_pos = [ line('.'), col('.') ]
+            let cur_cara = getline('.')[col('.')-1]
+        endwhile
+        exe "norm i\<CR>"
+        call SetIndent(start_indent)
+    endfunction
     function! Unpack()
         let [start_pos, end_pos, chars] = WhichBraceAmIIn()
         if !start_pos[0] || !end_pos[0] | return | endif
 
         let [char_open, char_close] = chars
 
-        call cursor(end_pos[0], end_pos[1])
+        if &ft == 'html'
+            call cursor(start_pos[0], start_pos[1])
+            call UnpackHtml(start_pos, end_pos, chars)
+            call cursor(start_pos[0], start_pos[1])
+            return
+        endif
 
+        call cursor(end_pos[0], end_pos[1])
         exe "norm i\<CR>"
 
         let next_pos = searchpos('[\])},]', 'nbW')
@@ -1282,13 +1329,14 @@
     " Import Cost
         let g:import_cost_show_gzipped = 0
 
-    " Visual Multi
+    "Visual Multi
         let g:VM_mouse_mappings   = 0
         let g:VM_theme            = 'iceblue'
         let g:VM_custom_motions  = {'<C-up>': "k", '<C-right>': "l", '<C-down>': "j", '<C-left>': "h"}
 
         let g:VM_maps = {}
         let g:VM_maps["Reselect Last"] = 'gs'
+        let g:VM_maps["Align"] = '='
         let g:VM_maps["Add Cursor At Pos"] = ''
         let g:VM_maps["Add Cursor At Word"] = ''
         let g:VM_maps["Start Regex Search"] = ''
@@ -1471,6 +1519,8 @@
 
             Plugin 'norcalli/nvim-colorizer.lua'
 
+            Plugin 'prettier/vim-prettier', { 'do': 'yarn install --frozen-lockfile --production' }
+
         " 
         " Others
         " 
@@ -1484,7 +1534,7 @@
             " Buffer stuff
             Plugin 'z0rzi/lightline-bufferline'
 
-            Plugin 'neoclide/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
+            " Plugin 'neoclide/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
 
             Plugin 'rickhowe/diffchar.vim'
 
@@ -1663,7 +1713,7 @@
             inoremap <C-LEFT> <CMD>call CtrlMove('left')<CR>
             inoremap <C-RIGHT> <CMD>call CtrlMove('right')<CR>
 
-        " go to end of paragraph
+        " go to end of indent
             function! IndentJump(direction)
                 let curline = line('.')
                 " let indent = matchstr(getline(curline), '^\s*')
@@ -1698,9 +1748,9 @@
             noremap <S-UP> <CMD>call IndentJump(-1)<CR>
             noremap <S-DOWN> <CMD>call IndentJump(1)<CR>
 
-        " go to end of paragraph
-            nnoremap { [(
-            nnoremap } ])
+        " go to end of scope
+            nnoremap { [{
+            nnoremap } ]}
 
         " Easy beg/end of line
             nnoremap ^ 0
@@ -1731,8 +1781,6 @@
         " CoC
             nnoremap <C-q> :CocAction<CR>
             nnoremap <S-q> :CocCommand<CR>
-
-            nnoremap <LEADER>= <CMD>call CocAction('format')<CR>
 
             " Tab to go through completion list
             inoremap <silent><expr> <TAB>
@@ -1820,6 +1868,20 @@
             nnoremap ss :call vm#commands#add_cursor_at_pos(0)<CR>
             nnoremap sp :call vm#commands#seek_up()<CR>
             nnoremap sn :call vm#commands#seek_down()<CR>
+
+        " Formatting
+            function! FormatFile()
+                if index(['javascript', 'typescript', 'html', 'scc', 'scss', 'sass'], &ft) >= 0
+                    Prettier
+                else
+                    let saveview = winsaveview()
+                    norm! gg=G
+                    call winrestview(saveview)
+                endif
+            endfunction
+
+            nnoremap <LEADER>= <CMD>call FormatFile()<CR>
+            command! W <CMD>call FormatFile()<CR>:w<CR>
 
     " Buffer related maps
         " Buffers navigation 

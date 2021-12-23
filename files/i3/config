@@ -46,6 +46,9 @@
         # bindsym $sup+e exec dolphin
         bindsym $sup+e exec kitty -e ranger
 
+    # Calculator
+        bindsym $sup+r exec kitty --name floating --title floating -o initial_window_width=200 -o initial_window_height=10 -e bc -l
+
     # Screenshot
         bindsym --release $mod+Shift+s exec bash -c "flameshot & flameshot gui"
 
@@ -147,6 +150,9 @@
     for_window [class="gnome-calendar"] floating enable
     for_window [class="Gnome-calendar"] floating enable
     for_window [class="GStreamer"] floating enable
+    for_window [title="DevTools - .*"] floating enable
+    for_window [class="floating"] floating enable
+    for_window [title="floating"] floating enable
 
 #
 # WORKSPACES

@@ -3,6 +3,7 @@ import { __awaiter } from "tslib";
 import { mapArgs } from './shell.js';
 import fs from 'fs';
 import fetch from 'node-fetch';
+import { checkInternet, getMyLocation } from './network.js';
 const icons_hash_map = {
     '950': 'information',
     rainvolume: 'rain',
@@ -55,7 +56,7 @@ function parseApiAnswer(raw) {
 }
 function getLocationId(location) {
     return __awaiter(this, void 0, void 0, function* () {
-        const res = yield fetch(`https://weawow.com/fr/searchAjax?keyword=${location}&microtime=1623764380326`, {
+        const res = yield fetch(`https://weawow.com/en/searchAjax?key=${location}`, {
             headers: {
                 accept: '*/*',
                 'accept-language': 'en-US,en;q=0.9,fr;q=0.8',
@@ -64,23 +65,27 @@ function getLocationId(location) {
                 'sec-fetch-site': 'same-origin',
                 'sec-gpc': '1',
                 'x-requested-with': 'XMLHttpRequest',
+                Referer: 'https://weawow.com/',
             },
-            body: null,
             method: 'GET',
-        }).then(res => {
+        })
+            .then((res) => __awaiter(this, void 0, void 0, function* () {
             return res.json();
+        }))
+            .catch(() => {
+            return null;
         });
         try {
-            return res.data.l[0].i;
+            return res.l[0].i;
         }
         catch (err) {
-            return '9013811'; // id for Grenoble
+            return ''; // id for Grenoble
         }
     });
 }
 function getMeteoData(locId) {
     return __awaiter(this, void 0, void 0, function* () {
-        return fetch(`https://weawow.com/w3/fr/weather?type=wowcity&lat=&lng=&c=b&weaUrl=c${locId}`, {
+        return fetch(`https://weawow.com/w3/en/weather?type=wowcity&lat=&lng=&c=b&weaUrl=c${locId}`, {
             headers: {
                 HourUnit: '24H',
                 Week: '',
@@ -109,8 +114,10 @@ function getMeteoData(locId) {
     });
 }
 (() => __awaiter(void 0, void 0, void 0, function* () {
-    // const id = await getLocationId('grenoble');
-    const id = '9013811'; // Grenoble
+    if (!(yield checkInternet()))
+        return;
+    const { country, city } = yield getMyLocation();
+    const id = yield getLocationId(`${country}, ${city}`);
     let meteo = null;
     mapArgs({
         '--load=(?<file>.*)': (_, { file }) => {

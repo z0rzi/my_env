@@ -1,224 +1,181 @@
 {
-      "diagnostic.enable": true,
-      "diagnostic.displayByAle": false,
-      "diagnostic.errorSign": "",
-      "diagnostic.warningSign": "",
-      "diagnostic.infoSign": "",
-      "diagnostic.hintSign": "",
-      "diagnostic.messageDelay": 1000,
-      "diagnostic.format": "[%severity] %message",
+    "diagnostic.enable": true,
+    "diagnostic.displayByAle": false,
+    "diagnostic.errorSign": "",
+    "diagnostic.warningSign": "",
+    "diagnostic.infoSign": "",
+    "diagnostic.hintSign": "",
+    "diagnostic.messageDelay": 1000,
+    "diagnostic.format": "[%severity] %message",
 
-      "angular.trace.server": "off",
-      "angular.log": "off",
+    "angular.trace.server": "off",
+    "angular.log": "off",
 
-      "angular.enable-experimental-ivy-prompt": false,
+    "pyright.enable": true,
+    "python.linting.enabled": true,
 
-      "pyright.enable": true,
-      "python.linting.enabled": true,
+    "prettier.semi": true,
+    "prettier.useTabs": false,
+    "prettier.tabWidth": 4,
+    "prettier.singleQuote": true,
+    "prettier.arrowParens": "avoid",
+    "prettier.requireConfig": true,
+    "prettier.eslintIntegration": true,
+    "prettier.tslintIntegration": false,
+    "prettier.stylelintIntegration": false,
+    "prettier.printWidth": -1,
 
-      "prettier.semi": true,
-      "prettier.useTabs": false,
-      "prettier.tabWidth": 4,
-      "prettier.singleQuote": true,
-      "prettier.arrowParens": "avoid",
-      "prettier.requireConfig": true,
-      "prettier.eslintIntegration": false,
-      "prettier.tslintIntegration": false,
-      "prettier.stylelintIntegration": false,
-      "prettier.printWidth": -1,
+    "eslint.quiet": true,
 
-      "tsserver.enableJavascript": true,
-      "tsserver.enable": true,
-      "tsserver.formatOnType": false,
-      "tsserver.maxTsServerMemory": 1000,
-      "tsserver.ignoreLocalTsserver": false,
-      "tsserver.useBatchedBufferSync": true,
+    "tsserver.enableJavascript": true,
+    "tsserver.enable": true,
+    "tsserver.formatOnType": false,
+    "tsserver.maxTsServerMemory": 1000,
+    "tsserver.ignoreLocalTsserver": false,
+    "tsserver.useBatchedBufferSync": true,
 
-      "typescript.suggest.enabled": true,
-      "typescript.suggest.autoImports": true,
-      "typescript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": true,
-      "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis": false,
-      "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": true,
-      "typescript.format.placeOpenBraceOnNewLineForControlBlocks": false,
-      "typescript.format.placeOpenBraceOnNewLineForFunctions": false,
-      "typescript.format.insertSpaceBeforeAndAfterBinaryOperators": true,
-      "typescript.format.enabled": true,
-      "typescript.suggest.completeFunctionCalls": true,
-      "javascript.suggest.autoImports": true,
-      "javascript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": true,
-      "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis": false,
-      "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": true,
-      "javascript.format.placeOpenBraceOnNewLineForControlBlocks": false,
-      "javascript.format.placeOpenBraceOnNewLineForFunctions": false,
-      "javascript.format.enabled": true,
-      "javascript.suggest.completeFunctionCalls": true,
+    "typescript.suggest.enabled": true,
+    "typescript.suggest.autoImports": true,
+    "typescript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": true,
+    "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis": false,
+    "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": true,
+    "typescript.format.placeOpenBraceOnNewLineForControlBlocks": false,
+    "typescript.format.placeOpenBraceOnNewLineForFunctions": false,
+    "typescript.format.insertSpaceBeforeAndAfterBinaryOperators": true,
+    "typescript.format.enabled": true,
+    "typescript.suggest.completeFunctionCalls": true,
+    "javascript.suggest.autoImports": true,
+    "javascript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": true,
+    "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis": false,
+    "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": true,
+    "javascript.format.placeOpenBraceOnNewLineForControlBlocks": false,
+    "javascript.format.placeOpenBraceOnNewLineForFunctions": false,
+    "javascript.format.enabled": true,
+    "javascript.suggest.completeFunctionCalls": true,
 
-      "suggest.snippetIndicator": " ↦ ",
-      "suggest.echodocSupport": true,
-      "suggest.floatEnable": true,
-      "suggest.disableMenuShortcut": true,
-      "suggest.autoTrigger": "always",
-      "suggest.enablePreview": true,
-      "suggest.localityBonus": true,
-      "suggest.fixInsertedWord": true,
-      "suggest.triggerAfterInsertEnter": true,
+    "suggest.snippetIndicator": " ↦ ",
+    "suggest.echodocSupport": true,
+    "suggest.floatEnable": true,
+    "suggest.disableMenuShortcut": true,
+    "suggest.autoTrigger": "always",
+    "suggest.enablePreview": true,
+    "suggest.localityBonus": true,
+    "suggest.fixInsertedWord": true,
+    "suggest.triggerAfterInsertEnter": true,
 
+    "eslint.format.enable": true,
+    "eslint.autoFixOnSave": false,
+    "eslint.codeAction.showDocumentation": {
+        "enable": true
+    },
+    "eslint.run": "onType",
+    "eslint.packageManager": "yarn",
+    "eslint.options": {},
 
-      "eslint.format.enable": true,
-      "eslint.autoFixOnSave": false,
-      "eslint.codeAction.showDocumentation": {
-            "enable": true
-      },
-      "eslint.run": "onType",
-      "eslint.packageManager": "yarn",
-      "eslint.options": {  },
+    "cSpellExt.enableDictionaries": ["french"],
+    "cSpell.language": "en,fr",
 
-      "cSpellExt.enableDictionaries": ["french"],
-      "cSpell.language": "en,fr",
-
-      "explorer.mouseMode": "singleclick",
-      "explorer.icon.enableVimDevicons": true,
-      "explorer.position": "left",
-      "explorer.activeMode": true,
-      "explorer.quitOnOpen": false,
-      "explorer.file.autoReveal": true,
-      "explorer.icon.collapsed": "-",
-      "explorer.icon.expanded": "+",
-      "explorer.previewAction.onHover": false,
-      "explorer.file.column.indent.indentLine": true,
-      "explorer.git.enable": true,
-      "explorer.git.icon.status.mixed": "✸",
-      "explorer.git.icon.status.modified": "✸",
-      "explorer.git.icon.status.added": "+",
-      "explorer.git.icon.status.deleted": "-",
-      "explorer.git.icon.status.renamed": "↷",
-      "explorer.git.icon.status.untracked": "+",
-      "explorer.git.icon.status.ignored": ".",
-      "explorer.openAction.select.filter": {
-            "buftypes": [
-                  "terminal",
-                  "nofile"
-            ],
-            "filetypes": [
-                  "vista_kind",
-                  "qf"
-            ],
-            "floatingWindows": true,
-            "sources": {
-                  "buffer": {
-                        "buftypes": []
-                  }
+    "explorer.mouseMode": "singleclick",
+    "explorer.position": "left",
+    "explorer.quitOnOpen": false,
+    "explorer.icon.enableNerdfont": true,
+    "explorer.icon.source": "vim-devicons",
+    "explorer.file.reveal.auto": true,
+    "explorer.icon.collapsed": "-",
+    "explorer.icon.expanded": "+",
+    "explorer.previewAction.onHover": false,
+    "explorer.file.column.indent.indentLine": true,
+    "explorer.git.enable": true,
+    "explorer.git.icon.status.mixed": "✸",
+    "explorer.git.icon.status.modified": "✸",
+    "explorer.git.icon.status.added": "+",
+    "explorer.git.icon.status.deleted": "-",
+    "explorer.git.icon.status.renamed": "↷",
+    "explorer.git.icon.status.untracked": "+",
+    "explorer.git.icon.status.ignored": ".",
+    "explorer.openAction.select.filter": {
+        "buftypes": ["terminal", "nofile"],
+        "filetypes": ["vista_kind", "qf"],
+        "floatingWindows": true,
+        "sources": {
+            "buffer": {
+                "buftypes": []
             }
-      },
-      "explorer.keyMappings.global": {
-            "i": false,
-            "gk": "expandablePrev",
-            "gj": "expandableNext",
-            "v": "toggleSelection",
-            "m": "actionMenu",
-            "x": "collapse",
-            "l": [
-                  "expandable?",
-                  "expand",
-                  "open"
-            ],
-            "J": [
-                  "toggleSelection",
-                  "nodeNext"
-            ],
-            "K": [
-                  "toggleSelection",
-                  "nodePrev"
-            ],
-            "gl": "expandRecursive",
-            "gh": "collapseRecursive",
-            "<2-LeftMouse>": [
-                  "expandable?",
-                  [
-                        "expanded?",
-                        "collapse",
-                        "expand"
-                  ],
-                  "open"
-            ],
-            "<cr>": [
-                  "expandable?",
-                  [
-                        "expanded?",
-                        "collapse",
-                        "expand"
-                  ],
-                  "open"
-            ],
-            "<right>": [
-                  "expandable?",
-                  [
-                        "expanded?",
-                        "collapse",
-                        "expand"
-                  ],
-                  "open"
-            ],
-            "<left>": "collapse",
-            "e": "open",
-            "s": "open:split",
-            "E": "open:vsplit",
-            "t": "open:tab",
-            "<bs>": "gotoParent",
-            "gp": "preview:labeling",
-            "Y": "copyFilepath",
-            "y": "copyFile",
-            "yy": "copyFile",
-            "d": "cutFile",
-            "dd": "cutFile",
-            "p": "pasteFile",
-            "<del>": "delete",
-            "a": "addFile",
-            "A": "addDirectory",
-            "r": "rename",
-            ".": "toggleHidden",
-            "R": "refresh",
-            "?": "help",
-            "q": "quit",
-            "<esc>": "esc",
-            "X": "systemExecute",
-            "gd": "listDrive",
-            "f": "search",
-            "F": "searchRecursive",
-            "S": "searchRecursive",
-            "gf": "gotoSource:file",
-            "gb": "gotoSource:buffer",
-            "[[": "sourcePrev",
-            "]]": "sourceNext",
-            "[d": "diagnosticPrev",
-            "]d": "diagnosticNext",
-            "[c": "gitPrev",
-            "]c": "gitNext",
-            "<<": "gitStage",
-            ">>": "gitUnstage"
-      },
-      "languageserver": {
-            "nim": {
-                  "command": "nimlsp",
-                  "filetypes": [
-                        "nim"
-                  ]
-            },
-            "rust": {
-                  "command": "rust-analyzer",
-                  "filetypes": [
-                        "rust"
-                  ]
-            },
-            "vue": {
-                  "command": "vls",
-                  "filetypes": [
-                        "vue"
-                  ]
-            }
-      },
-      "angular.experimental-ivy": true,
-      "cSpell.userWords": [
+        }
+    },
+    "explorer.keyMappings.global": {
+        "i": false,
+        "gk": "expandablePrev",
+        "gj": "expandableNext",
+        "v": "toggleSelection",
+        "m": "actionMenu",
+        "x": "collapse",
+        "l": ["expandable?", "expand", "open"],
+        "J": ["toggleSelection", "nodeNext"],
+        "K": ["toggleSelection", "nodePrev"],
+        "gl": "expandRecursive",
+        "gh": "collapseRecursive",
+        "<2-LeftMouse>": [
+            "expandable?",
+            ["expanded?", "collapse", "expand"],
+            "open"
+        ],
+        "<cr>": ["expandable?", ["expanded?", "collapse", "expand"], "open"],
+        "<right>": ["expandable?", ["expanded?", "collapse", "expand"], "open"],
+        "<left>": "collapse",
+        "e": "open",
+        "s": "open:split",
+        "E": "open:vsplit",
+        "t": "open:tab",
+        "<bs>": "gotoParent",
+        "gp": "preview:labeling",
+        "Y": "copyFilepath",
+        "y": "copyFile",
+        "yy": "copyFile",
+        "d": "cutFile",
+        "dd": "cutFile",
+        "p": "pasteFile",
+        "<del>": "delete",
+        "a": "addFile",
+        "A": "addDirectory",
+        "r": "rename",
+        ".": "toggleHidden",
+        "R": "refresh",
+        "?": "help",
+        "q": "quit",
+        "<esc>": "esc",
+        "X": "systemExecute",
+        "gd": "listDrive",
+        "f": "search",
+        "F": "searchRecursive",
+        "S": "searchRecursive",
+        "gf": "gotoSource:file",
+        "gb": "gotoSource:buffer",
+        "[[": "sourcePrev",
+        "]]": "sourceNext",
+        "[d": "diagnosticPrev",
+        "]d": "diagnosticNext",
+        "[c": "gitPrev",
+        "]c": "gitNext",
+        "<<": "gitStage",
+        ">>": "gitUnstage"
+    },
+    "languageserver": {
+        "nim": {
+            "command": "nimlsp",
+            "filetypes": ["nim"]
+        },
+        "rust": {
+            "command": "rust-analyzer",
+            "filetypes": ["rust"]
+        },
+        "vue": {
+            "command": "vls",
+            "filetypes": ["vue"]
+        }
+    },
+    "angular.experimental-ivy": true,
+    "cSpell.userWords": [
         "Courbothèque",
         "Loadcurve",
         "Metas",
@@ -257,6 +214,6 @@
         "yaxis",
         "yval",
         "zorzi"
-      ],
-      "cSpell.enabled": true
+    ],
+    "cSpell.enabled": false
 }

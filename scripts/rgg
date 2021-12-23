@@ -1,0 +1,5 @@
+#!/bin/bash
+
+width=`tput cols`
+
+/bin/rg --color=always $@ | cut -c1-${width}

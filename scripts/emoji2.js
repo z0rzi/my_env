@@ -7,11 +7,11 @@ import fs from 'fs';
 import fetch from 'node-fetch';
 import { FuzzyFinder } from './fuzzyFinder.js';
 function codeToEmoji(code) {
+    if (!code)
+        return '';
     code = code.trim();
     if (code.length === 4)
         return String.fromCharCode(parseInt(code, 16));
-    if (!code)
-        return null;
     if (/\s/.test(code)) {
         return code
             .trim()

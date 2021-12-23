@@ -3,6 +3,7 @@
 import { mapArgs } from './shell.js';
 import fs from 'fs';
 import fetch from 'node-fetch';
+import { checkInternet, getMyLocation } from './network.js';
 
 const icons_hash_map = {
     '950': 'information',
@@ -77,7 +78,7 @@ function parseApiAnswer(raw: any): Meteo {
 
 async function getLocationId(location: string): Promise<string> {
     const res = await fetch(
-        `https://weawow.com/fr/searchAjax?keyword=${location}&microtime=1623764380326`,
+        `https://weawow.com/en/searchAjax?key=${location}`,
         {
             headers: {
                 accept: '*/*',
@@ -87,24 +88,28 @@ async function getLocationId(location: string): Promise<string> {
                 'sec-fetch-site': 'same-origin',
                 'sec-gpc': '1',
                 'x-requested-with': 'XMLHttpRequest',
+                Referer: 'https://weawow.com/',
             },
-            body: null,
             method: 'GET',
         }
-    ).then(res => {
-        return res.json();
-    });
+    )
+        .then(async res => {
+            return res.json();
+        })
+        .catch(() => {
+            return null;
+        });
 
     try {
-        return res.data.l[0].i;
+        return res.l[0].i;
     } catch (err) {
-        return '9013811'; // id for Grenoble
+        return ''; // id for Grenoble
     }
 }
 
 async function getMeteoData(locId: string): Promise<Meteo> {
     return fetch(
-        `https://weawow.com/w3/fr/weather?type=wowcity&lat=&lng=&c=b&weaUrl=c${locId}`,
+        `https://weawow.com/w3/en/weather?type=wowcity&lat=&lng=&c=b&weaUrl=c${locId}`,
         {
             headers: {
                 HourUnit: '24H',
@@ -135,8 +140,10 @@ async function getMeteoData(locId: string): Promise<Meteo> {
 }
 
 (async () => {
-    // const id = await getLocationId('grenoble');
-    const id = '9013811'; // Grenoble
+    if (!(await checkInternet())) return;
+
+    const { country, city } = await getMyLocation();
+    const id = await getLocationId(`${country}, ${city}`);
     let meteo: Meteo = null;
 
     mapArgs(

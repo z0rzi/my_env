@@ -1,0 +1,231 @@
+#!/bin/bash
+
+TRASH_FILES="$HOME/.trash/files"
+TRASH_RECORD="$HOME/.trash/record.csv"
+
+if [ ! -d "$TRASH_FILES" ]; then
+    mkdir -p "$TRASH_FILES/files"
+    touch "$TRASH_RECORD"
+fi
+
+# Record csv is like:
+#
+# <ID>;<TIME_DELETED>;<LOCATION>
+
+function prompt {
+    answer=''
+    while [ "$answer" != "y" ] && [ "$answer" != 'n' ]; do
+        read -p "$1 (y/n) > " answer
+    done
+
+    [ "$answer" = "y" ] && echo 1
+}
+
+function new_id {
+    ids=`awk -F';' '/^[0-9]+;/{print $1}' "$TRASH_RECORD"`
+    max_id=0
+    for id in $ids; do
+        [ $id  -gt $max_id ] && max_id=$id
+    done
+    echo -n $((max_id + 1))
+}
+
+function check_record_integrity {
+    _IFS="$IFS"
+    IFS=';'
+    new_record='/tmp/trash_record.csv'
+    echo '' > "$new_record"
+
+    while read id time path; do
+        if [ "$id" ] && [ -d "$TRASH_FILES/$id" ]; then
+            file_amount=`ls -A $TRASH_FILES/$id | wc -l`
+            if [ $file_amount -gt 0 ]; then
+                echo "$id;$time;$path" >> "$new_record"
+            else
+                rm -r "$TRASH_FILES/$id"
+            fi
+        fi
+    done < $TRASH_RECORD
+
+    mv "$new_record" "$TRASH_RECORD"
+    IFS="$_IFS"
+}
+
+if [ "$#" -eq 0 ]; then
+    echo "USAGE = 'trash <files>'"
+    echo "               list [-v]"
+    echo "               restore <ID>"
+    echo "               empty <DAYS_AMOUNT>"
+    exit 0;
+fi
+
+if [ "$1" == "list" ]; then
+    check_record_integrity
+    shift
+
+    _IFS="$IFS"
+    IFS=';'
+    while read id time path; do
+        [ "$id" ] || continue
+        nice_date=`date --date="@$time" "+%Y-%m-%d %H:%M:%S"`
+        file_name=`ls -A $TRASH_FILES/$id`
+
+        line="$id"
+        line="$line\t  $nice_date"
+        [ "$1" = "-v" ] && line="$line\t  `du -sh $TRASH_FILES/$id | awk '{print $1}'`"
+        line="$line\t  $path"
+        line="$line\t  $file_name"
+
+        
+
+        printf "$line\n"
+    done < $TRASH_RECORD
+    IFS="$_IFS"
+
+    exit 0;
+fi
+
+if [ "$1" == "empty" ]; then
+    check_record_integrity
+    shift
+
+    days=$1
+
+    if [ ! "$days" ]; then
+        echo "Number of days not provided..."
+        exit 1
+    fi
+    if [[ ! "$1" =~ ^[0-9]+$ ]]; then
+        echo "'$days' doesn't look like a valid number of days..."
+        exit 1
+    fi
+
+    ids=''
+
+    _IFS="$IFS"
+    IFS=';'
+    days_as_sec=$((days * 24 * 60 * 60))
+    now=`date "+%s"`
+    while read id time path; do
+        [ "$id" ] || continue
+        if [ $((now - days_as_sec)) -gt $time ]; then
+            ids="$ids $id"
+        fi
+    done < $TRASH_RECORD
+    IFS="$_IFS"
+
+    amount=`echo $ids | wc -w`
+
+    if [ $amount -eq 0 ]; then
+        echo "No files older than $days days could be found"
+        exit 0
+    fi
+
+    echo "You're about to delete permanently all files older than $days days ($amount files)"
+
+    proceed=`prompt 'Proceed ? '`
+
+    [ "$proceed" ] || exit 0
+
+    for id in $ids; do
+        rm -r "$TRASH_FILES/$id"
+    done
+
+    check_record_integrity
+    exit 0;
+fi
+
+if [ "$1" == "restore" ]; then
+    shift
+    id=$1
+    if [ ! "$id" ]; then
+        echo "ID non fourni..."
+        exit 1
+    fi
+
+    line=`grep "^$id;" $TRASH_RECORD`
+
+    _IFS="$IFS"
+    IFS=';'
+    while read id time path; do
+        [ "$id" ] || continue
+        filename=`ls -A $TRASH_FILES/$id`
+        if [ ! -d "$path" ]; then
+            echo "'$path' no longer exists, can't restore file..."
+            echo
+            echo "You can still restore it manually:"
+            echo "    mv \"$TRASH_FILES/$id/$filename\" <DESTINATION>"
+            exit 1;
+        fi
+        if [ -e "$path/$filename" ]; then
+            echo "'$path/$filename' already exists, can't restore file..."
+            echo
+            echo "You can still restore it manually:"
+            echo "    mv \"$TRASH_FILES/$id/$filename\" <DESTINATION>"
+            exit 1;
+        fi
+        cp -r "$TRASH_FILES/$id/"* "$path"
+        rm -r "$TRASH_FILES/$id"
+    done <<< "$line"
+    IFS="$_IFS"
+
+    check_record_integrity
+    exit 0;
+fi
+
+while [ $# -gt 0 ]; do
+    file=`realpath -s "$1"`
+    if [ ! -f "$file" ] && [ ! -d "$file" ]; then
+        echo "'$file' is not a file nor a directory, skipping..."
+        shift
+        continue
+    fi
+
+    id=`new_id`
+    date=`date '+%s'`
+    location=`dirname "$file"`
+
+    size=`timeout 2 du -s $file 2> /tmp/_du_log | cut -f1`
+
+    grep -i 'permission denied' /tmp/_du_log > /dev/null
+    if [ $? -eq 0 ]; then
+        cat /tmp/_du_log
+        echo
+        echo "It seems like you don't have the permissions to delete '$file'"
+        shift
+        continue
+    fi
+
+    if [ $? -ne 0 ]; then
+        echo "The file you're about to delete seems pretty heavy, are you sure you want to do that?"
+        proceed=`prompt 'Proceed ? '`
+        if [ ! "$proceed" ]; then
+            echo
+            echo 'Wise decision.'
+            shift
+            continue
+        fi
+    fi
+
+    if [ "$size" ]; then
+        size_gb=$((size / 1024 / 1024))
+        if [ $size_gb -gt 1 ]; then
+            size_gb=`bc <<< "scale=2; $size / 1024 / 1024"`
+            echo "The file you're trying to move to the trash weights ${size_gb}GB ..."
+            if [ ! "`prompt 'Proceed ? '`" ]; then
+                echo
+                echo 'Wise decision.'
+                shift
+                continue
+            fi
+            
+        fi
+    fi
+
+    echo "$id;$date;$location" >>  "$TRASH_RECORD"
+    mkdir "$TRASH_FILES/$id"
+    cp -r "$file" "$TRASH_FILES/$id"
+    rm -r "$file"
+    
+    shift
+done
