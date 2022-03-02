@@ -10,4 +10,3 @@ String.prototype['wordAtPos'] = function (pos) {
     return match[0].replace(/^.*\W/, '');
 };
 export {};
-//# sourceMappingURL=String.js.map

@@ -8,4 +8,3 @@ export function makeSync(asyncFunc, args) {
     while (sync) { }
     return returnVal;
 }
-//# sourceMappingURL=jsTools.js.map

@@ -44,16 +44,19 @@
 
     # File explorer
         # bindsym $sup+e exec dolphin
-        bindsym $sup+e exec kitty -e ranger
+        bindsym $sup+e exec kitty fish -c "ranger"
 
     # Calculator
-        bindsym $sup+r exec kitty --name floating --title floating -o initial_window_width=200 -o initial_window_height=10 -e bc -l
+        bindsym $sup+r exec kitty --title floating -o remember_window_size=no -o initial_window_height=500 -o initial_window_width=1000 bc -l
 
     # Screenshot
         bindsym --release $mod+Shift+s exec bash -c "flameshot & flameshot gui"
 
     # Death touch
         bindsym --release $mod+$alt+Delete exec xkill -button 3
+
+    # Money!
+        bindsym --release $mod+Shift+e exec feh --title floating ~/Work/Tarifs.png
 
     # kill focused window
         bindsym $mod+q kill
@@ -66,7 +69,8 @@
         bindsym Ctrl+Shift+z exec /home/zorzi/.my_env/scripts/correct.js
 
     # program launcher
-        bindsym $alt+space exec --no-startup-id rofi -show run -show-icons
+        bindsym $mod+d exec --no-startup-id rofi -show drun -run-shell-command 'kitty fish -ic "{cmd} && read"'
+        bindsym $alt+space exec --no-startup-id rofi -show run -icon-theme "Tela" -run-command 'fish -c "{cmd}"'
         bindsym $alt+Tab exec --no-startup-id rofi -show window
 
     # Volume
@@ -93,7 +97,7 @@
         bindsym $alt+$sup+Right resize grow width 5 px or 5 ppt
 
     # Emojis
-        bindsym $alt+Shift+e exec kitty -o font_size=20 -e /mnt/DATA/home/zorzi/.my_env/scripts/emoji2.js
+        bindsym $alt+Shift+e exec kitty --title floating -o remember_window_size=no -o initial_window_height=800 -o initial_window_width=500 -o font_size=20 -e /home/zorzi/.my_env/scripts/emoji2.js
 
     # Mouse
         bindsym $mod+button2 --whole-window --release kill
@@ -224,29 +228,24 @@
     exec --no-startup-id /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
     # exec --no-startup-id nitrogen --restore
     exec --no-startup-id bash -c "dunst"
-    exec_always --no-startup-id bash -c "while :; do feh --bg-fill --no-fehbg --randomize $HOME/Documents/Wallpapers/*.jpg; sleep 3600; done"
+    # exec_always --no-startup-id bash -c "while :; do feh --bg-fill --no-fehbg --randomize $HOME/Documents/Wallpapers/*.jpg; sleep 3600; done"
     exec --no-startup-id bash -c "sleep 10; picom -b"
     exec --no-startup-id flameshot
     # exec --no-startup-id manjaro-hello
     exec --no-startup-id nm-applet
     exec --no-startup-id xfce4-power-manager
-    # exec --no-startup-id clipit
-    # exec --no-startup-id start_conky_maia
     exec --no-startup-id xautolock -time 30 -locker blurlock
     exec_always --no-startup-id bash -c "$HOME/.local/bin/custom/configure-inputs.sh"
     exec_always --no-startup-id ff-theme-util
-    exec_always --no-startup-id fix_xcursor
     
     exec --no-startup-id bash -c "xkbcomp -w0 -I$HOME/.xkb ~/.xkb/keymap/basic $DISPLAY"
     exec --no-startup-id bash ~/.my_env/scripts/monitors.sh
     # exec --no-startup-id fcitx-autostart
     exec_always --no-startup-id bash -c '[ -f "$HOME/.Xmodmap" ] && xmodmap $HOME/.Xmodmap'
     exec --no-startup-id bash -c "ibus-daemon -drx --panel /usr/lib/ibus/ibus-ui-gtk3 &"
-    exec --no-startup-id bash -c "optimus-manager-qt &"
-    exec --no-startup-id bash -c "kdeconnect-indicator &"
+    # exec --no-startup-id bash -c "kdeconnect-indicator &"
     exec --no-startup-id bash -c "copyq &"
     exec --no-startup-id libinput-gestures-setup start
-    # exec --no-startup-id bash -c "gpaste-client daemon-reexec"
 
 #
 # UNUSED
@@ -281,8 +280,8 @@
 # bindsym $mod+Shift+b move container to workspace back_and_forth; workspace back_and_forth
 
 # split orientation
-bindsym $mod+h split h;exec notify-send 'tile horizontally'
-bindsym $mod+v split v;exec notify-send 'tile vertically'
+# bindsym $mod+h split h;exec notify-send 'tile horizontally'
+# bindsym $mod+v split v;exec notify-send 'tile vertically'
 # bindsym $mod+q split toggle
 
 # toggle fullscreen mode for the focused container
@@ -297,13 +296,13 @@ bindsym $mod+f fullscreen toggle
 bindsym $mod+Shift+space floating toggle
 
 # change focus between tiling / floating windows
-bindsym $mod+space focus mode_toggle
+# bindsym $mod+space focus mode_toggle
 
 # toggle sticky
-bindsym $mod+c sticky toggle
+# bindsym $mod+c sticky toggle
 
 # focus the parent container
-bindsym $mod+a focus parent
+# bindsym $mod+a focus parent
 
 # move the currently focused window to the scratchpad
 bindsym $mod+Shift+minus move scratchpad
@@ -418,7 +417,7 @@ bar {
     position bottom
 
     # font Vera:20
-    font pango:Bitstream Vera Sans 10
+    font pango:Ubuntu Nerd Font 11
 
 
     separator_symbol "|"
@@ -458,65 +457,6 @@ bindsym $mod+m bar mode toggle
   client.placeholder      #000000 #0c0c0c #dfd0a9 #000000 
 
   client.background       #2B2C2B
-
-#############################
-### settings for i3-gaps: ###
-#############################
-
-# Set inner/outer gaps
-gaps inner 14
-gaps outer -2
-
-# Additionally, you can issue commands with the following syntax. This is useful to bind keys to changing the gap size.
-# gaps inner|outer current|all set|plus|minus <px>
-# gaps inner all set 10
-# gaps outer all plus 5
-
-# Smart gaps (gaps used if only more than one container on the workspace)
-smart_gaps on
-
-# Smart borders (draw borders around container only if it is not the only container on this workspace) 
-# on|no_gaps (on=always activate and no_gaps=only activate if the gap size to the edge of the screen is 0)
-smart_borders on
-border_radius 5
-
-# Press $mod+Shift+g to enter the gap mode. Choose o or i for modifying outer/inner gaps. Press one of + / - (in-/decrement for current workspace) or 0 (remove gaps for current workspace). If you also press Shift with these keys, the change will be global for all workspaces.
-set $mode_gaps Gaps: (o) outer, (i) inner
-set $mode_gaps_outer Outer Gaps: +|-|0 (local), Shift + +|-|0 (global)
-set $mode_gaps_inner Inner Gaps: +|-|0 (local), Shift + +|-|0 (global)
-bindsym $mod+Shift+g mode "$mode_gaps"
-
-mode "$mode_gaps" {
-        bindsym o      mode "$mode_gaps_outer"
-        bindsym i      mode "$mode_gaps_inner"
-        bindsym Return mode "default"
-        bindsym Escape mode "default"
-}
-mode "$mode_gaps_inner" {
-        bindsym plus  gaps inner current plus 5
-        bindsym minus gaps inner current minus 5
-        bindsym 0     gaps inner current set 0
-
-        bindsym Shift+plus  gaps inner all plus 5
-        bindsym Shift+minus gaps inner all minus 5
-        bindsym Shift+0     gaps inner all set 0
-
-        bindsym Return mode "default"
-        bindsym Escape mode "default"
-}
-mode "$mode_gaps_outer" {
-        bindsym plus  gaps outer current plus 5
-        bindsym minus gaps outer current minus 5
-        bindsym 0     gaps outer current set 0
-
-        bindsym Shift+plus  gaps outer all plus 5
-        bindsym Shift+minus gaps outer all minus 5
-        bindsym Shift+0     gaps outer all set 0
-
-        bindsym Return mode "default"
-        bindsym Escape mode "default"
-}
-
 
 
 ################################################################################################

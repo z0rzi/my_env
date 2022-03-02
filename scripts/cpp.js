@@ -20,4 +20,3 @@ for (const fromPath of fromPaths) {
     });
     console.log(`Copied '${fromPath}' to '${toPath}'`);
 }
-//# sourceMappingURL=cpp.js.map

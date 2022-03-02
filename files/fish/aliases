@@ -6,6 +6,8 @@ vimtiny   nvim -u NONE
 
 feh feh --auto-rotate
 
+vivaldi vivaldi-stable
+
 vimhtml nvim /tmp/_(random).html
 vimcss nvim /tmp/_(random).css
 vimjs nvim /tmp/_(random).js
@@ -22,7 +24,6 @@ office onlyoffice-desktopeditors
 
 r ranger .
 e explorer.js
-find fd
 
 :h man
 
@@ -47,14 +48,13 @@ tree tree -CF
 rm rm_wrapper.sh
 
 bye     exit
-byebye  shutdown now
+byebye  /usr/sbin/shutdown now
 
 
-ls    ls --color --file-type
-ll    ls -l
-la    ls -a
-lla   ls -la
-lls   clear;ls
+ls    exa
+ll    exa -l
+la    exa -a
+lla   exa -la
 
 copy     xclip -sel clip
 cat      bat -pp
@@ -72,3 +72,7 @@ mouse   kwriteconfig5 --file kcminputrc --group Mouse --key XLbInptMiddleEmulati
 color  grep -C 100000
 
 javac  javac -encoding ISO-8859-1 
+
+
+onlyoffice snap run onlyoffice-desktopeditors
+beekeeper snap run beekeeper-studio

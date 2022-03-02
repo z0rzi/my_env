@@ -19,4 +19,3 @@ export function parsePath(path) {
         throw new Error('Invalid path');
     return matches.groups;
 }
-//# sourceMappingURL=files.js.map

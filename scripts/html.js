@@ -305,4 +305,3 @@ export class HtmlNode {
         });
     }
 }
-//# sourceMappingURL=html.js.map

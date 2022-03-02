@@ -17,4 +17,3 @@ git.searchFile(fromPath, new RegExp(rx), resPath => {
         resPath = './' + resPath;
     console.log(resPath);
 });
-//# sourceMappingURL=findd.js.map

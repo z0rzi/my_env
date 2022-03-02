@@ -65,4 +65,3 @@ try {
 catch (err) {
     console.error('Could not parse JSON' + err);
 }
-//# sourceMappingURL=parse_json.js.map

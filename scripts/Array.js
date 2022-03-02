@@ -1,4 +1,12 @@
-import { __awaiter } from "tslib";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Array.prototype['uniq'] = function () {
     return this.filter((val, idx, fullArray) => {
         const first = fullArray.indexOf(val);
@@ -48,4 +56,4 @@ Array.prototype['asyncFilter'] = function (mapFn) {
         return out;
     });
 };
-//# sourceMappingURL=Array.js.map
+export {};

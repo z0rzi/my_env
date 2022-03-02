@@ -1,0 +1,37 @@
+#!/bin/bash
+
+file=$1
+
+if [ ! -f "$file" ]; then
+    echo "USAGE = 'lock <file>'";
+    exit 1;
+fi
+
+if [ -f "$file.locked" ]; then
+    echo -e "A file named '${GREEN}$file.locked${NC}' already exists..."
+    exit 1
+fi
+
+read -s -p "🔒 " pass1
+echo
+read -s -p "🔒 " pass2
+echo
+
+if [ "$pass1" != "$pass2" ]; then
+    echo
+    echo -e "❌ ${RED}The 2 passphrases are different...${NC}"
+    exit 1
+fi
+
+echo "$pass1" | gpg --batch --yes --passphrase-fd 0 -o "$file.locked" -c "$file"
+
+echo "Do you want to delete the original file?"
+
+res=''
+while [[ ! "$res" =~ [yn] ]]; do
+    read -p "(y/n) > " res
+done
+
+[ "$res" = "y" ] && shred -u "$file"
+
+echo "All done!"

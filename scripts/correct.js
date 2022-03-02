@@ -89,4 +89,3 @@ fetch('https://www.scribens.fr/Scribens/TextSolution_Servlet', {
         clipboardy.writeSync(node.innerText);
     }
 });
-//# sourceMappingURL=correct.js.map

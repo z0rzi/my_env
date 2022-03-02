@@ -21,5 +21,7 @@ if ! string match -r "scripts" "$PATH"
 end
 
 export TERM=xterm
+export EDITOR=nvim
+export BROWSER=brave
 
-fzf_configure_bindings --directory=\cf
+# fzf_configure_bindings --directory=\cf

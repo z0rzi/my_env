@@ -17,4 +17,3 @@ git.searchFile(fromPath, /./, resPath => {
     fs.copyFileSync(resPath, newPath);
 });
 console.log(`copied '${fromPath}' to '${toPath}'`);
-//# sourceMappingURL=cplight.js.map

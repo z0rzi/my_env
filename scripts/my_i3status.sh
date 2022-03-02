@@ -2,7 +2,7 @@
 
 # See https://github.com/i3/i3/blob/next/contrib/trivial-bar-script.sh
 #
-# For icons: https://fontawesome.com/cheatsheet?from=io
+# For icons: https://www.nerdfonts.com/cheat-sheet
 
 CLICK_LEFT=1
 CLICK_MIDDLE=2
@@ -23,7 +23,7 @@ WEATHER_TOOL="/home/zorzi/.my_env/scripts/meteo.js"
     ICON_SWAP='🍩'
     ICON_RAM='🥓'
     ICON_TIME=''
-    ICON_DOCKER=''
+    ICON_DOCKER=''
     ICON_AIRPLANE=''
     ICON_BATTERY_80=''
     ICON_BATTERY_60=''
@@ -175,7 +175,7 @@ WEATHER_TOOL="/home/zorzi/.my_env/scripts/meteo.js"
                 fi
             fi
 
-            echo -n " $icon $percentage "
+            echo -n " $icon  $percentage "
         }
         function battery_color {
             infos=`upower -i $(upower -e | grep 'BAT')`

@@ -113,4 +113,3 @@ catch (err) {
     error('Couldn\'t parse the JSON...');
 }
 console.log('type A = ' + toTypescript(data));
-//# sourceMappingURL=jsonStructure.js.map

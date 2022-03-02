@@ -241,7 +241,6 @@
     endfunction
 
     function! DoAtEach(macro, range)
-        echom a:macro
         let save = winsaveview()
         let count = 0
         let searchSave = @/
@@ -630,23 +629,23 @@
         return [rx, gargs]
     endfunction
 
-    let s:fzf_options = 
+    let g:fzf_options = 
                 \ '--tiebreak=index ' .
                 \ '--filepath-word ' .
                 \ '--history /home/zorzi/.local/share/fzf-history/FZF ' .
-                \ '--algo=v2 ' .
                 \ '--keep-right ' .
-                \ '--multi ' .
-                \ '--preview="bash -c \"[ \\\"\\\$(git ls-files -m {})\\\" ] && flag=-d; bat --color always \\\$flag {} | tail -n+2\"" ' .
+                \ '--preview="bash -c \"bat -pp --color always {}\"" ' .
                 \ '--preview-window="right:50%:rounded:nowrap:nofollow:nocycle:nohidden" ' .
                 \ '--sync'
+                " \ '--multi ' .
+                " \ '--algo=v2 ' .
                 " \ '--no-sort ' .
                 " \ '-e ' .
                 " \ '--preview="[ \"$(git ls-files -m ''{}'')\" ] && bash -c \"bat -d --color always {} | tail -n+2\" || bat {}" ' .
                 " \ '--preview="git diff --color=always {} | sed -e \"1,5d\" -e \"s/^\s\+//g\" | diff-so-fancy" ' .
     function! FZFFindFile()
-        let cmd = 'ls --color=never -t $(rg . --files) 2> /dev/null'
-        silent! exe fzf#run({'source': cmd, 'sink': 'e', 'options': s:fzf_options, 'down':'40%'})
+        let cmd = '/usr/bin/ls --color=never -t (rg . --files) 2> /dev/null'
+        silent! call fzf#run({'source': cmd, 'sink': 'e', 'options': g:fzf_options, 'down':'40%'})
     endfunction
     function! FZFUpOneDir()
         if !exists('b:fzf_lookup_dir') || b:fzf_lookup_dir == ''
@@ -665,13 +664,15 @@
         end
         let copy_save = @+
         let enter_cmd = "eval fm.move(right=1) if fm.thisfile.is_directory else fm.execute_console(\\'chain shell -f bash -c \"realpath \\\%f | xclip -sel clip\"; quit\\')"
-        sil! exe
+        let cmd =
                     \ "!kitty --title floating" .
+                    \ " -o remember_window_size=no -o initial_window_height=500 -o initial_window_width=1000" .
                     \ " ranger" .
                     \ " --cmd 'map <CR> ".enter_cmd."'" .
                     \ " --cmd 'map <RIGHT> ".enter_cmd."'" .
                     \ " --cmd 'map q eval fm.execute_console(\\'chain shell -f bash -c \"echo -n | xclip -sel clip\"; quit\\')'" .
                     \ " " . dir
+        sil! exe cmd
         sleep 50m
         if filereadable(trim(@+))
             exe "e " . trim(@+)
@@ -684,25 +685,14 @@
         else
             let dir = b:fzf_lookup_dir
         end
-        let cmd = 'ls --color=never -t $(find '.dir.' -type f -maxdepth 1) 2> /dev/null'
-        silent! exe fzf#run({'source': cmd, 'sink': 'e', 'options': s:fzf_options, 'down':'40%'})
+        let cmd = 'ls --color=never -t (find '.dir.' -type f -maxdepth 1) 2> /dev/null'
+        silent! call fzf#run({'source': cmd, 'sink': 'e', 'options': g:fzf_options, 'down':'40%'})
     endfunction
     function! s:FZFOpenVimOutput(str)
         let thefile = matchstr(a:str, '^.\{-\}\ze:')
         let theline = matchstr(a:str, '^.\{-\}:\zs\d\+\ze:')
         silent! exe 'edit ' . fnameescape(thefile)
         echo cursor(theline,0)
-    endfunction
-    function! s:FZFPrintUnicode(line)
-        let cara = matchstr( a:line, '\S\ze\s' )
-        exe 'silent !grep "^'.cara.'" $HOME/.vim/customFiles/unicode_chars.txt > /tmp/unicode_temp.txt'
-        exe 'silent !grep -v "^'.cara.'" $HOME/.vim/customFiles/unicode_chars.txt >> /tmp/unicode_temp.txt'
-        exe 'silent !mv /tmp/unicode_temp.txt $HOME/.vim/customFiles/unicode_chars.txt'
-        exe "norm!i" . cara
-    endfunction
-    function! FZFUnicode()
-        let cmd = 'cat $HOME/.vim/customFiles/unicode_chars.txt'
-        call fzf#run({'source': cmd, 'sink': function('s:FZFPrintUnicode'), 'options': '-e --algo=v1 --no-sort --ansi', 'down':'40%' })
     endfunction
 
     " Save current view settings on a per-window, per-buffer basis.
@@ -1004,6 +994,12 @@
     autocmd! FileType html nnoremap <buffer> <C-]> <CMD>call AngularHtmlGotoImplementation()<CR>
 
     function! AngularSwitchFile()
+        if exists('g:lastfile') && exists('g:thisfile') && g:thisfile == expand('%')
+            let g:thisfile = g:lastfile
+            let file = g:lastfile
+            let g:lastfile = expand('%')
+            return file
+        endif
         let path = expand('%:h')
         let current_file = expand('%:t')
 
@@ -1024,9 +1020,11 @@
             let other_file = matchstr(current_file, '^.*\.') . extensions[0]
         endif
 
+        let g:thisfile = path . '/' . other_file
+        let g:lastfile = expand('%')
         return path . '/' . other_file
     endfunction
-    autocmd! BufEnter *html,*ts,*js nnoremap <buffer> <LEADER>w <CMD>exec "e " . AngularSwitchFile()<CR>
+    autocmd! BufEnter *html,*ts,*js,*css nnoremap <buffer> <LEADER>w <CMD>exec "e " . AngularSwitchFile()<CR>
 
 " 
 " PLUGINS CONFIG
@@ -1195,36 +1193,7 @@
         " Add (Neo)Vim's native statusline support.
         " NOTE: Please see `:h coc-status` for integrations with external plugins that
         " provide custom statusline: lightline.vim, vim-airline.
-        set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
-
-    " Coc Explorer
-        let g:coc_explorer_global_presets = {
-                    \   '.vim': {
-                    \      'root-uri': '~/.vim',
-                    \   },
-                    \   'floating': {
-                    \      'position': 'floating',
-                    \   },
-                    \   'floatingTop': {
-                    \     'position': 'floating',
-                    \     'floating-position': 'center-top',
-                    \   },
-                    \   'floatingLeftside': {
-                    \      'position': 'floating',
-                    \      'floating-position': 'left-center',
-                    \      'floating-width': 50,
-                    \   },
-                    \   'floatingRightside': {
-                    \      'position': 'floating',
-                    \      'floating-position': 'left-center',
-                    \      'floating-width': 50,
-                    \   },
-                    \   'simplify': {
-                    \     'file-child-template': '[selection | clip | 1] [indent][icon | 1] [filename omitCenter 1]'
-                    \   }
-                    \ }
-
-        autocmd! FileType coc-explorer set conceallevel=0
+        " set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 
     " Vim LightLine
         let g:lightline = {
@@ -1528,13 +1497,13 @@
             Plugin 'airblade/vim-gitgutter'
 
             " Fuzzy search
-            Plugin 'junegunn/fzf'
-            Plugin 'junegunn/fzf.vim'
+            Plugin 'junegunn/fzf', { 'do': { -> fzf#install() } }
+            " Plugin 'junegunn/fzf.vim'
 
             " Buffer stuff
             Plugin 'z0rzi/lightline-bufferline'
 
-            " Plugin 'neoclide/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
+            Plugin 'neoclide/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
 
             Plugin 'rickhowe/diffchar.vim'
 
@@ -1773,7 +1742,7 @@
             xnoremap <LEADER>* :JsDoc<CR>
 
         " CtrlSF
-            nnoremap <C-f> :CtrlSF -R ''<LEFT>
+            nnoremap <C-f> :CtrlSF ''<LEFT>
             nnoremap <C-s> :let @/ = '<C-r>=expand('<cword>')<CR>'<CR>:CtrlSF -R '\b<C-r>=@/<CR>\b'<CR>:CtrlSFFocus<CR>
             xnoremap <C-f> <ESC>:let @/ = escape(getline('.')[col("'<")-1 : col("'>")-1], '.\\[]')<CR>:CtrlSF -R "<C-r>=escape(@/, '"()')<CR>"<LEFT>
             xnoremap <C-s> <ESC>:let @/ = escape(getline('.')[col("'<")-1 : col("'>")-1], '.\\[]')<CR>:CtrlSF -R "<C-r>=escape(@/, '"()')<CR>"<CR>
@@ -1852,10 +1821,9 @@
 
         " FZF
             nnoremap <C-p> <CMD>call FZFFindFile()<CR>
-            nnoremap <CS-o> <CMD>call FZFUpOneDir()<CR>
-            nnoremap <CS-i> <CMD>call OpenRanger()<CR>
-            nnoremap <CS-p> <CMD>call FZFFindFileInSameDir()<CR>
-            nnoremap <LEADER>u <CMD>call FZFUnicode()<CR>
+            nnoremap <LEADER>;o <CMD>call FZFUpOneDir()<CR>
+            nnoremap <LEADER>;i <CMD>call OpenRanger()<CR>
+            nnoremap <LEADER>;p <CMD>call FZFFindFileInSameDir()<CR>
 
         " Commentary
             nnoremap  <CMD>Commentary<CR>

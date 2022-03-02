@@ -94,4 +94,3 @@ fetchWebPage(args)
     .catch((err) => {
     error(err);
 });
-//# sourceMappingURL=scrap.js.map

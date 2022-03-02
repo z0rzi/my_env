@@ -1,1 +1,1 @@
-/mnt/DATA/home/zorzi/.fzf/shell/key-bindings.fish
+/home/zorzi/.fzf/shell/key-bindings.fish
