@@ -1,6 +1,5 @@
 import fetch from 'node-fetch';
 import { HtmlNode } from './html.js';
-import fs from 'fs';
 
 type RawBookMetas = {
     imageUrl: string;
@@ -59,7 +58,6 @@ async function getBookMeta(searchStr: string): Promise<BookMetas> {
 
 async function scrapeGoodReads(link: string) {
     const res = await fetch(link).then(res => res.text());
-    fs.writeFileSync('/tmp/_.html', res);
 
     const document = new HtmlNode(res);
 
@@ -96,8 +94,8 @@ export async function getBookInfos(bookName: string): Promise<BookInfos> {
         year: extraInfos.publishText,
         description: extraInfos.description,
         author: metas.author.name,
-        source: metas.bookUrl,
-        imageUrl: metas.imageUrl,
+        source: 'https://www.goodreads.com' + metas.bookUrl,
+        imageUrl: extraInfos.imgUrl,
         length: metas.numPages + ' pages',
         rating: metas.avgRating + ' / 10',
     };

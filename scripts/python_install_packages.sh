@@ -34,7 +34,7 @@ path_save=$PATH
 pypath=`realpath $pypath 2> /dev/null`
 
 if [ ! "$pyfile" ]; then
-    echo "USAGE = 'python_install_packages.sh [--python_path=</path/to/python>] <python_file.py>'"
+    echo "USAGE = 'python_install_packages.sh [--python_path </path/to/python>] <python_file.py>'"
 fi
 
 echo $pyfile

@@ -1,0 +1,117 @@
+#!/bin/bash
+
+trap "tput cnorm; exit 0" EXIT SIGINT SIGTERM
+tput civis
+
+function gong {
+    # amixer -q set Master 100% unmute
+    mpv ~/Documents/Audios/gong.mp3 > /dev/null 2>&1
+}
+
+has_tty=
+
+tty -s
+[ "$?" -eq 0 ] && has_tty=1
+
+if [ "$1" = "stop" ]; then
+    rm /tmp/.timer
+    pkill timer
+    exit 1;
+fi
+
+if [ "$#" -lt 1 ]; then
+    echo "USAGE = 'timer <time>'"
+    exit 1
+fi
+
+declare -A times
+times[s]=1
+times[m]=60
+times[h]=$((60 * 60))
+
+time_sum=0
+
+last_num=
+function handle {
+    str=$1
+    is_num=$2
+    [ "$str" ] || return
+
+    if [ "$is_num" ]; then
+        last_num=$1
+        return
+    fi
+    first_letter=${str:0:1}
+    time=${times[$first_letter]}
+    if [ ! "$time" ]; then
+        echo "Unrecognized unit '$str'"
+        exit 1
+    fi
+    [ "$last_num" ] || last_num=1
+    time_sum=$((time_sum + last_num * time))
+}
+
+last_was_num=0
+buff=
+while read -n1 cara; do
+    [[ "$cara" ]] || continue
+    [[ "$cara" =~ [0-9] ]] && curr_is_num=1 || curr_is_num=
+    if [ "$curr_is_num" != "$last_was_num" ]; then
+        handle "$buff" "$last_was_num"
+        last_was_num=$curr_is_num
+        buff=
+    fi
+    buff=${buff}${cara}
+done <<< $@
+handle "$buff" "$last_was_num"
+
+function d {
+    num=$1
+    color=$2
+    while [ ${#num} -lt 2 ]; do num=0$num; done
+
+    [ "$has_tty" ] \
+        && echo -ne "${color}${num}${NC}" \
+        || echo -ne "$num"
+}
+
+function display_time {
+    num=$1
+    secs=$((num % 60))
+    num=$((num / 60))
+
+    mins=$((num % 60))
+    num=$((num / 60))
+
+    hours=$((num % 60))
+
+    d $hours ${BLUE}
+    echo -n :
+    d $mins ${GREEN}
+    echo -n :
+    d $secs ${ORANGE}
+}
+
+if [ ! "$has_tty" ]; then
+    echo $$ > /tmp/.timer_pid
+fi
+while [ $time_sum -gt 0 ]; do
+    if [ "$has_tty" ]; then
+        clear
+        display_time $time_sum
+    else
+        if [ "$$" != "`cat /tmp/.timer_pid`" ]; then
+            exit 1
+        fi
+        display_time $time_sum > /tmp/.timer
+    fi
+    time_sum=$((time_sum - 1))
+    sleep 1
+done
+
+if [ "$has_tty" ]; then
+    gong &
+else
+    rm /tmp/.timer
+    gong
+fi

@@ -15,7 +15,7 @@ function getMovieDirector(id) {
             headers: { Authorization: 'Bearer ' + TOKEN },
         })
             .then(res => res.json())
-            .then((res) => {
+            .then(res => {
             for (const person of res.crew) {
                 if (person.job.toLowerCase() === 'director')
                     return person.name;
@@ -33,7 +33,13 @@ function getAllMovieInfos(id) {
 }
 export function getMovieInfos(movieName) {
     return __awaiter(this, void 0, void 0, function* () {
-        return fetch(`https://api.themoviedb.org/3/search/movie?language=en-US&query=${encodeURIComponent(movieName)}&include_adult=true`, {
+        let year = '';
+        try {
+            year = movieName.match(/ y:\d+/g)[0].slice(3);
+            movieName = movieName.replace(/ y:\d+/g, '');
+        }
+        catch (err) { }
+        return fetch(`https://api.themoviedb.org/3/search/movie?language=en-US&query=${encodeURIComponent(movieName)}&year=${year}&include_adult=true`, {
             headers: {
                 Authorization: 'Bearer ' + TOKEN,
             },

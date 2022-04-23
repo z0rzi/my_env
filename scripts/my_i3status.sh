@@ -17,7 +17,7 @@ WEATHER_TOOL="/home/zorzi/.my_env/scripts/meteo.js"
 #
 # DATA
 #
-    MODULES='ram| swap| cpu| battery| weather| time| airplane docker monitor lock'
+    MODULES='ram| swap| cpu| battery| time| timer| airplane docker monitor lock'
 
     ICON_CPU='🔥'
     ICON_SWAP='🍩'
@@ -70,6 +70,8 @@ WEATHER_TOOL="/home/zorzi/.my_env/scripts/meteo.js"
     COLOR_BATTERY_LOW="#e74c3c"
 
     COLOR_TIME="#DDDDDD"
+
+    COLOR_TIMER="$COLOR_DISABLED"
 
 #
 # HELPERS
@@ -217,6 +219,18 @@ WEATHER_TOOL="/home/zorzi/.my_env/scripts/meteo.js"
             $BROWSER "https://calendar.google.com/calendar/r" > /dev/null &
         }
 
+    # TIMER
+        function timer_text {
+            timer=`cat /tmp/.timer`
+            printf " $timer "
+        }
+        function timer_color {
+            printf $COLOR_TIMER
+        }
+        function timer_click {
+            echo -ne
+        }
+
     # MONITOR
         function monitor_text {
             file='/tmp/.screenlayout'
@@ -344,13 +358,16 @@ WEATHER_TOOL="/home/zorzi/.my_env/scripts/meteo.js"
             color=`${module}_color 2> /dev/null`
             color=${color:-$COLOR_DISABLED}
             text=`${module}_text 2> /dev/null`
-            json+='{"name":"'$module'"'
 
-            if [ "$sep" -eq "0" ]; then
-                json+=', "separator": false, "separator_block_width": 0'
+            if [[ "$text" =~ [^[:blank:]] ]]; then
+                json+='{"name":"'$module'"'
+
+                if [ "$sep" -eq "0" ]; then
+                    json+=', "separator": false, "separator_block_width": 0'
+                fi
+                
+                json+=', "color": "'$color'", "full_text": "'$text'"},'
             fi
-            
-            json+=', "color": "'$color'", "full_text": "'$text'"},'
         done
         json=${json::-1}
 
@@ -358,7 +375,7 @@ WEATHER_TOOL="/home/zorzi/.my_env/scripts/meteo.js"
 
         echo -n "$json" || exit 1
 
-        while read -t 2 line; do
+        while read -t 1 line; do
             if [[ "$line" =~ ^, ]]; then
                 line=${line:1}
             fi

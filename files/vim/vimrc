@@ -240,6 +240,149 @@
         " call histadd('/', @/)
     endfunction
 
+    " Gives Epoch time in ms
+    function! Now()
+        let time = system('date +%s%N')
+        let time = time[:len(time) - 8]
+        return time
+    endfunction
+    " Starts a timer
+    function! TimeStart()
+        let g:time = Now()
+    endfunction
+    " Shows the time since the last timer reset, and resets the timer
+    function! TimeShow(...)
+        let time = Now() - g:time
+        if a:0 >= 1
+            echom a:1 . ' - ' . string(time)
+        else
+            echom string(time)
+        endif
+        call TimeStart()
+    endfunction
+
+    function! AlignFromTo(cara, range, offsets, align_cara, jump)
+        let linenr = a:range[0]
+        let biggestCol = 0
+        let caralen = len(a:cara)
+        while linenr <= a:range[1] && linenr != 0
+            let line = getline(linenr)
+
+            let jumpcnt = 0
+            let col = match(line, a:cara)
+
+            while jumpcnt < a:jump && col >= 1
+                let col = match(line, a:cara, col + 1)
+                let jumpcnt = jumpcnt + 1
+            endwhile
+
+            if col < 0
+                let linenr = nextnonblank(linenr + 1)
+                continue
+            endif
+
+            " removing whitespaces on each side of the cara
+            while line[col + caralen] == ' '
+                let line = line[:col + caralen - 1] . line[col + caralen + 1:]
+            endwhile
+            while col > 1 && line[col - 1] == ' '
+                let line = line[:col - 2] . line[col:]
+                let col = col - 1
+            endwhile
+
+            call setline(linenr, line)
+
+            if col > biggestCol
+                let biggestCol = col
+            endif
+            let linenr = nextnonblank(linenr + 1)
+        endwhile
+
+        if biggestCol == 0 | return 0 | endif
+
+        let linenr = a:range[0]
+        while linenr <= a:range[1] && linenr != 0
+            let line = getline(linenr)
+
+            let col = match(line, a:cara)
+
+            let jumpcnt = 0
+            while jumpcnt < a:jump && col >= 1
+                let col = match(line, a:cara, col + 1)
+                let jumpcnt = jumpcnt + 1
+            endwhile
+
+            if col < 0
+                let linenr = nextnonblank(linenr + 1)
+                continue
+            endif
+
+            let diff = biggestCol - col
+
+            if a:offsets[1]
+                let line = line[:col + caralen - 1] . repeat(' ', a:offsets[1]) . line[col + caralen:]
+            endif
+            if a:offsets[0]
+                let line = line[:col - 1] . repeat(' ', a:offsets[0]) . line[col:]
+                let col = col + a:offsets[0]
+            endif
+
+            if a:align_cara 
+                let col = col - 1
+            else
+                let col = col + caralen - 1
+            endif
+
+            let line = line[:col] . repeat(' ', diff) . line[col + 1:]
+
+            while line[len(line)-1] == ' '
+                let line = line[:len(line)-2]
+            endwhile
+
+            call setline(linenr, line)
+
+            let linenr = nextnonblank(linenr + 1)
+        endwhile
+        return 1
+    endfunction
+
+    function! Align(cara, range)
+        let save = winsaveview()
+
+        let align_cara = 1
+        let offsets = [1, 1]
+
+        if a:cara == ':' || a:cara == ','
+            let align_cara = 0
+            let offsets = [0, 1]
+        endif
+
+        let searchSave = @/
+        if a:range < 0
+            " Match mode
+            let from = line('.')
+            while match(getline(from), a:cara) >= 0 && from > 1
+                let from = from - 1
+            endwhile
+            let to = line('.')
+            while match(getline(to), a:cara) >= 0 && to < line('$')
+                let to = to + 1
+            endwhile
+        else
+            " Visual Mode
+            let from = line("'<")
+            let to = line("'>")
+        endif
+
+        let jump = 0
+        while AlignFromTo(a:cara, [from, to], offsets, align_cara, jump)
+            let jump = jump + 1
+        endwhile
+
+        call winrestview(save)
+    endfunction
+    command! -range -nargs=+  A call Align(<q-args>, '<count>')
+
     function! DoAtEach(macro, range)
         let save = winsaveview()
         let count = 0
@@ -298,19 +441,8 @@
     nnoremap d/ <CMD>M dgn<CR>
     nnoremap c/ :<C-u>M cgn
     noremap M :M<SPACE>
-    command! -range -nargs=+  MacroToAll call DoAtEach(<q-args>, '<count>')
     command! -range -nargs=+  M call DoAtEach(<q-args>, '<count>')
 
-    function JsAutoForOf()
-        let view = winsaveview()
-        norm! $
-        call search('\%(let\|const\|var\)\s*\zs\w*s\>', 'bc')
-        let line = getline('.')[col('.') - 1:]
-        let word = matchstr(line, '^\w\+s\>')
-        call winrestview(view)
-
-        return "for (const ".word[:-2]." of ".word.") {\<CR>}\<ESC>ko"
-    endfunction
     function! ParseErrorLine(errLine)
         let data = split(a:errLine, ':')
         let filename = remove(data, 0)
@@ -518,7 +650,6 @@
     function! FindSmallestRangePossible(in)
         let couples = [
                     \   ['['         , ']'         , 1],
-                    \   ['<'         , '>'         , 1],
                     \   ['{'         , '}'         , 1],
                     \   ['('         , ')'         , 1],
                     \   ['\/\*'      , '\*\/'      , 1],
@@ -586,7 +717,7 @@
         endif
 
         if (a:in)
-            call setpos('.', [0] + best_before + [0])
+            call setpos('.', [0] + best_before + [])
             call search(best_couple[0], 'ecW')
             call search('\s*[^[:blank:]]\|^')
             let best_before = getpos('.')[1:2]
@@ -1067,7 +1198,7 @@
             \     'import \(cors\|express\|fs\|path\)': "import $1 from '$1';!",
             \     'import \(\w*\) ': "import $1 from '$1';!",
             \     '^iff': "if () {\<CR>}<UP><ESC>f(a!",
-            \     '^forr': "\<C-r>=JsAutoForOf()\<CR>!",
+            \     '^fori': "for (let i=0; i < .length ; i++)\<ESC>F.i!",
             \     '\%(for\s*([^)]*\)\@<=in': "of",
             \     'if\s*(!\([^)]*in\)': "if (!($1)<\LEFT>",
             \     'if\s*(\([^)]*\)not in': "if (!($1)<\LEFT>in",
@@ -1524,6 +1655,8 @@
         inoremap <<SPACE> <<SPACE>
         inoremap << <<
         nnoremap Y y$
+        nnoremap z<RIGHT> $
+        nnoremap z<LEFT> ^
         nnoremap YY <CMD>let v = winsaveview()<CR>ggyG<CMD>call winrestview(v)<CR>
         nnoremap VV ggVG
         nnoremap vv v$h
@@ -1716,6 +1849,8 @@
             endfunction
             noremap <S-UP> <CMD>call IndentJump(-1)<CR>
             noremap <S-DOWN> <CMD>call IndentJump(1)<CR>
+            nnoremap z<UP> <CMD>call IndentJump(-1)<CR>
+            nnoremap z<DOWN> <CMD>call IndentJump(1)<CR>
 
         " go to end of scope
             nnoremap { [{
@@ -1998,6 +2133,7 @@
         autocmd! FileType conf let b:commentary_format="# %s"
         autocmd! FileType vim let b:commentary_format="\" %s"
         autocmd! FileType yaml let b:commentary_format="# %s"
+        autocmd! FileType journal let b:commentary_format="-- %s"
 
     " Auto detecting indent on entering a file! | Plugin: vim-adaptive-indent
         autocmd BufReadPost * AdaptIndent

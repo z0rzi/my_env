@@ -4,13 +4,16 @@ import fs from 'fs';
 import { cmd } from './shell.js';
 import { getBookInfos } from './good-reads.js';
 import { getMovieInfos } from './tmdb.js';
+import { getVideoInfos } from './youtube.js';
 
 const COLORS = {
     // brown: '#6F532A',
     // red: '#EB6361',
     // blue: '#3D8EB9',
-    // green: '#97CE68',
+    // green: '#24b555',
     // purple: '#897FBA',
+    article: '#897FBA',
+    podcast: '#24b555',
     book: '#6F532A',
     youtube: '#EB6361',
     movie: '#3D8EB9',
@@ -19,6 +22,7 @@ const COLORS = {
 type ItemInfos = {
     type: 'book' | 'movie' | 'youtube';
     title: string;
+    subtitle?: string;
     year: string;
     description: string;
     author: string;
@@ -34,7 +38,7 @@ function generateHtmlFor(infos: ItemInfos) {
             <table>
                 <tr>
                     <td style="width: 1px">
-                        <img style="width: 150px; max-height: 200px;" src="${
+                        <img style="max-width: 150px; max-height: 200px;" src="${
                             infos.imageUrl
                         }">
                     </td>
@@ -53,15 +57,16 @@ function generateHtmlFor(infos: ItemInfos) {
                           </strong>
                         </div>
                         <div style="margin-bottom: 30px">
-                            <div style="font-size: 30px; font-weight: bold;">${
-                                infos.title
-                            }</div>
+                            <div style="font-size: 30px; font-weight: bold;">
+                                ${infos.title}
+                            </div>
+                            <div> ${infos.subtitle || ''} </div>
                             <div>
-                                <a href="${infos.source}" target="_blank">🔗</a>
                                 <span style="font-style: italic; color: #aaa">
                                     ${infos.year}
                                 </span>
                             </div>
+                            <a href="${infos.source}" target="_blank">🔗</a>
                         </div>
                         <p>
                             By ${infos.author}<br/>
@@ -71,9 +76,9 @@ function generateHtmlFor(infos: ItemInfos) {
                 </tr>
                 <tr>
                     <td colspan=2>
-                        <p style="padding-top: 30px">
-                            ${infos.description}
-                        </p>
+                        <div style="padding-top: 30px">
+                            ${infos.description.replace(/\n/g, '<br />').replace(/[-_―]{3,}/g, '<hr style="margin: 30px 60px"/>')}
+                        </div>
                     </td>
                 </tr>
             </table>
@@ -85,7 +90,7 @@ function generateHtmlFor(infos: ItemInfos) {
 
 function createExampleFile(filePath: string) {
     const example =
-        '[\n\t["book", "Animal Farm"],\n\t["movie", "Scott Pilgrim"]\n]';
+        '[\n\t["book", "Animal Farm"],\n\t["movie", "Scott Pilgrim"],\n\t["youtube", "Tim Ferris Interview"],\n\t{\n\t\t"type": "podcast",\n\t\t"title": "",\n\t\t"year": "",\n\t\t"description": "",\n\t\t"author": "",\n\t\t"source": "",\n\t\t"imageUrl": "",\n\t\t"length": "",\n\t\t"rating": ""\n\t}\n]';
     fs.writeFileSync(filePath, example);
 }
 
@@ -100,7 +105,7 @@ async function main() {
     if (!fs.existsSync(filePath)) createExampleFile(filePath);
 
     await cmd(
-        'kitty --title floating -o remember_window_size=no -o initial_window_height=800 -o initial_window_width=500 nvim ' +
+        'kitty --title floating -o remember_window_size=no -o initial_window_height=800 -o initial_window_width=1500 nvim ' +
             filePath
     ).catch(() => {});
 
@@ -112,25 +117,49 @@ async function main() {
         return;
     }
 
-    const htmls = [] as string[];
-    for (const [type, name] of fileContent) {
-        const func = {
-            book: getBookInfos,
-            movie: getMovieInfos,
-        }[type];
+    let searchesAmout = 0;
+    let infos = [] as ItemInfos[];
+    for (const elem of fileContent) {
+        if (Array.isArray(elem)) {
+            searchesAmout++;
+            const [type, name] = elem;
+            const func = {
+                book: getBookInfos,
+                movie: getMovieInfos,
+                youtube: getVideoInfos,
+            }[type];
 
-        try {
-            let infos: ItemInfos = {
-                type,
-                ...(await func(name)),
-            };
-            console.log({ infos });
-            htmls.push(generateHtmlFor(infos));
-        } catch (err) {
-            console.log('Err while trying to add ' + name);
-            continue;
+            try {
+                let itemInfos: ItemInfos = {
+                    type,
+                    ...(await func(name)),
+                };
+                infos.push(itemInfos);
+            } catch (err) {
+                console.log('Err while trying to add ' + name);
+                continue;
+            }
+        } else {
+            infos.push(elem as ItemInfos);
         }
     }
+
+    if (searchesAmout) {
+        const postResearchPath = filePath.replace('.json', '-enriched.json');
+
+        fs.writeFileSync(postResearchPath, JSON.stringify(infos, null, 2));
+
+        await cmd(
+            'kitty --title floating -o remember_window_size=no -o initial_window_height=800 -o initial_window_width=1500 nvim ' +
+                postResearchPath
+        ).catch(() => {});
+
+        infos = JSON.parse(
+            fs.readFileSync(postResearchPath).toString()
+        ) as ItemInfos[];
+    }
+
+    const htmls = infos.map(info => generateHtmlFor(info));
 
     fs.mkdirSync('/tmp/book-club', { recursive: true });
     fs.writeFileSync(

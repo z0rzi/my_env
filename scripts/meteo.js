@@ -124,8 +124,6 @@ function getMeteoData(locId) {
 (() => __awaiter(void 0, void 0, void 0, function* () {
     if (!(yield checkInternet()))
         return;
-    const { country, city } = yield getMyLocation();
-    const id = yield getLocationId(`${country}, ${city}`);
     let meteo = null;
     mapArgs({
         '--load=(?<file>.*)': (_, { file }) => {
@@ -142,7 +140,11 @@ function getMeteoData(locId) {
             }
         },
         '--save=(?<file>.*)': (_, { file }) => __awaiter(void 0, void 0, void 0, function* () {
-            meteo = meteo !== null && meteo !== void 0 ? meteo : (yield getMeteoData(id));
+            if (!meteo) {
+                const { country, city } = yield getMyLocation();
+                const id = yield getLocationId(`${country}, ${city}`);
+                meteo = meteo !== null && meteo !== void 0 ? meteo : (yield getMeteoData(id));
+            }
             try {
                 fs.writeFileSync(file, JSON.stringify(meteo));
             }
@@ -152,19 +154,29 @@ function getMeteoData(locId) {
             }
         }),
         short: () => __awaiter(void 0, void 0, void 0, function* () {
-            meteo = meteo !== null && meteo !== void 0 ? meteo : (yield getMeteoData(id));
+            if (!meteo) {
+                const { country, city } = yield getMyLocation();
+                const id = yield getLocationId(`${country}, ${city}`);
+                meteo = meteo !== null && meteo !== void 0 ? meteo : (yield getMeteoData(id));
+            }
             console.log(`${meteo.icon} ${meteo.temperature}°`);
         }),
         long: () => __awaiter(void 0, void 0, void 0, function* () {
-            meteo = meteo !== null && meteo !== void 0 ? meteo : (yield getMeteoData(id));
+            if (!meteo) {
+                const { country, city } = yield getMyLocation();
+                const id = yield getLocationId(`${country}, ${city}`);
+                meteo = meteo !== null && meteo !== void 0 ? meteo : (yield getMeteoData(id));
+            }
             console.log(`Weather in ${meteo.location}:`);
             console.log();
             console.log(`\t${meteo.icon} ${meteo.temperature}°C - ${meteo.text}`);
             console.log(`\t${icons.sunrise} ${meteo.sunrise} ➜ ${meteo.sunset} ${icons.sunset}`);
         }),
         __no_matches__: () => __awaiter(void 0, void 0, void 0, function* () {
+            const { country, city } = yield getMyLocation();
+            const id = yield getLocationId(`${country}, ${city}`);
             meteo = meteo !== null && meteo !== void 0 ? meteo : (yield getMeteoData(id));
             console.log(JSON.stringify(meteo, null, 2));
         }),
-    }, { multiMatch: false });
+    }, { multiMatch: true });
 }))();

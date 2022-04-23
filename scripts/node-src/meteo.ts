@@ -142,8 +142,6 @@ async function getMeteoData(locId: string): Promise<Meteo> {
 (async () => {
     if (!(await checkInternet())) return;
 
-    const { country, city } = await getMyLocation();
-    const id = await getLocationId(`${country}, ${city}`);
     let meteo: Meteo = null;
 
     mapArgs(
@@ -164,7 +162,11 @@ async function getMeteoData(locId: string): Promise<Meteo> {
                 _: string,
                 { file }: { file: string }
             ) => {
-                meteo = meteo ?? (await getMeteoData(id));
+                if (!meteo) {
+                    const { country, city } = await getMyLocation();
+                    const id = await getLocationId(`${country}, ${city}`);
+                    meteo = meteo ?? (await getMeteoData(id));
+                }
                 try {
                     fs.writeFileSync(file, JSON.stringify(meteo));
                 } catch (err) {
@@ -173,11 +175,19 @@ async function getMeteoData(locId: string): Promise<Meteo> {
                 }
             },
             short: async () => {
-                meteo = meteo ?? (await getMeteoData(id));
+                if (!meteo) {
+                    const { country, city } = await getMyLocation();
+                    const id = await getLocationId(`${country}, ${city}`);
+                    meteo = meteo ?? (await getMeteoData(id));
+                }
                 console.log(`${meteo.icon} ${meteo.temperature}°`);
             },
             long: async () => {
-                meteo = meteo ?? (await getMeteoData(id));
+                if (!meteo) {
+                    const { country, city } = await getMyLocation();
+                    const id = await getLocationId(`${country}, ${city}`);
+                    meteo = meteo ?? (await getMeteoData(id));
+                }
                 console.log(`Weather in ${meteo.location}:`);
                 console.log();
                 console.log(
@@ -188,10 +198,12 @@ async function getMeteoData(locId: string): Promise<Meteo> {
                 );
             },
             __no_matches__: async () => {
+                const { country, city } = await getMyLocation();
+                const id = await getLocationId(`${country}, ${city}`);
                 meteo = meteo ?? (await getMeteoData(id));
                 console.log(JSON.stringify(meteo, null, 2));
             },
         },
-        { multiMatch: false }
+        { multiMatch: true }
     );
 })();

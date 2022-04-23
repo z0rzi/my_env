@@ -61,7 +61,7 @@ export class HtmlNode {
         }
 
         let matches = rawHtml.match(
-            /^<(?<tag>\w+\b)(?<props>[^>]*?)(?<selfClosing>\/?)\s*>(?<content>.*)$/
+            /^<(?<tag>\w+\b)(?<props>[^>]*?)(?<selfClosing>\/?)\s*>(?<content>[\s\S]*)$/
         );
 
         let tag: string, props: string, selfClosing: string, content: string;
@@ -72,6 +72,7 @@ export class HtmlNode {
             selfClosing = matches.groups.selfClosing;
             content = matches.groups.content;
         } catch (err) {
+            console.log(err);
             console.error(
                 'That does not look like html 🙁 - ' + rawHtml.slice(0, 50)
             );

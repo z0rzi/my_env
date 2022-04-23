@@ -63,7 +63,7 @@ async function getMovieDirector(id: number): Promise<string> {
                     crew: RawMovieCast[];
                 }>
         )
-        .then((res) => {
+        .then(res => {
             for (const person of res.crew) {
                 if (person.job.toLowerCase() === 'director') return person.name;
             }
@@ -78,10 +78,16 @@ async function getAllMovieInfos(id: number): Promise<RawMovieInfos> {
 }
 
 export async function getMovieInfos(movieName: string) {
+    let year = '';
+    try {
+        year = movieName.match(/ y:\d+/g)[0].slice(3);
+        movieName = movieName.replace(/ y:\d+/g, '');
+    } catch (err) {}
+
     return fetch(
         `https://api.themoviedb.org/3/search/movie?language=en-US&query=${encodeURIComponent(
             movieName
-        )}&include_adult=true`,
+        )}&year=${year}&include_adult=true`,
         {
             headers: {
                 Authorization: 'Bearer ' + TOKEN,
@@ -97,10 +103,10 @@ export async function getMovieInfos(movieName: string) {
             const runtimeMins = raw.runtime % 60;
             let runtime = '';
             if (runtimeHours) {
-                runtime = runtimeHours + ' hours '
+                runtime = runtimeHours + ' hours ';
             }
             if (runtimeMins) {
-                runtime += runtimeMins + ' mins'
+                runtime += runtimeMins + ' mins';
             }
             return {
                 title: raw.title,

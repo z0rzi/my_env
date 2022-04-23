@@ -37,7 +37,7 @@
         bindsym Ctrl+$alt+t exec kitty
 
     # Kill a window
-        bindsym $mod+Escape exec /home/zorzi/.local/bin/custom/winkill.sh
+        # bindsym $mod+Escape exec /home/zorzi/.local/bin/custom/winkill.sh
 
     # Shutdown
         bindsym Ctrl+$mod+$alt+Escape exec shutdown now
@@ -50,7 +50,7 @@
         bindsym $sup+r exec kitty --title floating -o remember_window_size=no -o initial_window_height=500 -o initial_window_width=1000 bc -l
 
     # Screenshot
-        bindsym --release $mod+Shift+s exec bash -c "flameshot & flameshot gui"
+        bindsym --release $alt+Shift+s exec bash -c "flameshot & flameshot gui"
 
     # Death touch
         bindsym --release $mod+$alt+Delete exec xkill -button 3
@@ -59,7 +59,8 @@
         bindsym --release $mod+Shift+e exec feh --title floating ~/Work/Tarifs.png
 
     # kill focused window
-        bindsym $mod+q kill
+        bindsym $mod+k kill
+        bindsym $mod+Escape kill
         bindsym $alt+k kill
 
     # Clipboard
@@ -69,11 +70,15 @@
         bindsym Ctrl+Shift+z exec /home/zorzi/.my_env/scripts/correct.js
 
     # program launcher
-        bindsym $mod+d exec --no-startup-id rofi -show drun -run-shell-command 'kitty fish -ic "{cmd} && read"'
+        bindsym $alt+d exec --no-startup-id rofi -show drun -run-shell-command 'kitty fish -ic "{cmd} && read"'
         bindsym $alt+space exec --no-startup-id rofi -show run -icon-theme "Tela" -run-command 'fish -c "{cmd}"'
         bindsym $alt+Tab exec --no-startup-id rofi -show window
 
     # Volume
+        bindsym $mod+F5 exec /home/zorzi/.my_env/scripts/brightness.sh up
+        bindsym $mod+F4 exec /home/zorzi/.my_env/scripts/brightness.sh down
+
+    # Brightness
         bindsym XF86AudioRaiseVolume exec /home/zorzi/.my_env/scripts/sound.sh up
         bindsym XF86AudioLowerVolume exec /home/zorzi/.my_env/scripts/sound.sh down
         bindsym XF86AudioMute exec /home/zorzi/.my_env/scripts/sound.sh mute
@@ -101,11 +106,6 @@
 
     # Mouse
         bindsym $mod+button2 --whole-window --release kill
-
-    # Keyboard layout
-        bindsym Ctrl+Shift+k exec /home/zorzi/.my_env/scripts/switch_keyboard_layout.sh
-        bindsym $alt+l exec bash -c 'xkbcomp -w0 -I$HOME/.xkb ~/.xkb/keymap/basic $DISPLAY'
-        bindsym Ctrl+Shift+l exec bash -c 'xkbcomp -w0 -I$HOME/.xkb ~/.xkb/keymap/basic $DISPLAY'
 
     # change borders
         # bindsym $mod+y border pixel 1
@@ -190,28 +190,28 @@
     workspace $wsr5 output eDP-1 eDP-1-1
     
     # switch to workspace
-    bindsym $alt+z  workspace $wsl1
-    bindsym $alt+a  workspace $wsl2
-    bindsym $alt+q  workspace $wsl3
-    bindsym $alt+1  workspace $wsl4
-    bindsym $alt+F1 workspace $wsl5
-    bindsym $alt+x  workspace $wsr1
-    bindsym $alt+s  workspace $wsr2
-    bindsym $alt+w  workspace $wsr3
-    bindsym $alt+2  workspace $wsr4
-    bindsym $alt+F2 workspace $wsr5
+    bindsym $mod+z  workspace $wsl1
+    bindsym $mod+a  workspace $wsl2
+    bindsym $mod+q  workspace $wsl3
+    bindsym $mod+1  workspace $wsl4
+    bindsym $mod+F1 workspace $wsl5
+    bindsym $mod+x  workspace $wsr1
+    bindsym $mod+s  workspace $wsr2
+    bindsym $mod+w  workspace $wsr3
+    bindsym $mod+2  workspace $wsr4
+    bindsym $mod+F2 workspace $wsr5
     
     # Move to workspace with focused container
-    bindsym $alt+Shift+z  move container to workspace $wsl1; workspace $wsl1
-    bindsym $alt+Shift+a  move container to workspace $wsl2; workspace $wsl2
-    bindsym $alt+Shift+q  move container to workspace $wsl3; workspace $wsl3
-    bindsym $alt+Shift+1  move container to workspace $wsl4; workspace $wsl4
-    bindsym $alt+Shift+F1 move container to workspace $wsl5; workspace $wsl5
-    bindsym $alt+Shift+x  move container to workspace $wsr1; workspace $wsr1
-    bindsym $alt+Shift+s  move container to workspace $wsr2; workspace $wsr2
-    bindsym $alt+Shift+w  move container to workspace $wsr3; workspace $wsr3
-    bindsym $alt+Shift+2  move container to workspace $wsr4; workspace $wsr4
-    bindsym $alt+Shift+F2 move container to workspace $wsr5; workspace $wsr5
+    bindsym $mod+Shift+z  move container to workspace $wsl1; workspace $wsl1
+    bindsym $mod+Shift+a  move container to workspace $wsl2; workspace $wsl2
+    bindsym $mod+Shift+q  move container to workspace $wsl3; workspace $wsl3
+    bindsym $mod+Shift+1  move container to workspace $wsl4; workspace $wsl4
+    bindsym $mod+Shift+F1 move container to workspace $wsl5; workspace $wsl5
+    bindsym $mod+Shift+x  move container to workspace $wsr1; workspace $wsr1
+    bindsym $mod+Shift+s  move container to workspace $wsr2; workspace $wsr2
+    bindsym $mod+Shift+w  move container to workspace $wsr3; workspace $wsr3
+    bindsym $mod+Shift+2  move container to workspace $wsr4; workspace $wsr4
+    bindsym $mod+Shift+F2 move container to workspace $wsr5; workspace $wsr5
 
     # bindsym $alt+$mod+Up exec /home/zorzi/.my_env/scripts/change_workspace.sh up
     # bindsym $alt+$mod+Down exec /home/zorzi/.my_env/scripts/change_workspace.sh down
@@ -325,7 +325,7 @@ bindsym $mod+minus scratchpad show
 for_window [urgent=latest] focus
 
 # reload the configuration file
-bindsym $mod+Shift+c reload
+# bindsym $mod+Shift+c reload
 
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+r restart

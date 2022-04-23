@@ -27,7 +27,7 @@ e explorer.js
 
 :h man
 
-watch watch -t
+watch watch -t -n .5
 
 :vs test "$TMUX" && tmux split -h && tmux lastp || tmux
 :sp test "$TMUX" && tmux split -v && tmux lastp || tmux

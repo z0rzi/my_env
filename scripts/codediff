@@ -10,6 +10,11 @@ function create_empty_file {
     echo "/tmp/.empty"
 }
 
+function is_commit_hash {
+    git cat-file commit $1 2> /dev/null
+    [ $? -eq 0 ] && echo 1
+}
+
 if [ -d "$1" ] && [ -d "$2" ]; then
     # Opening folders
     local=$1
@@ -27,9 +32,15 @@ elif [ -f "$1" ] && [ -f "$2" ]; then
             nvim -d $local $remote
             ;;
     esac
+elif [ "`is_commit_hash $1`" ]; then
+    if [ "`is_commit_hash $2`" ]; then
+        git difftool --dir-diff $1 $2
+    else
+        git difftool --dir-diff $1^ $1
+    fi
 else
     if [ ! -f "$1" ] && [ ! -d "$1" ]; then
-        echo "'$1' not a file and not a directory..."
+        echo "'$1' not a file, not a directory and not a commit hash..."
         sleep 5
         exit 1
     fi

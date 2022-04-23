@@ -48,7 +48,7 @@ export class HtmlNode {
             this._content_length = this.text.length;
             return;
         }
-        let matches = rawHtml.match(/^<(?<tag>\w+\b)(?<props>[^>]*?)(?<selfClosing>\/?)\s*>(?<content>.*)$/);
+        let matches = rawHtml.match(/^<(?<tag>\w+\b)(?<props>[^>]*?)(?<selfClosing>\/?)\s*>(?<content>[\s\S]*)$/);
         let tag, props, selfClosing, content;
         try {
             tag = matches.groups.tag;
@@ -57,6 +57,7 @@ export class HtmlNode {
             content = matches.groups.content;
         }
         catch (err) {
+            console.log(err);
             console.error('That does not look like html 🙁 - ' + rawHtml.slice(0, 50));
             rawHtml = rawHtml.replace(/^..*<\/?([a-zA-Z])/, '<$1');
             console.log(rawHtml.slice(0, 50));

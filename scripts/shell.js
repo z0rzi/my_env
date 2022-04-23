@@ -115,19 +115,21 @@ export function mapArgs(map, opts = {
     let noMatchCb = null;
     if (NO_MATCH_FOUND in map)
         noMatchCb = map[NO_MATCH_FOUND];
+    const proms = new Promise(resolve => resolve());
     let matchFound = false;
-    process.argv.slice(2).forEach(arg => {
+    const args = process.argv.slice(2);
+    for (const arg of args) {
         for (const strRx of Object.keys(map)) {
             const rx = new RegExp(strRx);
             if (rx.test(arg)) {
                 matchFound = true;
                 const matchres = arg.match(rx);
-                map[strRx](arg, Object.assign({}, matchres.groups));
+                proms.then(() => map[strRx](arg, Object.assign({}, matchres.groups)));
                 if (!opts.multiMatch)
                     return;
             }
         }
-    });
+    }
     if (!matchFound && !!noMatchCb) {
         noMatchCb('', {});
     }

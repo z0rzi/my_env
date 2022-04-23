@@ -42,7 +42,7 @@ function check_record_integrity {
             if [ $file_amount -gt 0 ]; then
                 echo "$id;$time;$path" >> "$new_record"
             else
-                rm -r "$TRASH_FILES/$id"
+                rm -rf "$TRASH_FILES/$id"
             fi
         fi
     done < $TRASH_RECORD
@@ -128,7 +128,7 @@ if [ "$1" == "empty" ]; then
     [ "$proceed" ] || exit 0
 
     for id in $ids; do
-        rm -r "$TRASH_FILES/$id"
+        rm -rf "$TRASH_FILES/$id"
     done
 
     check_record_integrity
@@ -165,7 +165,7 @@ if [ "$1" == "restore" ]; then
             exit 1;
         fi
         cp -r "$TRASH_FILES/$id/"* "$path"
-        rm -r "$TRASH_FILES/$id"
+        rm -rf "$TRASH_FILES/$id"
     done <<< "$line"
     IFS="$_IFS"
 
@@ -225,7 +225,7 @@ while [ $# -gt 0 ]; do
     echo "$id;$date;$location" >>  "$TRASH_RECORD"
     mkdir "$TRASH_FILES/$id"
     cp -r "$file" "$TRASH_FILES/$id"
-    rm -r "$file"
+    rm -rf "$file"
     
     shift
 done

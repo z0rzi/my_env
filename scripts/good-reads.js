@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import fetch from 'node-fetch';
 import { HtmlNode } from './html.js';
-import fs from 'fs';
 function getBookMeta(searchStr) {
     return __awaiter(this, void 0, void 0, function* () {
         const res = (yield fetch(`https://www.goodreads.com/book/auto_complete?format=json&q=${searchStr}`).then(res => res.json()));
@@ -27,7 +26,6 @@ function getBookMeta(searchStr) {
 function scrapeGoodReads(link) {
     return __awaiter(this, void 0, void 0, function* () {
         const res = yield fetch(link).then(res => res.text());
-        fs.writeFileSync('/tmp/_.html', res);
         const document = new HtmlNode(res);
         try {
             let description = '';
@@ -61,8 +59,8 @@ export function getBookInfos(bookName) {
             year: extraInfos.publishText,
             description: extraInfos.description,
             author: metas.author.name,
-            source: metas.bookUrl,
-            imageUrl: metas.imageUrl,
+            source: 'https://www.goodreads.com' + metas.bookUrl,
+            imageUrl: extraInfos.imgUrl,
             length: metas.numPages + ' pages',
             rating: metas.avgRating + ' / 10',
         };

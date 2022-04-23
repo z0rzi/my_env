@@ -12,12 +12,15 @@ import fs from 'fs';
 import { cmd } from './shell.js';
 import { getBookInfos } from './good-reads.js';
 import { getMovieInfos } from './tmdb.js';
+import { getVideoInfos } from './youtube.js';
 const COLORS = {
     // brown: '#6F532A',
     // red: '#EB6361',
     // blue: '#3D8EB9',
-    // green: '#97CE68',
+    // green: '#24b555',
     // purple: '#897FBA',
+    article: '#897FBA',
+    podcast: '#24b555',
     book: '#6F532A',
     youtube: '#EB6361',
     movie: '#3D8EB9',
@@ -28,7 +31,7 @@ function generateHtmlFor(infos) {
             <table>
                 <tr>
                     <td style="width: 1px">
-                        <img style="width: 150px; max-height: 200px;" src="${infos.imageUrl}">
+                        <img style="max-width: 150px; max-height: 200px;" src="${infos.imageUrl}">
                     </td>
                     <td style="padding-left: 20px">
                         <div style="text-align: right">
@@ -43,13 +46,16 @@ function generateHtmlFor(infos) {
                           </strong>
                         </div>
                         <div style="margin-bottom: 30px">
-                            <div style="font-size: 30px; font-weight: bold;">${infos.title}</div>
+                            <div style="font-size: 30px; font-weight: bold;">
+                                ${infos.title}
+                            </div>
+                            <div> ${infos.subtitle || ''} </div>
                             <div>
-                                <a href="${infos.source}" target="_blank">🔗</a>
                                 <span style="font-style: italic; color: #aaa">
                                     ${infos.year}
                                 </span>
                             </div>
+                            <a href="${infos.source}" target="_blank">🔗</a>
                         </div>
                         <p>
                             By ${infos.author}<br/>
@@ -59,9 +65,9 @@ function generateHtmlFor(infos) {
                 </tr>
                 <tr>
                     <td colspan=2>
-                        <p style="padding-top: 30px">
-                            ${infos.description}
-                        </p>
+                        <div style="padding-top: 30px">
+                            ${infos.description.replace(/\n/g, '<br />').replace(/[-_―]{3,}/g, '<hr style="margin: 30px 60px"/>')}
+                        </div>
                     </td>
                 </tr>
             </table>
@@ -71,7 +77,7 @@ function generateHtmlFor(infos) {
     `;
 }
 function createExampleFile(filePath) {
-    const example = '[\n\t["book", "Animal Farm"],\n\t["movie", "Scott Pilgrim"]\n]';
+    const example = '[\n\t["book", "Animal Farm"],\n\t["movie", "Scott Pilgrim"],\n\t["youtube", "Tim Ferris Interview"],\n\t{\n\t\t"type": "podcast",\n\t\t"title": "",\n\t\t"year": "",\n\t\t"description": "",\n\t\t"author": "",\n\t\t"source": "",\n\t\t"imageUrl": "",\n\t\t"length": "",\n\t\t"rating": ""\n\t}\n]';
     fs.writeFileSync(filePath, example);
 }
 function main() {
@@ -86,7 +92,7 @@ function main() {
         }
         if (!fs.existsSync(filePath))
             createExampleFile(filePath);
-        yield cmd('kitty --title floating -o remember_window_size=no -o initial_window_height=800 -o initial_window_width=500 nvim ' +
+        yield cmd('kitty --title floating -o remember_window_size=no -o initial_window_height=800 -o initial_window_width=1500 nvim ' +
             filePath).catch(() => { });
         let fileContent = [];
         try {
@@ -96,22 +102,38 @@ function main() {
             console.log('Wrong JSON format!');
             return;
         }
-        const htmls = [];
-        for (const [type, name] of fileContent) {
-            const func = {
-                book: getBookInfos,
-                movie: getMovieInfos,
-            }[type];
-            try {
-                let infos = Object.assign({ type }, (yield func(name)));
-                console.log({ infos });
-                htmls.push(generateHtmlFor(infos));
+        let searchesAmout = 0;
+        let infos = [];
+        for (const elem of fileContent) {
+            if (Array.isArray(elem)) {
+                searchesAmout++;
+                const [type, name] = elem;
+                const func = {
+                    book: getBookInfos,
+                    movie: getMovieInfos,
+                    youtube: getVideoInfos,
+                }[type];
+                try {
+                    let itemInfos = Object.assign({ type }, (yield func(name)));
+                    infos.push(itemInfos);
+                }
+                catch (err) {
+                    console.log('Err while trying to add ' + name);
+                    continue;
+                }
             }
-            catch (err) {
-                console.log('Err while trying to add ' + name);
-                continue;
+            else {
+                infos.push(elem);
             }
         }
+        if (searchesAmout) {
+            const postResearchPath = filePath.replace('.json', '-enriched.json');
+            fs.writeFileSync(postResearchPath, JSON.stringify(infos, null, 2));
+            yield cmd('kitty --title floating -o remember_window_size=no -o initial_window_height=800 -o initial_window_width=1500 nvim ' +
+                postResearchPath).catch(() => { });
+            infos = JSON.parse(fs.readFileSync(postResearchPath).toString());
+        }
+        const htmls = infos.map(info => generateHtmlFor(info));
         fs.mkdirSync('/tmp/book-club', { recursive: true });
         fs.writeFileSync('/tmp/book-club/index.html', htmls.join('<hr style="margin: 30px; margin-bottom: 100px"/>'));
         console.log("Opening web page on 'http://localhost:8000'");

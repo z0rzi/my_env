@@ -151,7 +151,7 @@ export function mapArgs(
         [rx: string]: (
             match?: string,
             captureGroups?: { [key: string]: string }
-        ) => unknown;
+        ) => Promise<unknown> | unknown;
     },
     opts: MapOptions = {
         multiMatch: true,
@@ -163,18 +163,21 @@ export function mapArgs(
     ) => unknown;
     if (NO_MATCH_FOUND in map) noMatchCb = map[NO_MATCH_FOUND];
 
+    const proms = new Promise<void>(resolve => resolve());
+
     let matchFound = false;
-    process.argv.slice(2).forEach(arg => {
+    const args = process.argv.slice(2);
+    for (const arg of args) {
         for (const strRx of Object.keys(map)) {
             const rx = new RegExp(strRx);
             if (rx.test(arg)) {
                 matchFound = true;
                 const matchres = arg.match(rx);
-                map[strRx](arg, { ...matchres.groups });
+                proms.then(() => map[strRx](arg, { ...matchres.groups }));
                 if (!opts.multiMatch) return;
             }
         }
-    });
+    }
 
     if (!matchFound && !!noMatchCb) {
         noMatchCb('', {});

@@ -1,0 +1,28 @@
+[
+	["book", "The prince machia"],
+	["book", "0060801719"],
+	{
+		"type": "podcast",
+		"title": "Where should we begin? - S01E04 & S02E04",
+		"year": "Released in 2018",
+		"description": "Listen to the incomparable therapist Esther Perel counsel real couples as they reveal the most intimate, personal, and complicated details of the conflicts that have brought them to her door. This season Esther speaks to a constellation of new relationships: A couple wrestling with the guilt they feel over the happiness their infidelity created. Another trying to make space for their queerness in an outwardly appearing hetero relationship. A set of friends trying to sort out if their childhood friendship needs to continue into adulthood. And Esther checks back in with couples from seasons past to see where they are now as she creates a space for us to hear our own lives and struggles articulated in the stories of others. So....where should we begin?",
+		"author": "Esther Perel",
+		"source": "https://www.listennotes.com/podcasts/where-should-we-begin-with-esther-perel-_qXi51hfacb/",
+		"imageUrl": "https://cdn-images-1.listennotes.com/podcasts/where-should-we-begin-with-esther-perel-ktXEc_DglGm-_qXi51hfacb.1400x1400.jpg",
+		"length": "",
+		"rating": ""
+	},
+	["movie", "mother y:2017"],
+	["youtube", "The war of sensemaking daniel"],
+	{
+		"type": "podcast",
+		"title": "Knowledge project #62",
+		"year": "Released in 2019",
+		"description": "Dr. Sue Johnson is a researcher, clinical psychologist and developer of EFT or Emotionally Focused Therapy. In this interview, we discuss how to create, protect, and nourish fulfilling sexual and emotional relationships.",
+		"author": "Shane Parrish",
+		"source": "https://www.listennotes.com/podcasts/the-knowledge/62-dr-sue-johnson-cracking-32vTFcNbJgM/",
+		"imageUrl": "https://cdn-images-1.listennotes.com/podcasts/the-knowledge-project-with-shane-parrish-wMLO5In9dRc-RoXxgNCyDmE.1400x1400.jpg",
+		"length": "2h 3mins",
+		"rating": ""
+	}
+]
