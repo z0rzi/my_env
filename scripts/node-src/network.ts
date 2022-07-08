@@ -32,3 +32,26 @@ export function checkInternet(): Promise<boolean> {
         });
     });
 }
+
+export async function waitForInternet(timeoutInSec = -1): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+        let isConnected = await checkInternet();
+        if (isConnected)
+            return resolve();
+
+        let cnt = 0;
+        const inter = setInterval(async () => {
+            cnt++;
+
+            if (await checkInternet()) {
+                clearInterval(inter);
+                return resolve();
+            }
+
+            if (timeoutInSec >= 0 && cnt > timeoutInSec) {
+                clearInterval(inter);
+                return reject();
+            }
+        }, 1000);
+    })
+}

@@ -12,6 +12,10 @@ class ${1:Singleton} {
 }
 endsnippet
 
+snippet ng_viewChild
+@ViewChild('$1', { read: ViewContainerRef }) $1: ViewContainerRef;
+endsnippet
+
 snippet init_ng_component "Creates an Angular component" b
 import { Component, OnInit } from '@angular/core';
 

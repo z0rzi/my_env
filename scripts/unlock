@@ -6,7 +6,7 @@ file=$1
 if [ ! -f "$file" ]; then
     echo "USAGE = 'unlock <file> [cmd]'";
     echo
-    echo "cmd will be ${BLUE}bat${NC} if not provided"
+    echo -e "cmd will be ${BLUE}bat${NC} if not provided"
     exit 1;
 fi
 
@@ -24,6 +24,7 @@ read -s -p '🔒 ' pass
 echo
 
 truename=${file%.*}
+truename=${truename##*/}
 if [ ! "$truename" ]; then
     truename=$RANDOM$RANDOM$RANDOM
 fi

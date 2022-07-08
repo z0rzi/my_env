@@ -27,6 +27,11 @@
 
     "eslint.quiet": true,
 
+    "docthis.authorName": "false",
+    "docthis.includeTypes": "false",
+    "docthis.includeMemberOfOnClassMembers": "false",
+    "docthis.includeMemberOfOnInterfaceMembers": "false",
+
     "tsserver.enableJavascript": true,
     "tsserver.enable": true,
     "tsserver.formatOnType": false,

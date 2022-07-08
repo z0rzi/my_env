@@ -19,8 +19,10 @@
     set updatetime=1000
     set shortmess+=c
     set diffopt=context:15
+    set diffopt+=iblank
+    set diffopt+=iwhite
     set diffopt+=internal
-    set diffopt+=algorithm:patience
+    set diffopt+=algorithm:minimal
     set diffopt+=indent-heuristic
     set diffopt+=filler
     set diffopt+=vertical
@@ -1011,17 +1013,40 @@
 
         call cursor(start_pos[0], start_pos[1])
     endfunction
+
     function! SetIndent(ind, ...)
+        " Puts the line at the given indent
         let line = get(a:, 1, line('.'))
         let old_indent = indent(line)
         call setline(line, repeat(' ', a:ind) . getline(line)[old_indent:])
     endfunction
+
+    function! IsSyn(grp_str, line, col)
+        let syngrps = map(synstack(a:line, a:col), 'synIDattr(v:val, "name" )')
+
+        let is_string = 0
+
+        for syngrp in syngrps
+            if match(tolower(syngrp), tolower(a:grp_str)) >= 0 
+                return 1
+            endif
+            let papa_name = synIDattr(synIDtrans(hlID(syngrp)), 'name')
+            if match(tolower(papa_name), tolower(a:grp_str)) >= 0 
+                return 1
+            endif
+        endfor
+        return 0
+    endfunction
+
     function! UnpackHtml(start_pos, end_pos, chars)
         let start_indent = indent(a:start_pos[0])
         call search('\s\+\|[''"]\|>')
         let cur_pos = [ line('.'), col('.') ]
         let cur_cara = getline('.')[col('.')-1]
+        let cnt = 0
         while cur_cara != '>'
+            let cnt = cnt + 1
+            if cnt > 100 | return | endif
             if cur_cara == '"' || cur_cara == "'"
                 call SearchQuotePair(cur_cara)
                 call search('\s\+\|[''"]\|>')
@@ -1032,6 +1057,7 @@
             if !IsSyn('string', line('.'), col('.'))
                 exe "norm i\<CR>"
                 call SetIndent(start_indent + &tabstop)
+                norm! ^
             endif
             call search('\s\+\|[''"]\|>')
             let cur_pos = [ line('.'), col('.') ]
@@ -1157,6 +1183,18 @@
     endfunction
     autocmd! BufEnter *html,*ts,*js,*css nnoremap <buffer> <LEADER>w <CMD>exec "e " . AngularSwitchFile()<CR>
 
+    function! TsDocFunc()
+        norm! A
+        call search('(', 'b')
+        let doc = system('documentTs.js ' . @% . ' ' . line('.'))
+        for line in split(doc, '\n')
+            call append(line('.')-1, repeat(' ', indent('.')) . line)
+        endfor
+        call search('\/\*\*', 'b')
+        norm! jA
+    endfunction
+    nmap <LEADER>* :call TsDocFunc()<CR>
+
 " 
 " PLUGINS CONFIG
 " 
@@ -1185,6 +1223,10 @@
         let g:smartHits_abbrevs = {
             \   'vim': {
             \     '^l': "let",
+            \     '^log': "echom",
+            \   },
+            \   'sh': {
+            \     '^log': "echo $!",
             \   },
             \   'html': {
             \     '^\%(div\|span\|table\|h\d\)$': "<$&></$&>\<C-o>F<!",
@@ -1197,6 +1239,7 @@
             \     '^log': "console.log();\<LEFT>\<LEFT>!",
             \     'import \(cors\|express\|fs\|path\)': "import $1 from '$1';!",
             \     'import \(\w*\) ': "import $1 from '$1';!",
+            \     '^if$': "if ()\<LEFT>!",
             \     '^iff': "if () {\<CR>}<UP><ESC>f(a!",
             \     '^fori': "for (let i=0; i < .length ; i++)\<ESC>F.i!",
             \     '\%(for\s*([^)]*\)\@<=in': "of",
@@ -1238,7 +1281,9 @@
             \     'del': 'DELETE FROM',
             \   },
             \   'python': {
-            \     '^tryc$': "try:\<ESC>:call SmartJumpToEnd()\<CR>aexcept:\<CR>pass\<C-o>O\<SPACE>\<BS>\<C-o>z"
+            \     '^tryc$': "try:\<ESC>:call SmartJumpToEnd()\<CR>aexcept:\<CR>pass\<C-o>O\<SPACE>\<BS>\<C-o>z",
+            \     '^log': "print()\<LEFT>!",
+            \     '^print': "print()\<LEFT>!",
             \   },
             \ }
 
@@ -1546,24 +1591,21 @@
            \  " < " . v:fname_diff . " > ")
         endfunction
 
-        set diffexpr=MyDiff()
-        function MyDiff()
-           let opt = ""
-           if &diffopt =~ "icase"
-             let opt = opt . "-i "
-           endif
-           if &diffopt =~ "iwhite"
-             let opt = opt . "-b "
-           endif
-           silent execute "!diff -w -B -a --binary " . opt . v:fname_in . " " . v:fname_new . " > " . v:fname_out
-           " exe "!/home/zorzi/.local/bin/custom/diff.js -w -B -a --binary " . opt . v:fname_in . " " . v:fname_new ." > " . v:fname_out
-
-           " silent execute "!diff -e -w -B -a " . opt . v:fname_in . " " . v:fname_new .
-           "  \  " > " . v:fname_out
-           redraw!
-        endfunction
-        " let diffexpr='diff -t -w -B -a --strip-trailing-cr -d'
-        let diffexpr=MyDiff()
+        " set diffexpr=MyDiff()
+        " function MyDiff()
+        "    let opt = ""
+        "    if &diffopt =~ "icase"
+        "      let opt = opt . "-i "
+        "    endif
+        "    if &diffopt =~ "iwhite"
+        "      let opt = opt . "-b "
+        "    endif
+        "    silent execute "!diff -d -E -Z -b -B -a -d " . opt . v:fname_in . " " . v:fname_new . " > " . v:fname_out
+        "    " echom "!git diff --no-index -w --output " . v:fname_out .  " -- " . v:fname_in . " " . v:fname_new
+        "    " echom system("ls " . v:fname_in)
+        "    " execute "!git diff -w --output " . v:fname_out .  " -- " . v:fname_in . " " . v:fname_new
+        "    " redraw!
+        " endfunction
 "
 " PLUGINS
 " 
@@ -1612,10 +1654,7 @@
         " 
         " Language specific
         " 
-            Plugin 'heavenshell/vim-jsdoc', { 
-              \ 'for': ['javascript', 'javascript.jsx','typescript'], 
-              \ 'do': 'make install'
-            \}
+            Plugin 'yaegassy/coc-jsdoc', {'do': 'yarn install --frozen-lockfile'}
 
             Plugin 'norcalli/nvim-colorizer.lua'
 
@@ -1636,7 +1675,7 @@
 
             Plugin 'neoclide/coc.nvim', {'branch': 'master', 'do': 'yarn install --frozen-lockfile'}
 
-            Plugin 'rickhowe/diffchar.vim'
+            " Plugin 'rickhowe/diffchar.vim'
 
         " 
         " My plugins!
@@ -1651,6 +1690,8 @@
 " MAPS
 " 
     " Basic Vim Shortcuts
+        nmap <A-x> <ESC>
+        nmap <A-z> <ESC>
         nnoremap >> i<C-t><ESC>
         inoremap <<SPACE> <<SPACE>
         inoremap << <<
@@ -1679,8 +1720,6 @@
         xnoremap g= c<C-r>=<C-r>+<CR><ESC>
         nnoremap g= Vc<C-r>=<C-r>+<CR><ESC>
         inoremap \'e é
-        nnoremap cb vbc
-        nnoremap db vbd
 
 
         " nnoremap <F3> :set hlsearch!<CR>
@@ -1872,10 +1911,6 @@
             nmap <A-l> <C-w>l
 
     " Plugin related maps
-        " JsDoc
-            nnoremap <LEADER>* :JsDoc<CR>
-            xnoremap <LEADER>* :JsDoc<CR>
-
         " CtrlSF
             nnoremap <C-f> :CtrlSF ''<LEFT>
             nnoremap <C-s> :let @/ = '<C-r>=expand('<cword>')<CR>'<CR>:CtrlSF -R '\b<C-r>=@/<CR>\b'<CR>:CtrlSFFocus<CR>
@@ -1935,7 +1970,7 @@
             nnoremap <LEADER>gn <CMD>sil!GitGutterNextHunk<CR>
             nnoremap <LEADER>gp <CMD>sil!GitGutterPrevHunk<CR>
             nnoremap <LEADER>gP <CMD>sil!GitGutterPreviewHunk<CR>
-            nnoremap <LEADER>gh <CMD>sil!GitGutterLineHighlightsToggle<CR>
+            nnoremap <LEADER>gh <CMD>call system('kitty git-history ' . @%)<CR>
             nnoremap <LEADER>gb <CMD>call GitBlame()<CR>
             nnoremap <LEADER>gD <CMD>call system('git difftool ' . @%) <BAR> GitGutter<CR><CR>
 
@@ -2056,6 +2091,8 @@
             onoremap ; t;
             onoremap : t:
             onoremap ) t)
+            onoremap b t)
+            onoremap <S-b> t}
             onoremap ( t(
             onoremap } t}
             onoremap { t{
@@ -2303,22 +2340,6 @@ function! HandleSig()
 endfunction
 autocmd Signal SIGUSR1 call HandleSig()
 
-function! IsSyn(grp_str, line, col)
-    let syngrps = map(synstack(a:line, a:col), 'synIDattr(v:val, "name" )')
-
-    let is_string = 0
-
-    for syngrp in syngrps
-        if match(tolower(syngrp), tolower(a:grp_str)) >= 0 
-            return 1
-        endif
-        let papa_name = synIDattr(synIDtrans(hlID(syngrp)), 'name')
-        if match(tolower(papa_name), tolower(a:grp_str)) >= 0 
-            return 1
-        endif
-    endfor
-    return 0
-endfunction
 function! SearchQuotePair(cara)
     if !IsSyn('string', line('.'), col('.')-1) && IsSyn('string', line('.'), col('.')+1)
         call search(a:cara)

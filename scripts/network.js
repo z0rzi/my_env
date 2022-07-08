@@ -36,3 +36,24 @@ export function checkInternet() {
         });
     });
 }
+export function waitForInternet(timeoutInSec = -1) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            let isConnected = yield checkInternet();
+            if (isConnected)
+                return resolve();
+            let cnt = 0;
+            const inter = setInterval(() => __awaiter(this, void 0, void 0, function* () {
+                cnt++;
+                if (yield checkInternet()) {
+                    clearInterval(inter);
+                    return resolve();
+                }
+                if (timeoutInSec >= 0 && cnt > timeoutInSec) {
+                    clearInterval(inter);
+                    return reject();
+                }
+            }), 1000);
+        }));
+    });
+}

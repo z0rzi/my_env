@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ ! -f "$1" ]; then
+    echo "USAGE = 'git-history <file>'"
+    exit 1
+fi
+
+preview='bash -c "hash=\$(echo {} | sed \"s/^[^\[]*\[\([a-z0-9]\+\).*\$/\1/g\"); git diff -b --color \$hash^ \$hash -- '$1' | diff-so-fancy"'
+cmd='bash -c "hash=\$(echo {} | sed \"s/^[^\[]*\[\([a-z0-9]\+\).*\$/\1/g\"); git difftool -y \$hash^ \$hash -- '$1'"'
+
+export FZF_DEFAULT_COMMAND="git log \
+    --color \
+    --oneline \
+    --graph \
+    --all \
+    --format='%C(yellow) [%h] %Creset %s %>|(100)%C(red italic)%d%Creset %C(italic brightwhite) %an ~ %ar%Creset' \
+    $1"
+
+fzf \
+    --reverse \
+    --ansi \
+    --bind "enter:execute($cmd)" \
+    --preview "$preview"

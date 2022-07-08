@@ -10,7 +10,7 @@ if (!process.argv.length) {
     process.exit(1);
 }
 
-const beautify = process.argv.indexOf('--beautify') >= 0;
+const minify = process.argv.indexOf('--minify') >= 0;
 const tsCompatible = process.argv.indexOf('--ts') >= 0;
 let MAX_ARR_SIZE = 20;
 if (process.argv.indexOf('--full') >= 0)
@@ -38,7 +38,7 @@ function getType(obj) {
 }
 
 function newline(lvl) {
-    if (beautify)
+    if (!minify)
         return '\n' + '  '.repeat(lvl);
     else
         return '';
@@ -113,7 +113,7 @@ function error(message) {
     console.error(message);
 
     console.log('');
-    console.log('USAGE = jsonStructure.js <file> [--beautify] [--ts] [--full]');
+    console.log('USAGE = jsonStructure.js <file> [--minify] [--ts] [--full]');
     console.log('');
     process.exit(1);
 }

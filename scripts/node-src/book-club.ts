@@ -2,7 +2,7 @@
 
 import fs from 'fs';
 import { cmd } from './shell.js';
-import { getBookInfos } from './good-reads.js';
+import { getBookInfos } from './isbn-db.js';
 import { getMovieInfos } from './tmdb.js';
 import { getVideoInfos } from './youtube.js';
 
@@ -29,7 +29,7 @@ type ItemInfos = {
     source: string;
     imageUrl: string;
     length: string;
-    rating: string;
+    rating?: string;
 };
 
 function generateHtmlFor(infos: ItemInfos) {
@@ -137,6 +137,7 @@ async function main() {
                 infos.push(itemInfos);
             } catch (err) {
                 console.log('Err while trying to add ' + name);
+                console.log(err);
                 continue;
             }
         } else {

@@ -30,6 +30,11 @@ function new_id {
     echo -n $((max_id + 1))
 }
 
+function get_file_name {
+    id=$1
+    ls $TRASH_FILES/$id
+}
+
 function check_record_integrity {
     _IFS="$IFS"
     IFS=';'
@@ -76,7 +81,7 @@ if [ "$1" == "list" ]; then
         line="$line\t  $path"
         line="$line\t  $file_name"
 
-        
+
 
         printf "$line\n"
     done < $TRASH_RECORD
@@ -89,27 +94,44 @@ if [ "$1" == "empty" ]; then
     check_record_integrity
     shift
 
-    days=$1
+    expr=$1
 
-    if [ ! "$days" ]; then
-        echo "Number of days not provided..."
-        exit 1
-    fi
-    if [[ ! "$1" =~ ^[0-9]+$ ]]; then
-        echo "'$days' doesn't look like a valid number of days..."
+    if [ ! "$expr" ]; then
+        echo "No expression provided..."
         exit 1
     fi
 
     ids=''
 
+    ndays=''
+    rx=''
+
+    if [[ "$1" =~ ^/.*/$ ]]; then
+        rx=$1
+        rx=${rx%/}
+        rx=${rx#/}
+    elif [[ "$1" =~ ^[0-9]+$ ]]; then
+        ndays=$1
+    else
+        echo "'$expr' doesn't look like a valid number of days, or a regex..."
+        exit 1
+    fi
+
     _IFS="$IFS"
     IFS=';'
-    days_as_sec=$((days * 24 * 60 * 60))
+    days_as_sec=$((ndays * 24 * 60 * 60))
     now=`date "+%s"`
     while read id time path; do
         [ "$id" ] || continue
-        if [ $((now - days_as_sec)) -gt $time ]; then
+        if [ $ndays ] && [ $((now - days_as_sec)) -gt $time ]; then
             ids="$ids $id"
+        fi
+        if [ $rx ]; then
+            name=$(get_file_name $id)
+            grep "$rx" <<< "$name"
+            if [ $? -eq 0 ]; then
+                ids="$ids $id"
+            fi
         fi
     done < $TRASH_RECORD
     IFS="$_IFS"
@@ -117,11 +139,19 @@ if [ "$1" == "empty" ]; then
     amount=`echo $ids | wc -w`
 
     if [ $amount -eq 0 ]; then
-        echo "No files older than $days days could be found"
+        if [ "$ndays" ]; then
+            echo "No files older than $expr days could be found"
+        elif [ "$rx" ]; then
+            echo "No files matching $expr"
+        fi
         exit 0
     fi
 
-    echo "You're about to delete permanently all files older than $days days ($amount files)"
+    if [ "$ndays" ]; then
+        echo "You're about to delete permanently all files older than $ndays days ($amount files)"
+    elif [ "$rx" ]; then
+        echo "You're about to delete permanently all files matching $expr ($amount files)"
+    fi
 
     proceed=`prompt 'Proceed ? '`
 
@@ -218,7 +248,7 @@ while [ $# -gt 0 ]; do
                 shift
                 continue
             fi
-            
+
         fi
     fi
 
@@ -226,6 +256,6 @@ while [ $# -gt 0 ]; do
     mkdir "$TRASH_FILES/$id"
     cp -r "$file" "$TRASH_FILES/$id"
     rm -rf "$file"
-    
+
     shift
 done

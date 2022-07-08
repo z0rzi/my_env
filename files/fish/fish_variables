@@ -1,14 +1,13 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
-
-SETUVAR FZF_CTRL_T_COMMAND:"ls --color=never -t (rg \$dir --files) 2> /dev/null"
-SETUVAR FZF_ALT_C_COMMAND:"bash -c \"fd -t d . '\$dir'\""
 SETUVAR ANGER:\U0001f4a2
 SETUVAR ARROW:\u2771\x20\x20
 SETUVAR BACK:\x5c033\x5b1\x3b30m
 SETUVAR BLUE:\x5ce\x5b1\x3b34m
 SETUVAR BOOM:\U0001f4a5
 SETUVAR CONSTRUCTION:\U0001f6a7
+SETUVAR FZF_ALT_C_COMMAND:bash\x20\x2dc\x20\x22fd\x20\x2dt\x20d\x20\x2e\x20\x27\x24dir\x27\x22
+SETUVAR FZF_CTRL_T_COMMAND:ls\x20\x2d\x2dcolor\x3dnever\x20\x2dt\x20\x28rg\x20\x24dir\x20\x2d\x2dfiles\x29\x202\x3e\x20/dev/null
 SETUVAR GIT_EDITOR:nvim
 SETUVAR GRAY:\x24SHADOW
 SETUVAR GREEN:\x5c033\x5b1\x3b32m
@@ -22,10 +21,16 @@ SETUVAR SHADOW:\x5c033\x5b0\x3b37m
 SETUVAR SPARKLES:\u2728
 SETUVAR THUNDER:\u26a1
 SETUVAR XDG_CONFIG_HOME:/home/zorzi
+SETUVAR ZO_CMD:zo
+SETUVAR Z_CMD:z
+SETUVAR Z_DATA:/home/zorzi/\x2elocal/share/z/data
+SETUVAR Z_DATA_DIR:/home/zorzi/\x2elocal/share/z
+SETUVAR Z_EXCLUDE:\x5e/home/zorzi\x24
 SETUVAR __fish_init_2_3_0:\x1d
 SETUVAR __fish_initialized:3100
+SETUVAR _fisher_jethrokuan_2F_z_files:/home/zorzi/\x2econfig/fish/functions/__z\x2efish\x1e/home/zorzi/\x2econfig/fish/functions/__z_add\x2efish\x1e/home/zorzi/\x2econfig/fish/functions/__z_clean\x2efish\x1e/home/zorzi/\x2econfig/fish/functions/__z_complete\x2efish\x1e/home/zorzi/\x2econfig/fish/conf\x2ed/z\x2efish
 SETUVAR _fisher_jorgebucaran_2F_fisher_files:/home/zorzi/\x2econfig/fish/functions/fisher\x2efish\x1e/home/zorzi/\x2econfig/fish/completions/fisher\x2efish
-SETUVAR _fisher_plugins:jorgebucaran/fisher
+SETUVAR _fisher_plugins:jorgebucaran/fisher\x1ejethrokuan/z
 SETUVAR fish_color_autosuggestion:585858
 SETUVAR fish_color_cancel:\x2dr
 SETUVAR fish_color_command:a1b56c
