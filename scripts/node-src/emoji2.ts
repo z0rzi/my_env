@@ -119,9 +119,10 @@ async function root() {
             process.exit(0);
         }
     );
+
     let tid = null as NodeJS.Timeout;
-    emojiFinder.onSearchChange = (text: string) => {
-        search = text;
+    let text = '';
+    const fetchResults = () => {
         if (tid) clearTimeout(tid);
         tid = setTimeout(() => {
             findEmojis(text).then(emojis => {
@@ -140,5 +141,13 @@ async function root() {
                 emojiFinder.choices = emojisChoices;
             });
         }, 500);
+    }
+
+    emojiFinder.onSearchChange = (search: string) => {
+        text = search;
+        fetchResults();
+    };
+    emojiFinder.onCursorMove = () => {
+        fetchResults();
     };
 }

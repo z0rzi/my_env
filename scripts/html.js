@@ -16,6 +16,10 @@ const specialCharacs = {
     '&ucirc;': 'û',
     '&uuml;': 'ü',
 };
+/** Tags which might not be closed */
+const unclosingTags = [
+    'input', 'img', 'li'
+];
 export class HtmlNode {
     constructor(rawHtml, firstTime = true) {
         this.children = [];
@@ -27,12 +31,13 @@ export class HtmlNode {
         this.classes = [];
         this._opening_tag_length = 0;
         this._closing_tag_length = 0;
+        /** The size of the innerHTML */
         this._content_length = 0;
         if (firstTime) {
             rawHtml = rawHtml
                 .trim()
-                .replace(/\n/g, '')
-                .replace(/<script[^>]*>.*?<\/script>/g, '')
+                .replace(/[\r\n]+/gm, '')
+                .replace(/<script.*?>.*?<\/script>/g, '')
                 .replace(/<script.*?\/>/g, '')
                 .replace(/<\/script>/g, '')
                 .replace(/<noscript[^>]*>.*?<\/noscript>/g, '')
@@ -147,8 +152,16 @@ export class HtmlNode {
             if (!!matches) {
                 const { tag } = matches.groups;
                 if (tag !== this.tag) {
-                    throw new Error('Tags are not matching!\n' +
-                        `Was expecting '${this.tag}' but got '${tag}'`);
+                    // We met a closing tag, but it's not the one we expected
+                    if (unclosingTags.includes(this.tag)) {
+                        this._content_length = initialLength - rawContent.length;
+                        this._closing_tag_length = 0;
+                        break;
+                    }
+                    else {
+                        throw new Error('Tags are not matching!\n' +
+                            `Was expecting '${this.tag}' but got '${tag}'`);
+                    }
                 }
                 this._content_length = initialLength - rawContent.length;
                 const lengthBeforeCut = rawContent.length;
@@ -234,7 +247,6 @@ export class HtmlNode {
             ok = false;
         if (ok && props) {
             Object.entries(props).forEach(([key, value]) => {
-                console.log(key, value);
                 if (!(key in this.props) ||
                     (value && this.props[key] !== value))
                     ok = false;
@@ -287,9 +299,7 @@ export class HtmlNode {
             return [this];
         const selectors = selector.split(/\s+/g);
         const requirements = this.parseSelector(selectors[0]);
-        console.log(requirements);
         const kids = this.getNodesByAll(requirements);
-        console.log(kids);
         const out = [];
         kids.forEach(kid => {
             out.push(...kid.querySelector(selectors.slice(1).join(' ')));

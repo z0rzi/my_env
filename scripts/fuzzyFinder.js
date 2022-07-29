@@ -26,6 +26,7 @@ class FuzzyFinder {
         this.filteredChoices = [];
         this.selectCb = null;
         this.onSearchChange = null;
+        this.onCursorMove = null;
         this.scoreLimit = scoreLimit;
         choices.forEach((choice, idx) => {
             // prefixing tags with index so they can be sorted by last usage
@@ -140,6 +141,8 @@ class FuzzyFinder {
     moveSelection(direction) {
         if (this.isDead)
             return;
+        if (this.onCursorMove)
+            this.onCursorMove();
         this.cli.savePos('move-sel');
         this.cli.goToLine(this.height - 2 - this.selectionPos);
         this.cli.sol();

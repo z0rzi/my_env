@@ -51,6 +51,7 @@ class FuzzyFinder<T = unknown> {
     selectCb = null;
 
     onSearchChange = null;
+    onCursorMove = null;
 
     constructor(
         choices: Choice<T>[],
@@ -166,6 +167,8 @@ class FuzzyFinder<T = unknown> {
      */
     moveSelection(direction?: 'up' | 'down'): void {
         if (this.isDead) return;
+        if (this.onCursorMove) this.onCursorMove();
+
         this.cli.savePos('move-sel');
 
         this.cli.goToLine(this.height - 2 - this.selectionPos);

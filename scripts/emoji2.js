@@ -102,8 +102,8 @@ function root() {
             process.exit(0);
         });
         let tid = null;
-        emojiFinder.onSearchChange = (text) => {
-            search = text;
+        let text = '';
+        const fetchResults = () => {
             if (tid)
                 clearTimeout(tid);
             tid = setTimeout(() => {
@@ -121,6 +121,13 @@ function root() {
                     emojiFinder.choices = emojisChoices;
                 });
             }, 500);
+        };
+        emojiFinder.onSearchChange = (search) => {
+            text = search;
+            fetchResults();
+        };
+        emojiFinder.onCursorMove = () => {
+            fetchResults();
         };
     });
 }

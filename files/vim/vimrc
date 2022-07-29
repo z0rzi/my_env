@@ -11,7 +11,6 @@
     set breakindent
     set ruler
     set hidden
-    " set updatetime=1000
     set showtabline=2  " always show tabline
     set noshowmode
     set nobackup
@@ -48,7 +47,6 @@
     set scrolloff=5
     " set relativenumber
     set conceallevel=2
-    set nostartofline
     set mouse=a
 
     set formatoptions=cro
@@ -127,8 +125,45 @@
 " 
 " FUNCTIONS
 " 
+    function! ComparePositions(p1, p2)
+        let linediff = a:p2[0] - a:p1[0]
+        let coldiff = a:p2[1] - a:p1[1]
+        return linediff + (!linediff) * coldiff
+    endfunction
+
+    function! CursorOnMatch(searchPattern)
+        " checks whether a cursor is on a match or not
+        let position = getcurpos()[1:2]
+        let curpos = getpos('.')
+        call setpos('.', [0] + position + [0])
+
+        let pos = searchpos(a:searchPattern, 'ec')
+
+        if pos == [0,0] || ComparePositions(position, pos) < 0
+            call setpos('.', curpos)
+            return 0
+        endif
+
+
+        let pos = searchpos(a:searchPattern, 'bnc')
+
+        if pos == [0,0] || ComparePositions(pos, position) < 0
+            call setpos('.', curpos)
+            return 0
+        endif
+
+        call setpos('.', curpos)
+        return 1
+    endfunction
+
+    function! EOL()
+        call setpos('.', [0, line('.'), col('$'), 0, col('$')])
+    endfunction
+
     let g:mappings = {}
     function! UpdateMappings()
+        " Put mappings into place after they have been added by AddMapping
+
         if ! exists('g:mappings') | let g:mappings = {} | endif
         for mode in keys(g:mappings)
             for cmd in keys(g:mappings[mode])
@@ -150,12 +185,15 @@
         endfor
     endfunction
     function! AddMapping(mode, cmd, code)
+        " To add 2 different mappings to a given keystroke
+
         if ! exists('g:mappings')               | let g:mappings = {}                | endif
         if ! has_key(g:mappings, a:mode)        | let g:mappings[a:mode] = {}        | endif
         if ! has_key(g:mappings[a:mode], a:cmd) | let g:mappings[a:mode][a:cmd] = [] | endif
         call add(g:mappings[a:mode][a:cmd], a:code)
     endfunction
     function! ExeMap(mode, cmd, ...)
+        " Executes a mapping command
         if ! has_key(g:mappings, a:mode)
             return ''
         endif
@@ -202,7 +240,10 @@
         let str = substitute(str, '"', '\\"', 'g')
         return eval('"'.str.'"')
     endfunction
+
     function! RestrictSearch(flag)
+        " Restricts the current search to only the n following / preceeding
+        " lines
         let cursearch = @/
         let save = winsaveview()
 
@@ -242,18 +283,18 @@
         " call histadd('/', @/)
     endfunction
 
-    " Gives Epoch time in ms
     function! Now()
+        " Gives Epoch time in ms
         let time = system('date +%s%N')
         let time = time[:len(time) - 8]
         return time
     endfunction
-    " Starts a timer
     function! TimeStart()
+        " Starts a timer
         let g:time = Now()
     endfunction
-    " Shows the time since the last timer reset, and resets the timer
     function! TimeShow(...)
+        " Shows the time since the last timer reset, and resets the timer
         let time = Now() - g:time
         if a:0 >= 1
             echom a:1 . ' - ' . string(time)
@@ -347,8 +388,8 @@
         endwhile
         return 1
     endfunction
-
     function! Align(cara, range)
+        " Align lines together on given character
         let save = winsaveview()
 
         let align_cara = 1
@@ -386,6 +427,8 @@
     command! -range -nargs=+  A call Align(<q-args>, '<count>')
 
     function! DoAtEach(macro, range)
+        " Execute the given keystrokes to each occurence of a search, or at
+        " each line if in select mode
         let save = winsaveview()
         let count = 0
         let searchSave = @/
@@ -440,8 +483,6 @@
 
         call winrestview(save)
     endfunction
-    nnoremap d/ <CMD>M dgn<CR>
-    nnoremap c/ :<C-u>M cgn
     noremap M :M<SPACE>
     command! -range -nargs=+  M call DoAtEach(<q-args>, '<count>')
 
@@ -464,40 +505,6 @@
         redraw!
     endfunction
     command! -nargs=+  Err call ParseErrorLine('<args>')
-
-    function! ComparePositions(p1, p2)
-        let linediff = a:p2[0] - a:p1[0]
-        let coldiff = a:p2[1] - a:p1[1]
-        return linediff + (!linediff) * coldiff
-    endfunction
-
-    function! CursorOnMatch(searchPattern)
-        let position = getcurpos()[1:2]
-        let curpos = getpos('.')
-        call setpos('.', [0] + position + [0])
-
-        let pos = searchpos(a:searchPattern, 'ec')
-
-        if pos == [0,0] || ComparePositions(position, pos) < 0
-            call setpos('.', curpos)
-            return 0
-        endif
-
-
-        let pos = searchpos(a:searchPattern, 'bnc')
-
-        if pos == [0,0] || ComparePositions(pos, position) < 0
-            call setpos('.', curpos)
-            return 0
-        endif
-
-        call setpos('.', curpos)
-        return 1
-    endfunction
-
-    function! EOL()
-        call setpos('.', [0, line('.'), col('$'), 0, col('$')])
-    endfunction
 
     function! CursorInFileWindow()
         let notFile = {
@@ -531,6 +538,7 @@
 
     function! SmartJumpToEnd()
         if search('\%#.\?$', 'n') != 0
+            " If cursor is at the end of the line
             call setpos("'m", getpos('.'))
             call search('^\(\s\+\).*\%#.*\n\(\1.*\n\)*\zs\1')
             call append('.', repeat(' ', indent('.')))
@@ -596,19 +604,8 @@
         return foldtextstart . repeat(foldchar, winwidth(0) - foldtextlength) . foldtextend
     endfunction
 
-    function! EatNChars(num)
-        let l:number = a:num
-        let l:string = ""
-
-        while l:number > 0
-            let l:string .= nr2char(getchar())
-            let l:number -= 1
-        endwhile
-
-        return ''
-    endfunction
-
     function! CountBefore(rx, until_pos)
+        " Amount of rx matches before a given position
         let save = winsaveview()
         let count=0
         while search(a:rx, 'Wb', a:until_pos[0])
@@ -747,21 +744,6 @@
         end
     endfunction
 
-    function! VimToGrepRegex(str)
-        let rx = a:str
-
-        let gargs = ""
-
-        let rx = substitute(rx, '\\<\|\\>','\\b', 'g')
-
-        if rx =~ '\\c'
-            let rx = substitute(rx, '\\c','', '')
-            let gargs .= " -i"
-        endif
-
-        return [rx, gargs]
-    endfunction
-
     let g:fzf_options = 
                 \ '--tiebreak=index ' .
                 \ '--filepath-word ' .
@@ -770,12 +752,6 @@
                 \ '--preview="bash -c \"bat -pp --color always {}\"" ' .
                 \ '--preview-window="right:50%:rounded:nowrap:nofollow:nocycle:nohidden" ' .
                 \ '--sync'
-                " \ '--multi ' .
-                " \ '--algo=v2 ' .
-                " \ '--no-sort ' .
-                " \ '-e ' .
-                " \ '--preview="[ \"$(git ls-files -m ''{}'')\" ] && bash -c \"bat -d --color always {} | tail -n+2\" || bat {}" ' .
-                " \ '--preview="git diff --color=always {} | sed -e \"1,5d\" -e \"s/^\s\+//g\" | diff-so-fancy" ' .
     function! FZFFindFile()
         let cmd = '/usr/bin/ls --color=never -t (rg . --files) 2> /dev/null'
         silent! call fzf#run({'source': cmd, 'sink': 'e', 'options': g:fzf_options, 'down':'40%'})
@@ -1183,6 +1159,18 @@
     endfunction
     autocmd! BufEnter *html,*ts,*js,*css nnoremap <buffer> <LEADER>w <CMD>exec "e " . AngularSwitchFile()<CR>
 
+    function! GetMeOut(cara)
+        if search('\v%#.[.,\)\}]', 'n')  > 0 || search('\v[.\(]%#', 'n')  > 0
+            norm x
+        endif
+        call search(a:cara, 'cb')
+        norm!%
+        if search('\v%#\s*$', 'n')  > 0
+            " cursor at end of line
+            exe "norm a\<SPACE>"
+        endif
+    endfunction
+
     function! TsDocFunc()
         norm! A
         call search('(', 'b')
@@ -1205,6 +1193,8 @@
         call AddMapping('i', '<CR>', 'smartHits#smartCR()')
         call AddMapping('i', '<BS>', 'smartHits#smartBS()')
         call AddMapping('i', '<C-]>', 'smartHits#skip()')
+        call AddMapping('i', '\;[', 'smartHits#unskip()')
+        " inoremap <LEADER>;[ smartHits#unskip()
 
         let g:smartHits_pairs = [
             \ ['(', ')'],
@@ -1236,10 +1226,14 @@
             \   'javascript': {
             \     'l': "let",
             \     'c': "const",
+            \     'func': "function",
             \     '^log': "console.log();\<LEFT>\<LEFT>!",
             \     'import \(cors\|express\|fs\|path\)': "import $1 from '$1';!",
             \     'import \(\w*\) ': "import $1 from '$1';!",
-            \     '^if$': "if ()\<LEFT>!",
+            \     '([^)]* ': "$&\<ESC>:call GetMeOut('(')\<CR>a!",
+            \     '{[^}]* ': "$&\<ESC>:call GetMeOut('{')\<CR>a!",
+            \     '\[[^\]]* ': "$&\<ESC>:call GetMeOut('[')\<CR>a!",
+            \     '^\(if\|for\)$': "$1 ()\<LEFT>!",
             \     '^iff': "if () {\<CR>}<UP><ESC>f(a!",
             \     '^fori': "for (let i=0; i < .length ; i++)\<ESC>F.i!",
             \     '\%(for\s*([^)]*\)\@<=in': "of",
@@ -1974,21 +1968,6 @@
             nnoremap <LEADER>gb <CMD>call GitBlame()<CR>
             nnoremap <LEADER>gD <CMD>call system('git difftool ' . @%) <BAR> GitGutter<CR><CR>
 
-        " Tabular indenting
-            nnoremap <leader>t= mm<CMD>Tabular /^[^=]*\zs=<CR>`m
-            nnoremap <leader>t: mm<CMD>Tabular /^[^:]*:\zs/l0r1<CR>`m
-            nnoremap <leader>t> mm<CMD>Tabular /^[^=]*\zs=>/<CR>`m
-            nnoremap <leader>t<SPACE> mm<CMD>Tabular / *\zs /l0<CR>`m
-            xnoremap <leader>t= :Tabular /^[^=]*\zs=<CR>
-            xnoremap <leader>t: :Tabular /:\zs<CR>
-            xnoremap <leader>t<SPACE> :Tabular / *\zs /l0<CR>
-            nnoremap <leader>t> mm<CMD>Tabular /^[^=]*\zs=>/<CR>`m
-
-            " nmap <leader>t* mm?/\*\*<CR>kmn:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\zs\s\+/ /<CR>`n:/\/\*\*/,/\*\//s/@param\s\+\S\+\s\+\S\+\zs\s\+/ /<CR>`nO<ESC>0CTabular /^\s\+\*\s\+@\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@\(param\\|return\)\s\+\S\+\s*\zs\s/l0\|Tabular /^\s\+\*\s\+@param\s\+\S\+\s\+\S\+\s*\zs\s/l0<ESC>:s/[^\\]\zs\|/\r/g<CR>^tDddk^"rDddk^"eDdd`n:/\/\*\*/,/\*\//g/./<C-r>e<CR>`n:/\/\*\*/,/\*\//g/./<C-r>r<CR>`n:/\/\*\*/,/\*\//g/./<C-r>t<CR>`m
-
-            nnoremap <leader>t :Tabular /
-            xnoremap <leader>t :Tabular /
-
         " FZF
             nnoremap <C-p> <CMD>call FZFFindFile()<CR>
             nnoremap <LEADER>;o <CMD>call FZFUpOneDir()<CR>
@@ -2019,7 +1998,6 @@
             endfunction
 
             nnoremap <LEADER>= <CMD>call FormatFile()<CR>
-            command! W <CMD>call FormatFile()<CR>:w<CR>
 
     " Buffer related maps
         " Buffers navigation 
@@ -2171,6 +2149,7 @@
         autocmd! FileType vim let b:commentary_format="\" %s"
         autocmd! FileType yaml let b:commentary_format="# %s"
         autocmd! FileType journal let b:commentary_format="-- %s"
+        autocmd! FileType matlab let b:commentary_format="% %s"
 
     " Auto detecting indent on entering a file! | Plugin: vim-adaptive-indent
         autocmd BufReadPost * AdaptIndent

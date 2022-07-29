@@ -170,11 +170,11 @@
     # to display names or symbols instead of plain workspace numbers you can use
     # something like: set $wsl1 1:mail
     #                 set $wsl2 2:
-    set $wsl1 l1
-    set $wsl2 l2
-    set $wsl3 l3
-    set $wsl4 l4
-    set $wsl5 l5
+    set $wsl1 
+    set $wsl2 
+    set $wsl3 
+    set $wsl4 
+    set $wsl5 
 
     workspace $wsl1 output HDMI-1 HDMI-1-1
     workspace $wsl2 output HDMI-1 HDMI-1-1
@@ -183,11 +183,11 @@
     workspace $wsl5 output HDMI-1 HDMI-1-1
     
 
-    set $wsr1 r1
-    set $wsr2 r2
-    set $wsr3 r3
-    set $wsr4 r4
-    set $wsr5 r5
+    set $wsr1 爵
+    set $wsr2 
+    set $wsr3 
+    set $wsr4 
+    set $wsr5 
 
     workspace $wsr1 output eDP-1 eDP-1-1
     workspace $wsr2 output eDP-1 eDP-1-1
@@ -238,6 +238,7 @@
     exec --no-startup-id bash -c "sleep 10; picom -b"
     exec --no-startup-id bash -c "sleep 10; discord"
     exec --no-startup-id morgen
+    exec --no-startup-id blueman-tray
     exec --no-startup-id flameshot
     exec --no-startup-id nm-applet
     exec --no-startup-id xfce4-power-manager
