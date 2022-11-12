@@ -794,7 +794,7 @@
         else
             let dir = b:fzf_lookup_dir
         end
-        let cmd = 'ls --color=never -t (find '.dir.' -type f -maxdepth 1) 2> /dev/null'
+        let cmd = '/usr/bin/ls --color=never -t (find '.dir.' -maxdepth 1 -type f) 2> /dev/null'
         silent! call fzf#run({'source': cmd, 'sink': 'e', 'options': g:fzf_options, 'down':'40%'})
     endfunction
     function! s:FZFOpenVimOutput(str)
@@ -1709,6 +1709,8 @@
 
         xnoremap p <CMD>let save=@0<CR>p<CMD>let [@0, @", @+] = [save, save, save]<CR>
         xnoremap $ $h
+        xnoremap " "rc"<C-r>r"<ESC>gvlolo
+        xnoremap ' "rc'<C-r>r'<ESC>gvlolo
         nnoremap - 2<C-y><C-g>
         nnoremap + 2<C-e><C-g>
         xnoremap g= c<C-r>=<C-r>+<CR><ESC>

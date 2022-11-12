@@ -101,33 +101,32 @@ function root() {
             fs.writeFileSync(EMOJI_FILE_PATH, JSON.stringify(prevEmojis, null, 2));
             process.exit(0);
         });
-        let tid = null;
         let text = '';
         const fetchResults = () => {
-            if (tid)
-                clearTimeout(tid);
-            tid = setTimeout(() => {
-                findEmojis(text).then(emojis => {
-                    const emojisChoices = emojis.map(e => ({
-                        label: e.icon,
-                        tags: text + ' ' + e.name + ' ' + e.tags,
-                        payload: e,
-                    }));
-                    emojisChoices.push(...prevEmojis.map(e => ({
-                        label: e.icon,
-                        tags: ' ' + e.name + ' ' + e.tags,
-                        payload: e,
-                    })));
-                    emojiFinder.choices = emojisChoices;
-                });
-            }, 500);
+            findEmojis(text).then(emojis => {
+                const emojisChoices = emojis.map(e => ({
+                    label: e.icon,
+                    tags: text + ' ' + e.name + ' ' + e.tags,
+                    payload: e,
+                }));
+                emojisChoices.push(...prevEmojis.map(e => ({
+                    label: e.icon,
+                    tags: ' ' + e.name + ' ' + e.tags,
+                    payload: e,
+                })));
+                emojiFinder.choices = emojisChoices;
+            });
+        };
+        emojiFinder.onKeyHit = k => {
+            if (k === '\\') {
+                if (text.length > 0)
+                    fetchResults();
+                return false;
+            }
+            return true;
         };
         emojiFinder.onSearchChange = (search) => {
             text = search;
-            fetchResults();
-        };
-        emojiFinder.onCursorMove = () => {
-            fetchResults();
         };
     });
 }

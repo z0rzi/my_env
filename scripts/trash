@@ -61,6 +61,7 @@ if [ "$#" -eq 0 ]; then
     echo "               list [-v]"
     echo "               restore <ID>"
     echo "               empty <DAYS_AMOUNT>"
+    echo "               empty /<REGEX>/"
     exit 0;
 fi
 
@@ -205,8 +206,8 @@ fi
 
 while [ $# -gt 0 ]; do
     file=`realpath -s "$1"`
-    if [ ! -f "$file" ] && [ ! -d "$file" ]; then
-        echo "'$file' is not a file nor a directory, skipping..."
+    if [ ! -f "$file" ] && [ ! -d "$file" ] && [ ! -L "$file" ]; then
+        echo "'$file' is not a file, not a directory, and not a symlink, skipping..."
         shift
         continue
     fi

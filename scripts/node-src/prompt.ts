@@ -34,7 +34,7 @@ export class Prompt {
         ctrl?: boolean,
         shift?: boolean,
         alt?: boolean
-    ) => boolean | Promise<boolean> = null;
+    ) => (boolean | Promise<boolean>) = null;
 
     _oldKbListener = null;
 

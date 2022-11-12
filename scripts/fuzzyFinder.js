@@ -12,7 +12,7 @@ import { Cli, CliColor } from './cli.js';
 import { Prompt } from './prompt.js';
 class FuzzyFinder {
     constructor(choices, selectCallback, scoreLimit = 0.5, cli = null) {
-        this.height = 100;
+        this.height = 10;
         this.selectorWidth = 3;
         this.isDead = false;
         this._qs = null;
@@ -20,6 +20,7 @@ class FuzzyFinder {
         this.prompt = null;
         this.search = '';
         this.selectionPos = 0;
+        this.onKeyHit = null;
         this.scoreLimit = 0.5;
         this.debugMode = false;
         this._choices = [];
@@ -44,7 +45,10 @@ class FuzzyFinder {
                 this.refreshAllResults();
                 return false;
             };
-            this.prompt.onKeyHit = (key) => {
+            this.prompt.onKeyHit = (key, ctrl, shift, alt) => __awaiter(this, void 0, void 0, function* () {
+                if (this.onKeyHit &&
+                    !(yield this.onKeyHit(key, ctrl, shift, alt)))
+                    return false;
                 switch (key) {
                     case 'f1':
                         this.debugMode = !this.debugMode;
@@ -61,7 +65,7 @@ class FuzzyFinder {
                         break;
                 }
                 return true;
-            };
+            });
             this.prompt.onConfirm = () => {
                 if (this.filteredChoices[this.selectionPos]) {
                     this.selectCb(this.filteredChoices[this.selectionPos]);

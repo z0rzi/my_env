@@ -3,7 +3,7 @@ import { Cli, CliColor } from './cli.js';
 import { Prompt } from './prompt.js';
 
 class FuzzyFinder<T = unknown> {
-    height = 100;
+    height = 10;
     selectorWidth = 3;
 
     isDead = false;
@@ -14,6 +14,13 @@ class FuzzyFinder<T = unknown> {
     prompt: Prompt = null;
     search = '';
     selectionPos = 0;
+
+    public onKeyHit: (
+        key: string,
+        ctrl?: boolean,
+        shift?: boolean,
+        alt?: boolean
+    ) => boolean | Promise<boolean> = null;
 
     scoreLimit = 0.5;
 
@@ -78,7 +85,13 @@ class FuzzyFinder<T = unknown> {
                 this.refreshAllResults();
                 return false;
             };
-            this.prompt.onKeyHit = (key: string) => {
+            this.prompt.onKeyHit = async (key: string, ctrl, shift, alt) => {
+                if (
+                    this.onKeyHit &&
+                    !(await this.onKeyHit(key, ctrl, shift, alt))
+                )
+                    return false;
+
                 switch (key) {
                     case 'f1':
                         this.debugMode = !this.debugMode;

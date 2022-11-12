@@ -120,34 +120,33 @@ async function root() {
         }
     );
 
-    let tid = null as NodeJS.Timeout;
     let text = '';
     const fetchResults = () => {
-        if (tid) clearTimeout(tid);
-        tid = setTimeout(() => {
-            findEmojis(text).then(emojis => {
-                const emojisChoices = emojis.map(e => ({
+        findEmojis(text).then(emojis => {
+            const emojisChoices = emojis.map(e => ({
+                label: e.icon,
+                tags: text + ' ' + e.name + ' ' + e.tags,
+                payload: e,
+            }));
+            emojisChoices.push(
+                ...prevEmojis.map(e => ({
                     label: e.icon,
-                    tags: text + ' ' + e.name + ' ' + e.tags,
+                    tags: ' ' + e.name + ' ' + e.tags,
                     payload: e,
-                }));
-                emojisChoices.push(
-                    ...prevEmojis.map(e => ({
-                        label: e.icon,
-                        tags: ' ' + e.name + ' ' + e.tags,
-                        payload: e,
-                    }))
-                );
-                emojiFinder.choices = emojisChoices;
-            });
-        }, 500);
-    }
+                }))
+            );
+            emojiFinder.choices = emojisChoices;
+        });
+    };
 
+    emojiFinder.onKeyHit = k => {
+        if (k === '\\') {
+            if (text.length > 0) fetchResults();
+            return false;
+        }
+        return true;
+    };
     emojiFinder.onSearchChange = (search: string) => {
         text = search;
-        fetchResults();
-    };
-    emojiFinder.onCursorMove = () => {
-        fetchResults();
     };
 }

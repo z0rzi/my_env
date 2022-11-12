@@ -1,6 +1,8 @@
 #!/bin/bash
 
-filetype=`xdg-mime query filetype $1`
+filetype=`xdg-mime query filetype "$1"`
+
+echo $filetype
 
 echo 'Choose the new application'
 app=`ls /usr/share/applications/ | fzf`
