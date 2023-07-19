@@ -108,10 +108,10 @@ handle_extension() {
         #     ;;
 
         ## JSON
-        json|ipynb)
-            jq --color-output . "${FILE_PATH}" && exit 5
-            python -m json.tool -- "${FILE_PATH}" && exit 5
-            ;;
+        # json|ipynb)
+        #     jq --color-output . "${FILE_PATH}" && exit 5
+        #     python -m json.tool -- "${FILE_PATH}" && exit 5
+        #     ;;
 
         ## Direct Stream Digital/Transfer (DSDIFF) and wavpack aren't detected
         ## by file(1).
@@ -121,6 +121,10 @@ handle_extension() {
             ;; # Continue with next handler on failure
 
         *)
+            file_weight=`du ${FILE_PATH} | cut -f1`
+            if [ $file_weight -gt 1000 ]; then
+                head -c10000 "${FILE_PATH}" && exit 5
+            fi
             bat -pp --theme ansi-dark --color=always "${FILE_PATH}" && exit 5
             ;;
     esac

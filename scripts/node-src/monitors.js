@@ -286,6 +286,7 @@ async function getMonitors() {
 }
 
 getMonitors().then(async monitors => {
+    console.log(monitors);
     laptop = monitors.find(mon => mon.isLaptop());
     if (monitors.length > 1) monitors = monitors.filter(mon => !mon.isLaptop());
 

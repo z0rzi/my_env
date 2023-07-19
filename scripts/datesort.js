@@ -1,6 +1,7 @@
 #!/bin/env node
 import fs from 'fs';
 import kleur from 'kleur';
+const reverse = process.argv.includes('-r');
 let buff = '';
 process.stdin.on('data', d => (buff += d.toString()));
 process.stdin.on('end', () => {
@@ -14,7 +15,7 @@ process.stdin.on('end', () => {
             return null;
         }
     }).filter(metas => !!metas)
-        .sort((metasA, metasB) => +metasB[1] - +metasA[1]);
+        .sort((metasA, metasB) => reverse ? +metasA[1] - +metasB[1] : +metasB[1] - +metasA[1]);
     if (process.stdout.isTTY) {
         console.log(fileMetas.map(([filePath]) => {
             filePath = filePath.replace(/^.*\//, (match) => {

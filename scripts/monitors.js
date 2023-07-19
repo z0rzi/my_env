@@ -290,6 +290,7 @@ function getMonitors() {
     });
 }
 getMonitors().then((monitors) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(monitors);
     laptop = monitors.find(mon => mon.isLaptop());
     if (monitors.length > 1)
         monitors = monitors.filter(mon => !mon.isLaptop());

@@ -1651,9 +1651,6 @@
 
             Plugin 'prettier/vim-prettier', { 'do': 'yarn install --frozen-lockfile --production' }
 
-            Plugin 'HerringtonDarkholme/yats.vim'
-            Plugin 'maxmellon/vim-jsx-pretty'
-
         " 
         " Others
         " 
@@ -1924,6 +1921,8 @@
                   \ coc#refresh()
             inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : coc#refresh()
 
+            nnoremap <F2> :CocCommand explorer<CR>
+
             " Close the preview window when completion is done.
             autocmd! CompleteDone * if pumvisible() == 0 | pclose | endif
 
@@ -1972,7 +1971,6 @@
             nnoremap <C-p> <CMD>call FZFFindFile()<CR>
             nnoremap <LEADER>;o <CMD>call FZFUpOneDir()<CR>
             nnoremap <LEADER>;i <CMD>call OpenRanger()<CR>
-            nnoremap <F2> <CMD>call OpenRanger()<CR>
             nnoremap <LEADER>;p <CMD>call FZFFindFileInSameDir()<CR>
 
         " Commentary
@@ -1989,7 +1987,7 @@
 
         " Formatting
             function! FormatFile()
-                if index(['javascript', 'typescript', 'typescriptreact', 'html', 'scc', 'scss', 'sass'], &ft) >= 0
+                if index(['javascript', 'typescript', 'html', 'scc', 'scss', 'sass'], &ft) >= 0
                     Prettier
                 else
                     let saveview = winsaveview()
@@ -2154,8 +2152,8 @@
         autocmd! FileType matlab let b:commentary_format="% %s"
 
     " Auto detecting indent on entering a file! | Plugin: vim-adaptive-indent
-        autocmd BufReadPost * AdaptIndent
-        " autocmd BufEnter * set tabstop=4
+        " autocmd FileType * AdaptIndent
+        autocmd FileType * set tabstop=4
 
     " Language specific maps
         function! CloseXmlTag()

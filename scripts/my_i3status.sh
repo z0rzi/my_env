@@ -12,7 +12,6 @@ SCROLL_DOWN=5
 
 JSON_PARSER="/home/zorzi/.my_env/scripts/parse_json.js"
 AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
-WEATHER_TOOL="/home/zorzi/.my_env/scripts/meteo.js"
 
 #
 # DATA
@@ -35,21 +34,6 @@ WEATHER_TOOL="/home/zorzi/.my_env/scripts/meteo.js"
     ICON_LOCK_OFF=''
     ICON_LOCK_ON=''
     
-    ICON_WEATHER_RAIN='🌧️'
-    ICON_WEATHER_RAINSUN='🌦️ '
-    ICON_WEATHER_SNOWFLAKE='❄️'
-    ICON_WEATHER_SNOW='🌨️'
-    ICON_WEATHER_STORM='🌩️'
-    ICON_WEATHER_STORMRAIN='⛈️'
-    ICON_WEATHER_TORNADO='🌪️'
-    ICON_WEATHER_CLOUDY0='☁️'
-    ICON_WEATHER_CLOUDY1='⛅'
-    ICON_WEATHER_CLOUDY2='🌤️'
-    ICON_WEATHER_SUN='☀️'
-    ICON_WEATHER_COMET='☄️'
-    ICON_WEATHER_NIGHT='🌌'
-    ICON_WEATHER_MOON='🌘'
-
     ICON_MONITOR=''
 
     THRESHOLD_BATTERY_LOW=10
@@ -309,33 +293,6 @@ WEATHER_TOOL="/home/zorzi/.my_env/scripts/meteo.js"
             systemctl status docker &> /dev/null
             [ $? -eq 0 ] && systemctl stop docker &> /dev/null || systemctl start docker &> /dev/null
         }
-
-    # WEATHER
-        function _get_weather {
-            weather_cache='/tmp/.weather'
-            if [ ! -f $weather_cache ]; then
-                $WEATHER_TOOL --save="$weather_cache"
-            fi
-            $WEATHER_TOOL --load="$weather_cache" $1
-        }
-        function weather_text {
-            printf " `_get_weather short` "
-        }
-        function weather_click {
-            rm /tmp/.weather
-            if [ "$1" = "$CLICK_RIGHT" ]; then
-
-                title=''
-                description=''
-                while read line; do
-                    [[ "$line" =~ ^\s*$ ]] && continue
-
-                    [ "$title" ] && description="$description\n$line" || title=$line
-                done <<< `_get_weather long 2> /dev/null`
-                notify-send "$title" "$description" -t 5000
-            fi
-        }
-
 
 #
 # SETUP

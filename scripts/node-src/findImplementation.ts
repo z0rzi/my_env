@@ -21,24 +21,40 @@ interface Finder {
     resolvePath(basePath: string, searchPath: string): string;
 }
 
+const rx = (str: string) => new RegExp(str);
+
 class TsFinder implements Finder {
     getInfos(line: string, pos: number): { type: InfoType; info?: string } {
         const word = line.wordAtPos(pos);
         console.log('line', line);
+        console.log('word', word);
+
+        // If the word is directly preceeded by a definer word, we're already at the implémentation, success
         if (
-            new RegExp(
+            rx(
                 `(private|public|class|interface|enum|type|let|const|var|function)\\s*${word}`
+            ).test(line) ||
+            rx(
+                `${word}.*{\\s$` // it's a function definition
             ).test(line)
         ) {
             return { type: InfoType.IMPLEMENTATION };
         }
-        if (new RegExp(`import .*${word}.*from`).test(line)) {
+
+        // The word is imported from another file.
+        if (rx(`import .*${word}.*from`).test(line)) {
             const matches = line.match(/from\s*['"`](?<path>.*)['"`]/);
             if (!matches) {
                 // Could not find file...
                 return { type: InfoType.NONE };
             }
             return { type: InfoType.OTHER_FILE, info: matches.groups['path'] };
+        }
+
+        // The word is a property of another variable
+        if (rx(`\\.${word}`).test(line)) {
+            // Getting the word before
+            const wordBefore = line.match(rx(`(\\w+)\\.${word}`))[1];
         }
         return { type: InfoType.NONE };
     }
@@ -103,13 +119,19 @@ class Searcher {
         this.content = fs.readFileSync(path).toString().split(/\n/g);
     }
 
+    /**
+     * Gives the word at this specific position
+     */
     wordAtPos(line: number, col: number): string {
         if (this.content.length <= line) return '';
         const lineText = this.content[line];
         return lineText.wordAtPos(col);
     }
 
-    findWord(word: string): Pos[] {
+    /**
+     * Looks for all occurences of a specific word in the current file
+     */
+    private findWord(word: string): Pos[] {
         const rx = new RegExp('\\b' + word + '\\b', 'g');
         const out: Pos[] = [];
         let lineNum = 0;
@@ -137,7 +159,9 @@ class Searcher {
 
         const finder = getFinderForFile(this.filePath);
         const positions = this.findWord(word);
+
         for (const pos of positions) {
+            // Going over all occurences of this word in the file.
             const infos = finder.getInfos(this.content[pos.line], pos.col);
             console.log('infos', infos);
             if (infos.type === InfoType.IMPLEMENTATION) {
@@ -174,8 +198,4 @@ if (/findImplementation\.js$/.test(process.argv[1])) {
     const word = s.wordAtPos(Number(line) - 1, Number(col));
 
     console.log(s.findImplementation(word));
-}
-
-function pos(line: string, pos: any) {
-    throw new Error('Function not implemented.');
 }

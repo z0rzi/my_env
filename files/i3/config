@@ -33,7 +33,7 @@
 # SHORTCUTS
 #
     # Fast type
-        bindsym Ctrl+$alt+e exec kitty
+        bindsym Ctrl+$alt+e exec bash -c "sleep .2 && xdotool type --clearmodifiers 'baptiste.zorzi@gmail.com'"
 
     # start a terminal
         bindsym $mod+Return exec kitty
@@ -50,7 +50,7 @@
         bindsym $sup+e exec kitty fish -c "ranger"
 
     # Calculator
-        bindsym $sup+r exec kitty --title floating -o remember_window_size=no -o initial_window_height=500 -o initial_window_width=1000 bc -l
+        bindsym $sup+r exec kitty --title floating -o remember_window_size=no -o initial_window_height=500 -o initial_window_width=1000 node
 
     # Screenshot
         bindsym --release $alt+Shift+s exec bash -c "flameshot & flameshot gui"
@@ -76,7 +76,8 @@
         # bindsym Ctrl+Shift+x exec gpaste-client ui
         bindsym Ctrl+Shift+x exec copyq toggle
 
-        bindsym Ctrl+Shift+z exec /home/zorzi/.my_env/scripts/correct.js
+        # bindsym Ctrl+Shift+z exec /home/zorzi/.my_env/scripts/correct.js
+        bindsym Ctrl+Shift+z exec /home/zorzi/.my_env/scripts/improve-code.js
 
     # program launcher
         bindsym $alt+d exec --no-startup-id rofi -show drun -run-shell-command 'kitty fish -ic "{cmd} && read"'
@@ -126,8 +127,6 @@
 #
     # Open specific applications in floating mode
     for_window [class=".*"] border pixel 0
-    for_window [class="Meld"] floating enable border pixel 1
-    for_window [title="meld"] floating enable border pixel 1
     for_window [class="CopyQ"] floating enable border pixel 1
     for_window [title="CopyQ"] floating enable border pixel 1
     for_window [title="alsamixer"] floating enable border pixel 1

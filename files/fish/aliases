@@ -1,8 +1,6 @@
 :e nvim
 vim nvim
-minivim   nvim -u NONE
-tinyvim   nvim -u NONE
-vimtiny   nvim -u NONE
+minivim   nvim -u ~/.minivimrc
 
 feh feh --auto-rotate
 
@@ -17,6 +15,8 @@ vimcss nvim /tmp/_(random).css
 vimsql nvim /tmp/_(random).sql
 vimpy nvim /tmp/_(random).py
 vimtxt nvim /tmp/_(random).txt
+
+gpu __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia
 
 bc bc -l
 

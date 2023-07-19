@@ -17,9 +17,7 @@ const specialCharacs = {
     '&uuml;': 'ü',
 };
 /** Tags which might not be closed */
-const unclosingTags = [
-    'input', 'img', 'li'
-];
+const unclosingTags = ['input', 'img', 'li'];
 export class HtmlNode {
     constructor(rawHtml, firstTime = true) {
         this.children = [];
@@ -46,7 +44,8 @@ export class HtmlNode {
                 .replace(/<\/(?:br|hr)>/g, '')
                 .replace(/<!--.*?-->/g, '')
                 .replace(/<[^a-zA-Z]{2}.*?>/g, '')
-                .replace(/^<!doctype.*?>/gi, '');
+                .replace(/^<!doctype.*?>/gi, '')
+                .replace(/^<\?.*?\?>/gi, '');
         }
         if (rawHtml.charAt(0) !== '<') {
             this.text = rawHtml.match(/^[^<]*/g)[0];
@@ -75,7 +74,7 @@ export class HtmlNode {
         this._opening_tag_length = rawHtml.length - content.length;
         this.tag = tag;
         this.selfClosing = !!selfClosing;
-        if (/^(?:meta|link|br|hr|img)$/i.test(tag))
+        if (/^(?:meta|br|hr|img)$/i.test(tag))
             this.selfClosing = true;
         this.parseProps(props);
         this.innerHTML = content;
@@ -154,7 +153,8 @@ export class HtmlNode {
                 if (tag !== this.tag) {
                     // We met a closing tag, but it's not the one we expected
                     if (unclosingTags.includes(this.tag)) {
-                        this._content_length = initialLength - rawContent.length;
+                        this._content_length =
+                            initialLength - rawContent.length;
                         this._closing_tag_length = 0;
                         break;
                     }
@@ -170,6 +170,7 @@ export class HtmlNode {
                 break;
             }
             const kid = new HtmlNode(rawContent, false);
+            kid.parent = this;
             rawContent = rawContent.slice(kid._total_length);
             this.children.push(kid);
         }
@@ -196,6 +197,65 @@ export class HtmlNode {
                 .join(', \n  ');
             out += '\n}';
         }
+        return out;
+    }
+    toObject() {
+        if (this.isTextNode())
+            return `"${this.text}"`;
+        let out = {
+            tag: this.tag,
+        };
+        if (this.props && Object.keys(this.props).length) {
+            out.props = this.props;
+        }
+        if (this.children.length)
+            out.children = this.children.map(kid => kid.toObject());
+        return out;
+    }
+    static fromObject(obj) {
+        if (typeof obj === 'string')
+            return new HtmlNode(obj);
+        const papa = new HtmlNode('');
+        papa.selfClosing = false;
+        papa.text = '';
+        papa.tag = obj.tag;
+        papa.props = obj.props || {};
+        if (obj.children) {
+            papa.children = obj.children.map(kid => HtmlNode.fromObject(kid));
+        }
+        return papa;
+    }
+    toHTML() {
+        if (this.isTextNode())
+            return this.text;
+        let out = `<${this.tag}`;
+        let strProps = [];
+        Object.entries(this.props).forEach(([key, val]) => {
+            strProps.push(`${key}="${val.replace(/"/g, '\\"')}"`);
+        });
+        if (strProps.length)
+            out += ' ' + strProps.join(' ');
+        if (this.selfClosing)
+            out += '/';
+        out += '>';
+        if (this.children.length === 1 && this.children[0].isTextNode()) {
+            out += this.children[0].text;
+        }
+        else {
+            out += '\n';
+            if (this.children.length) {
+                out += ' ';
+                out += this.children
+                    .map(kid => {
+                    let htmlKid = kid.toHTML();
+                    return htmlKid.replace(/\n/g, '\n  ');
+                })
+                    .join('\n  ');
+                out += '\n';
+            }
+        }
+        if (!this.selfClosing)
+            out += `</${this.tag}>`;
         return out;
     }
     getNodeById(id) {
