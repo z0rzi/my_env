@@ -1,8 +1,10 @@
 #!/bin/node
 import clipboardy from 'clipboardy';
 import { Configuration, OpenAIApi } from 'openai';
+import fs from 'fs';
+import path from 'path';
 const configuration = new Configuration({
-    apiKey: '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',
+    apiKey: fs.readFileSync(path.join(process.env['HOME'], '.config', 'openapi-token.conf'), { encoding: 'utf8' }).trim(),
 });
 const openai = new OpenAIApi(configuration);
 if (/improve-code.js/.test(process.argv[1])) {
@@ -21,13 +23,13 @@ if (/improve-code.js/.test(process.argv[1])) {
         model: 'text-davinci-003',
         prompt: `Improve the following code: \n\n\`\`\`${content}\`\`\``,
         temperature: 0.3,
-        max_tokens: 1000
+        max_tokens: 1000,
     })
-        .then((response) => {
+        .then(response => {
         console.log(response.data.choices[0].text.trim());
         clipboardy.writeSync(response.data.choices[0].text.trim());
     })
-        .catch((err) => {
+        .catch(err => {
         console.error(err);
     });
 }

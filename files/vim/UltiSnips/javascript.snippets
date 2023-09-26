@@ -32,6 +32,11 @@ https.get('${1:http://my_link.com}', resp => {
 endsnippet
 
 
+snippet random_string "Creates a random string containing numbers and lowercase letters" b
+Math.round(Math.random() * 36 ** ${0:length}).toString(36);
+endsnippet
+
+
 snippet express_init "Creates an express server" b
 const express = require('express');
 const app = express();

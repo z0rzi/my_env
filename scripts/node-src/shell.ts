@@ -125,7 +125,6 @@ export async function sourceCmd(
     process.stdin.resume();
     process.stdin.on('data', indata);
     proc.stdout.on('data', outdata);
-    process.stdin.setRawMode(true);
 
     return new Promise((resolve, reject) => {
         proc.on('exit', function (code) {

@@ -753,7 +753,7 @@
                 \ '--preview-window="right:50%:rounded:nowrap:nofollow:nocycle:nohidden" ' .
                 \ '--sync'
     function! FZFFindFile()
-        let cmd = '/usr/bin/ls --color=never -t (rg . --files) 2> /dev/null'
+        let cmd = 'bash -c "rg . --files || find . -type f" | datesort.js'
         silent! call fzf#run({'source': cmd, 'sink': 'e', 'options': g:fzf_options, 'down':'40%'})
     endfunction
     function! FZFUpOneDir()
@@ -1172,16 +1172,90 @@
     endfunction
 
     function! TsDocFunc()
-        norm! A
-        call search('(', 'b')
-        let doc = system('documentTs.js ' . @% . ' ' . line('.'))
-        for line in split(doc, '\n')
-            call append(line('.')-1, repeat(' ', indent('.')) . line)
-        endfor
-        call search('\/\*\*', 'b')
-        norm! jA
+        " Going after the parenthesis
+        norm ^ma%
+
+        " Going at the opening bracket
+        call search('{', 'c')
+
+        " Looking for the end of the function
+        let [endline, endcol] = searchpairpos('{', '', '}', 'n')
+
+        call setpos('.', getpos("'a"))
+
+        let text = ''
+        let line = line('.')
+
+        while line < endline
+            let text = text . '\n' . getline(line)
+            let line += 1
+        endwhile
+
+        let @+ = text
+
+        call system('node /home/zorzi/.my_env/scripts/js-comment-function.js')
+
+        sleep 100m
+
+        call setpos('.', getpos("'a"))
+        norm "+P
+    endfunction
+    function! TsDocSelection()
+        " Going at the start of the selection
+        call setpos('.', getpos("'<"))
+
+        let text = ''
+        let line = line('.')
+        let endline = line("'>")
+
+        while line < endline
+            let text = text . '\n' . getline(line)
+            let line += 1
+        endwhile
+
+        let @+ = text
+
+        call system('node /home/zorzi/.my_env/scripts/js-comment-code.js')
+
+        sleep 100m
+
+        norm gvp
+    endfunction
+    function! GuessCode()
+        let text = ''
+        let line = line('.') - 40
+        let endline = line('.') + 10
+
+        if line < 0 | let line = 0 | endif
+        if endline > line('$') | let endline = line('$') | endif
+
+        while line < endline
+            if line == line('.')
+                let linetext = getline(line)
+                let beforeCursor = linetext[:col('.') - 1]
+                if len(beforeCursor) == 0
+                    let beforeCursor = repeat(' ', indent(prevnonblank(line)))
+                endif
+                let afterCursor = linetext[col('.'):]
+                let text = text . '\n' . beforeCursor . '#CURSOR#' . afterCursor
+            else
+                let text = text . '\n' . getline(line)
+            endif
+            let line += 1
+        endwhile
+
+        let @+ = text
+
+        let res = system('node /home/zorzi/.my_env/scripts/js-guess-code.js ' . &ft)
+        let @+ = trim(res)
+
+        sleep 100m
+
+        norm p
     endfunction
     nmap <LEADER>* :call TsDocFunc()<CR>
+    vmap <LEADER>* <ESC><CMD>call TsDocSelection()<CR>
+    inoremap <C-p> <ESC><CMD>call GuessCode()<CR>
 
 " 
 " PLUGINS CONFIG
@@ -1554,6 +1628,9 @@
     " JsDoc
         let g:jsdoc_formatter = 'tsdoc'
 
+    " vimspector
+        let g:vimspector_base_dir='/home/zorzi/.vim/bundle/vimspector'
+
     " diffunit
         let g:DiffUnit = 'Word'
 
@@ -1626,6 +1703,9 @@
 
             " Multi cursors
             Plugin 'mg979/vim-visual-multi'
+
+            " AI
+            Plugin 'madox2/vim-ai'
 
         " 
         " Pretty editor
@@ -2000,6 +2080,7 @@
 
             nnoremap <LEADER>= <CMD>call FormatFile()<CR>
             autocmd! FileType json nnoremap <LEADER>= <CMD>%!jq<CR>
+            autocmd! FileType jsonc nnoremap <LEADER>= <CMD>%!jq<CR>
 
     " Buffer related maps
         " Buffers navigation 
@@ -2035,9 +2116,9 @@
             " inoremap )) (<CMD>call SmartJumpToEnd()<CR><RIGHT>)
             " inoremap ]] [<CMD>call SmartJumpToEnd()<CR><RIGHT>]
             " inoremap }} {<CMD>call SmartJumpToEnd()<CR><RIGHT>}
-            inoremap )<TAB> (<CMD>call SmartJumpToEnd()<CR><RIGHT>)
-            inoremap ]<TAB> [<CMD>call SmartJumpToEnd()<CR><RIGHT>]
-            inoremap }<TAB> {<CMD>call SmartJumpToEnd()<CR><RIGHT>}
+            " inoremap )<TAB> (<CMD>call SmartJumpToEnd()<CR><RIGHT>)
+            " inoremap ]<TAB> [<CMD>call SmartJumpToEnd()<CR><RIGHT>]
+            " inoremap }<TAB> {<CMD>call SmartJumpToEnd()<CR><RIGHT>}
 
         " Backspace selector
             function! BSOperator()
@@ -2145,6 +2226,7 @@
         autocmd! FileType dockerfile let b:commentary_format="# %s"
         autocmd! FileType vue let b:commentary_format="// %s"
         autocmd! FileType typescript let b:commentary_format="// %s"
+        autocmd! FileType typescriptreact let b:commentary_format="// %s"
         autocmd! FileType sql let b:commentary_format="-- %s"
         autocmd! FileType coffee let b:commentary_format="# %s"
         autocmd! FileType conf let b:commentary_format="# %s"
@@ -2181,6 +2263,7 @@
         autocmd BufWritePost * GitGutter
 
     " Unsupported files formats
+        autocmd BufEnter *.json set filetype=jsonc
         autocmd BufEnter *.abnf set filetype=abnf
         autocmd BufEnter *.flux set filetype=flux
         autocmd BufEnter *.fish set filetype=fish

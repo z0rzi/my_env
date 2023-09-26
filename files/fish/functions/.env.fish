@@ -10,6 +10,10 @@ function .env
     else
         set path $PWD
         while test "$PWD" != "/"
+            if test -e "$PWD/.nvmrc"
+                echo "'.nvmrc' file found at '$PWD'"
+                nvm use
+            end
             if test -e "$PWD/.env"
                 echo "'.env' file found at '$PWD'"
                 .env "$PWD/.env"

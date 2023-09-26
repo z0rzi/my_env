@@ -2,6 +2,22 @@ priority 50
 
 extends javascript
 
+snippet decorator "Creates a new Decorator function" b
+function ${1:Log}(
+    target: any,
+    propertyKey: string | Symbol,
+    descriptor: PropertyDescriptor
+) {
+    let originalMethod = descriptor.value;
+
+    descriptor.value = function() {
+        console.time('Function run');
+        originalMethod(...arguments);
+        console.timeEnd('Function run');
+    }
+}
+endsnippet
+
 snippet singleton "Creates a Singleton Class" b
 class ${1:Singleton} {
 	static _instance: $1;

@@ -177,6 +177,7 @@ export class Keyboard {
         this.callback = null;
         const iid = setInterval(() => {
             if (!this.rolling) {
+                console.log('TURNING OFF KEYBOARD');
                 clearTimeout(iid);
                 process.stdin.pause();
             }

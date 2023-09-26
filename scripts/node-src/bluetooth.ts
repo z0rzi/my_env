@@ -1,6 +1,6 @@
 #!/bin/node
 
-import { fuzzyFind, FuzzyFinder } from './fuzzyFinder.js';
+import prompts from 'prompts';
 import { cmd } from './shell.js';
 
 async function is_bluetooth_started() {
@@ -15,18 +15,28 @@ async function is_bluetooth_started() {
 /**
  * Returns the devices as {id: '1:1:1:1', name: 'Device'}
  */
-async function get_devices(): Promise<{ id: string; name: string }[]> {
+async function get_devices(
+): Promise<{ id: string; name: string }[]> {
     const raw = await cmd('bluetoothctl devices');
-    return raw.split('\n').map(line => ({
-        id: line.split(/\s+/)[1],
-        name: line.split(/\s+/).slice(2).join(' '),
-    }));
+
+    const out = [] as { name: string; id: string }[];
+
+    raw.split('\n').forEach(line => {
+        const id = line.split(/\s+/)[1];
+        const name = line.split(/\s+/).slice(2).join(' ');
+
+        if (/^[0-9A-F-]*$/.test(name)) return;
+
+        out.push({ id, name });
+    });
+
+    return out;
 }
 
 async function reset_connection_with(device_id: string): Promise<void> {
     await cmd(`bluetoothctl untrust ${device_id}`);
     await cmd(`bluetoothctl remove ${device_id}`);
-    await cmd(`bluetoothctl --timeout 3 scan on`);
+    await cmd(`bluetoothctl --timeout 5 scan on`);
     const res = await cmd(`bluetoothctl connect ${device_id}`);
     await cmd(`bluetoothctl scan off`);
     console.log('res', res);
@@ -54,7 +64,25 @@ async function connect_to(device_id: string): Promise<string> {
  * @param options {string[]}
  */
 async function fuzzy_select(options: string[]): Promise<string> {
-    return fuzzyFind(options).then(choice => choice.label);
+    return prompts({
+        type: 'autocomplete',
+        name: 'res',
+        initial: '',
+        message: 'Pick a bluetooth device',
+        choices: options.map(opt => ({ title: opt })),
+    })
+        .then(res => {
+            return res.res;
+        })
+        .catch(() => {
+            console.log('ERROR');
+        });
+}
+
+async function sleep(time = 0.2) {
+    return new Promise(resolve => {
+        setTimeout(resolve, time * 1000);
+    });
 }
 
 start();
@@ -80,10 +108,41 @@ async function start() {
     }
 
     const is_started = await is_bluetooth_started();
-    if (!is_started) await cmd('systemctl start bluetooth');
+    if (!is_started) {
+        await cmd('systemctl start bluetooth');
+        await sleep(1);
+    }
 
-    const devices = await get_devices();
+    let devices = await get_devices();
+    console.log(devices.map(dev => dev.name));
+
+    let stop = false;
+    const loop = async () => {
+        cmd(`bluetoothctl scan on`);
+        while (true) {
+            // Starting scan...
+            await sleep(5)
+            devices = await get_devices();
+            if (stop) return;
+            console.log(devices.map(dev => dev.name));
+        }
+    };
+
+    loop();
+
+    await prompts({
+        type: 'confirm',
+        name: 'value',
+        message: 'Hit enter when you see your device',
+        initial: true,
+    });
+
+    stop = true;
+
     const choice_name = await fuzzy_select(devices.map(d => d.name));
+
+    console.log(choice_name);
+
     const choice = devices.find(dev => dev.name === choice_name);
     try {
         const res = await connect_to(choice.id);

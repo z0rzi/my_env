@@ -30,7 +30,7 @@ async function parseTrace(trace: string) {
     const lines = trace.split('\n').reverse();
 
     for (const line of lines) {
-        const matches = /[a-z-.]+\.[jt]sx?/i.exec(line);
+        const matches = /[a-z-./@_]+\.[jt]sx?/i.exec(line);
 
         if (matches && !filesToIgnore.has(matches[0])) {
             const idx = matches.index;
@@ -40,11 +40,16 @@ async function parseTrace(trace: string) {
 
             if (lineMatch) {
                 const lineNum = +lineMatch[0].match(/\d+/)[0];
-                const filePath = await cmd(`fd ${fileName}`);
+
+                let filePath = '';
+                if (fileName.startsWith('/')) {
+                    filePath = fileName;
+                } else {
+                    filePath = await cmd(`fd ${fileName}`);
+                }
 
                 console.log(
-                    '\n\n' + 
-                    kl.bold(kl.blue(fileName)) + kl.green(lineMatch[0])
+                    '\n\n' + kl.bold(kl.blue(fileName)) + kl.green(lineMatch[0])
                 );
 
                 if (!!filePath.trim()) {

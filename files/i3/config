@@ -78,6 +78,7 @@
 
         # bindsym Ctrl+Shift+z exec /home/zorzi/.my_env/scripts/correct.js
         bindsym Ctrl+Shift+z exec /home/zorzi/.my_env/scripts/improve-code.js
+        bindsym Ctrl+Shift+c exec /home/zorzi/.my_env/scripts/genJSDoc.js
 
     # program launcher
         bindsym $alt+d exec --no-startup-id rofi -show drun -run-shell-command 'kitty fish -ic "{cmd} && read"'
@@ -243,13 +244,13 @@
     exec --no-startup-id xfce4-power-manager
     exec --no-startup-id xautolock -time 30 -locker blurlock
     exec_always --no-startup-id bash -c "$HOME/.local/bin/custom/configure-inputs.sh"
-    exec_always --no-startup-id bash -c "$HOME/.local/bin/custom/wise.js save-cents"
+    # exec_always --no-startup-id bash -c "$HOME/.local/bin/custom/wise.js save-cents"
     exec_always --no-startup-id ff-theme-util
     
     exec --no-startup-id bash -c "xkbcomp -w0 -I$HOME/.xkb ~/.xkb/keymap/basic $DISPLAY"
     exec --no-startup-id bash ~/.my_env/scripts/monitors.sh
     exec_always --no-startup-id bash -c '[ -f "$HOME/.Xmodmap" ] && xmodmap $HOME/.Xmodmap'
-    exec --no-startup-id bash -c "ibus-daemon -drx --panel /usr/lib/ibus/ibus-ui-gtk3 &"
+    exec --no-startup-id bash -c "ibus-daemon -d"
     exec --no-startup-id bash -c "copyq &"
     exec --no-startup-id libinput-gestures-setup start
 

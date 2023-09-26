@@ -1,4 +1,4 @@
-#!/bin/node
+#!/bin/env node
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,14 +8,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import fetch from 'node-fetch';
-import { HtmlNode } from './html.js';
-function getEmojis(query) {
+import { cmd } from './shell.js';
+export function getLayout() {
     return __awaiter(this, void 0, void 0, function* () {
-        let res = yield fetch('https://emojipedia.org/search/?q=' + encodeURIComponent(query)).then(res => res.text());
-        // console.log(res);
-        const doc = new HtmlNode(res);
-        console.log(doc.querySelector('ol.search-results')[0].children.map(kid => kid.innerText));
+        return cmd('kitty @ ls').then(res => {
+            return JSON.parse(res);
+        });
     });
 }
-getEmojis(process.argv[2]);
+/**
+ * Finds the currently focussed tab
+ *
+ * @returns `null` if no tab is focussed
+ */
+export function getFocussedTab() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const layout = yield getLayout();
+        for (const instance of layout) {
+            for (const tab of instance.tabs) {
+                if (!tab.is_focused)
+                    continue;
+                return tab;
+            }
+        }
+        return null;
+    });
+}

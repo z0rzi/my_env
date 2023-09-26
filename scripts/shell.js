@@ -96,7 +96,6 @@ export function sourceCmd(cmd, args = []) {
         process.stdin.resume();
         process.stdin.on('data', indata);
         proc.stdout.on('data', outdata);
-        process.stdin.setRawMode(true);
         return new Promise((resolve, reject) => {
             proc.on('exit', function (code) {
                 process.stdin.setRawMode(false);
