@@ -1209,13 +1209,15 @@
         let endline = line("'>")
 
         while line < endline
-            let text = text . '\n' . getline(line)
+            let text = text . "\n" . getline(line)
             let line += 1
         endwhile
 
         let @+ = text
 
-        call system('node /home/zorzi/.my_env/scripts/js-comment-code.js')
+        let res = system('node /home/zorzi/.my_env/scripts/js-comment-code.js')
+
+        let @+ = trim(res)
 
         sleep 100m
 
@@ -1686,6 +1688,9 @@
         " 
             " indent range
             Plugin 'vim-indent-object'
+
+            " AI LLM
+            Plugin 'gsuuon/llm.nvim'
 
             " Fast surround shortcuts
             Plugin 'tpope/vim-surround'

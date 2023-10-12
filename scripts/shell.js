@@ -84,14 +84,19 @@ export function logInFile(obj, file = '/tmp/tmp.txt') {
         fs.writeFileSync(file, str);
     });
 }
-export function sourceCmd(cmd, args = []) {
+export function sourceCmd(cmd, args = [], outMapper) {
     return __awaiter(this, void 0, void 0, function* () {
         const proc = child_process.spawn(cmd, args);
         function indata(c) {
             proc.stdin.write(c);
         }
         function outdata(c) {
-            process.stdout.write(c);
+            if (outMapper) {
+                process.stdout.write(outMapper(c.toString()));
+            }
+            else {
+                process.stdout.write(c);
+            }
         }
         process.stdin.resume();
         process.stdin.on('data', indata);

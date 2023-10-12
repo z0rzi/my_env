@@ -8,11 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import prompts from 'prompts';
-import { sourceCmd } from './shell.js';
-import { simpleGit } from 'simple-git';
-import kl from 'kleur';
 import fs from 'fs';
+import kl from 'kleur';
+import path from 'path';
+import prompts from 'prompts';
+import { simpleGit } from 'simple-git';
+import { encodeLink } from './hyperlink.js';
+import { cmd } from './shell.js';
 const options = {
     baseDir: process.cwd(),
     binary: 'git',
@@ -64,49 +66,54 @@ const categories = [
     const commitedFiles = rawCommitedFiles.split(/\n/g);
     const diff = yield git.diff(['--staged']);
     {
-        const log = (message) => {
-            fs.appendFileSync('/tmp/_.ts', message + '\n');
-        };
+        let dangerMessage = '';
         let filenameLogged = false;
-        let dangerFound = false;
-        let file = '';
-        fs.writeFileSync('/tmp/_.ts', '');
+        let filePath = '';
+        const logCode = (code) => __awaiter(void 0, void 0, void 0, function* () {
+            // Get the file name from the variable filePath
+            const fileName = path.basename(filePath);
+            const _filePath = '/tmp/' + fileName;
+            fs.writeFileSync(_filePath, code);
+            const coloredCode = yield cmd('bat --color=always -pp ' + _filePath);
+            dangerMessage += coloredCode + '\n';
+        });
         const logFileName = () => {
             if (!filenameLogged) {
-                dangerFound = true;
                 filenameLogged = true;
-                log('\n' + file);
+                dangerMessage += '\n' + encodeLink(filePath) + '\n';
             }
         };
         for (let diffLine of diff.split('\n')) {
             if (diffLine.startsWith('+++')) {
-                file = diffLine.slice(6);
+                filenameLogged = false;
+                filePath = diffLine.slice(6);
             }
             else if (diffLine.startsWith('+')) {
                 // Text has been added
                 diffLine = diffLine.slice(2);
                 if (/^\s*\/\//.test(diffLine)) {
                     logFileName();
-                    log(diffLine);
+                    yield logCode(diffLine);
                 }
                 if (/TODO/.test(diffLine)) {
                     logFileName();
-                    log(diffLine);
+                    yield logCode(diffLine);
                 }
                 if (/\bconsole\b/.test(diffLine)) {
                     logFileName();
-                    log(diffLine);
+                    yield logCode(diffLine);
                 }
                 if (/\bdebug\b/.test(diffLine)) {
                     logFileName();
-                    log(diffLine);
+                    yield logCode(diffLine);
                 }
             }
         }
-        if (dangerFound) {
+        if (dangerMessage.length) {
             console.log('The commited code seems to contain logs or comments...');
-            yield sourceCmd('bat', ['--color=always', '-pp', '/tmp/_.ts']);
-            console.log('\n');
+            // await sourceCmd('bat', ['--color=always', '-pp', '/tmp/_.ts'], str => str.replace(/\x1b/g, '\\x1b'));
+            // await sourceCmd('bat', ['--color=always', '-pp', '/tmp/_.ts'], addHyperlinksToText);
+            console.log(dangerMessage);
             const confirm = yield prompts({
                 type: 'confirm',
                 name: 'confirmCommit',

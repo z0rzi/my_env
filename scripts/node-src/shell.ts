@@ -111,15 +111,21 @@ export async function logInFile(
 
 export async function sourceCmd(
     cmd: string,
-    args: string[] = []
+    args: string[] = [],
+    outMapper?: (chunk: string) => string
 ): Promise<number> {
     const proc = child_process.spawn(cmd, args);
 
-    function indata(c) {
+    function indata(c: Buffer) {
         proc.stdin.write(c);
     }
-    function outdata(c) {
-        process.stdout.write(c);
+    function outdata(c: Buffer) {
+        if (outMapper) {
+            process.stdout.write(outMapper(c.toString()));
+        } else {
+            process.stdout.write(c);
+
+        }
     }
 
     process.stdin.resume();

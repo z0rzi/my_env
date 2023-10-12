@@ -46,8 +46,10 @@
         bindsym Ctrl+$mod+$alt+Escape exec shutdown now
 
     # File explorer
-        # bindsym $sup+e exec dolphin
         bindsym $sup+e exec kitty fish -c "ranger"
+
+    # Note taking
+        bindsym $mod+n exec flatpak run md.obsidian.Obsidian
 
     # Calculator
         bindsym $sup+r exec kitty --title floating -o remember_window_size=no -o initial_window_height=500 -o initial_window_width=1000 node
@@ -120,8 +122,8 @@
 
     # change borders
         # bindsym $mod+y border pixel 1
-        bindsym $mod+n border none
-        bindsym $mod+b border normal
+        # bindsym $mod+n border none
+        # bindsym $mod+b border normal
 
 #
 # WINDOW SPECIFIC CONFIG
@@ -130,6 +132,7 @@
     for_window [class=".*"] border pixel 0
     for_window [class="CopyQ"] floating enable border pixel 1
     for_window [title="CopyQ"] floating enable border pixel 1
+    for_window [class="obsidian"] floating enable border pixel 1
     for_window [title="alsamixer"] floating enable border pixel 1
     for_window [class="calamares"] floating enable border normal
     for_window [class="Clipgrab"] floating enable

@@ -1,10 +1,12 @@
 #!/bin/env node
 
-import prompts from 'prompts';
-import { sourceCmd } from './shell.js';
-import { simpleGit, SimpleGit, SimpleGitOptions } from 'simple-git';
-import kl from 'kleur';
 import fs from 'fs';
+import kl from 'kleur';
+import path from 'path';
+import prompts from 'prompts';
+import { simpleGit, SimpleGit, SimpleGitOptions } from 'simple-git';
+import { encodeLink } from './hyperlink.js';
+import { cmd } from './shell.js';
 
 const options: Partial<SimpleGitOptions> = {
     baseDir: process.cwd(),
@@ -69,54 +71,60 @@ const categories = [
     const diff = await git.diff(['--staged']);
 
     {
-        const log = (message: string) => {
-            fs.appendFileSync('/tmp/_.ts', message + '\n');
-        };
+        let dangerMessage = '';
         let filenameLogged = false;
-        let dangerFound = false;
-        let file = '';
-        fs.writeFileSync('/tmp/_.ts', '');
+        let filePath = '';
 
+        const logCode = async (code: string) => {
+            // Get the file name from the variable filePath
+            const fileName = path.basename(filePath);
+
+            const _filePath = '/tmp/' + fileName;
+            fs.writeFileSync(_filePath, code);
+            const coloredCode = await cmd('bat --color=always -pp ' + _filePath)
+            dangerMessage += coloredCode + '\n';
+        };
         const logFileName = () => {
             if (!filenameLogged) {
-                dangerFound = true;
                 filenameLogged = true;
-                log('\n' + file);
+                dangerMessage += '\n' + encodeLink(filePath) + '\n';
             }
         };
 
         for (let diffLine of diff.split('\n')) {
             if (diffLine.startsWith('+++')) {
-                file = diffLine.slice(6);
+                filenameLogged = false;
+                filePath = diffLine.slice(6);
             } else if (diffLine.startsWith('+')) {
                 // Text has been added
                 diffLine = diffLine.slice(2);
 
                 if (/^\s*\/\//.test(diffLine)) {
                     logFileName();
-                    log(diffLine);
+                    await logCode(diffLine);
                 }
                 if (/TODO/.test(diffLine)) {
                     logFileName();
-                    log(diffLine);
+                    await logCode(diffLine);
                 }
                 if (/\bconsole\b/.test(diffLine)) {
                     logFileName();
-                    log(diffLine);
+                    await logCode(diffLine);
                 }
                 if (/\bdebug\b/.test(diffLine)) {
                     logFileName();
-                    log(diffLine);
+                    await logCode(diffLine);
                 }
             }
         }
 
-        if (dangerFound) {
+        if (dangerMessage.length) {
             console.log(
                 'The commited code seems to contain logs or comments...'
             );
-            await sourceCmd('bat', ['--color=always', '-pp', '/tmp/_.ts']);
-            console.log('\n');
+            // await sourceCmd('bat', ['--color=always', '-pp', '/tmp/_.ts'], str => str.replace(/\x1b/g, '\\x1b'));
+            // await sourceCmd('bat', ['--color=always', '-pp', '/tmp/_.ts'], addHyperlinksToText);
+            console.log(dangerMessage);
 
             const confirm = await prompts({
                 type: 'confirm',

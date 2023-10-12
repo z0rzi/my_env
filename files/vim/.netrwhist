@@ -1,5 +1,6 @@
 let g:netrw_dirhistmax  =10
-let g:netrw_dirhistcnt =3
+let g:netrw_dirhistcnt =4
+let g:netrw_dirhist_4='/home/zorzi/.my_env/files/vim'
 let g:netrw_dirhist_3='/home/zorzi/.my_env/scripts'
 let g:netrw_dirhist_2='/home/zorzi/Work/EDF/diagadis/application/typings/express'
 let g:netrw_dirhist_1='/home/zorzi/freelance'
@@ -9,4 +10,3 @@ let g:netrw_dirhist_8='/home/zorzi/.my_env/files/vim/bundle/vim-smart-hits'
 let g:netrw_dirhist_7='/home/zorzi/todo/web-front/node_modules/module-alias'
 let g:netrw_dirhist_6='/home/zorzi/todo/back'
 let g:netrw_dirhist_5='/home/zorzi/todo/web-front/web-front/node_modules/react-beautiful-dnd/src'
-let g:netrw_dirhist_4='/home/zorzi/todo/web-front/web-front/node_modules/react-beautiful-dnd'

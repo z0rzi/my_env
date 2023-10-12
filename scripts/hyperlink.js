@@ -3,12 +3,12 @@ import readline from 'readline';
 import fs from 'fs';
 import kl from 'kleur';
 import child_process from 'child_process';
-const _colorModifierRx = '\\x1b\\[\\d+m';
+const _colorModifierRx = '\\x1b\\[\\d+(?:;\\d+)*m';
 const colorModifierRx = new RegExp(_colorModifierRx, 'gi');
-const _fileRx = '\\/?[a-zA-Z-_]*\\/\\S*\\.[tj]s\\b';
+const _fileRx = `\\/?(?:[a-zA-Z-_.]*/(?:${_colorModifierRx})?)+\\S*\\.[a-z]{2,4}\\b`;
 const _lineNumsParenthesis = '\\(\\d+,\\d+\\)';
-const _lineNumsColon = ':\\d+:\\d+';
-const hyperlinkRx = new RegExp(`(?:${_colorModifierRx})?${_fileRx}(?:(?:${_colorModifierRx})?(?:${_lineNumsColon}|${_lineNumsParenthesis}))?`, 'gi');
+const _lineNumsColon = `(?:${_colorModifierRx})*:(?:${_colorModifierRx})*\\d+(?:${_colorModifierRx})*:(?:${_colorModifierRx})*\\d+`;
+const hyperlinkRx = new RegExp(`(?:${_colorModifierRx})?${_fileRx}(?:${_colorModifierRx})?(?:${_lineNumsColon}|${_lineNumsParenthesis})?`, 'gi');
 function removeColors(coloredString) {
     return coloredString.replace(colorModifierRx, '');
 }
@@ -19,7 +19,7 @@ function removeColors(coloredString) {
  *
  * @returns The encoded hyperlink text if the file exists. Otherwise, the original text.
  */
-function encodeLink(rawLink) {
+export function encodeLink(rawLink) {
     let link = removeColors(rawLink);
     let lineNum = 1;
     let colNum = 1;
@@ -42,51 +42,67 @@ function encodeLink(rawLink) {
         return rawLink;
     }
     const hyperlink = `file://${realPath}?line=${lineNum}&col=${colNum}`;
-    return `\x1b]8;;${hyperlink}\x1b\\${kl.italic(kl.blue(rawLink))}\x1b]8;;\x1b\\`;
+    return `\x1b]8;;${hyperlink}\x1b\\${kl.italic(kl.blue(link))}\x1b]8;;\x1b\\`;
 }
-function addHyperlinksToText(text) {
+export function addHyperlinksToText(text) {
+    var _a;
     let hyperlinkMatch;
-    let lastColorModifier = '';
+    let links = [];
     while ((hyperlinkMatch = hyperlinkRx.exec(text)) !== null) {
-        const link = hyperlinkMatch[0];
-        const linkIdx = hyperlinkMatch.index;
+        links.push({
+            index: hyperlinkMatch.index,
+            link: hyperlinkMatch[0]
+        });
+    }
+    // Starting with the end
+    links = links.reverse();
+    let formatedText = text;
+    let lastColorModifier = '';
+    for (const { index, link } of links) {
+        const linkIdx = index;
         // To avoid messing up the colors, we look for the last color change in the output.
         // We display this color after the link.
         let idx = linkIdx;
         while (idx > 0) {
-            const char = text[idx];
+            const char = formatedText[idx];
             if (char === '\x1b') {
                 // Change of colors... probably.
-                lastColorModifier = text.slice(idx).match(colorModifierRx)[0];
+                lastColorModifier = ((_a = formatedText.slice(idx).match(colorModifierRx)) === null || _a === void 0 ? void 0 : _a[0]) || '';
                 break;
             }
             idx--;
         }
-        text =
-            text.slice(0, linkIdx) +
+        formatedText =
+            formatedText.slice(0, linkIdx) +
                 encodeLink(link) +
                 lastColorModifier +
-                text.slice(linkIdx + link.length);
+                formatedText.slice(linkIdx + link.length);
     }
-    return text;
+    // return formatedText;
+    return formatedText;
 }
 const args = process.argv.slice(2);
 if (args.length) {
-    const cmd = 'script --flush --quiet --return --command'.split(/\s+/g);
-    const proc = child_process.spawn(cmd.shift(), [...cmd, args.join(' ')]);
+    const cmd = 'script --flush --quiet --return /dev/null --command'.split(/\s+/g);
+    const proc = child_process.spawn(cmd.shift(), [...cmd, args.join(' ').replace(/\\/g, '\\\\')]);
     function indata(c) {
         proc.stdin.write(c);
     }
     function outdata(c) {
         process.stdout.write(addHyperlinksToText(c.toString()));
     }
+    function errdata(c) {
+        process.stderr.write(addHyperlinksToText(c.toString()));
+    }
     process.stdin.resume();
     process.stdin.on('data', indata);
     proc.stdout.on('data', outdata);
+    proc.stderr.on('data', errdata);
     proc.on('exit', function (code) {
         process.stdin.pause();
         process.stdin.removeListener('data', indata);
         proc.stdout.removeListener('data', outdata);
+        proc.stderr.removeListener('data', errdata);
         process.exit(code);
     });
 }
