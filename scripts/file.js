@@ -17,27 +17,6 @@ import { GitFileState } from './git.js';
 import { getStyleFor, ICONS } from './icons.js';
 import { cmd, NO_ARGS_PROVIDED } from './shell.js';
 export class File {
-    constructor(path) {
-        this.children = [];
-        this.parent = null;
-        this.path = '';
-        this.isDirectory = false;
-        this.name = '';
-        this.icon = '';
-        this._gitFilters = [/\/\.git\//];
-        this._cachedGitState = null;
-        path = path.replace(/\/+/g, '/').replace(/\/$/g, '');
-        this.path = path;
-        try {
-            fs.existsSync(path);
-        }
-        catch (err) {
-            throw new Error(`Could not find file '${path}'`);
-        }
-        this.isDirectory = fs.lstatSync(path).isDirectory();
-        this.refreshIcon();
-        this.name = path.replace(/^.*\//, '');
-    }
     get content() {
         if (this.isDirectory)
             return '';
@@ -62,6 +41,27 @@ export class File {
         if (!ext)
             return '';
         return ext[0];
+    }
+    constructor(path) {
+        this.children = [];
+        this.parent = null;
+        this.path = '';
+        this.isDirectory = false;
+        this.name = '';
+        this.icon = '';
+        this._gitFilters = [/\/\.git\//];
+        this._cachedGitState = null;
+        path = path.replace(/\/+/g, '/').replace(/\/$/g, '');
+        this.path = path;
+        try {
+            fs.existsSync(path);
+        }
+        catch (err) {
+            throw new Error(`Could not find file '${path}'`);
+        }
+        this.isDirectory = fs.lstatSync(path).isDirectory();
+        this.refreshIcon();
+        this.name = path.replace(/^.*\//, '');
     }
     refreshIcon() {
         if (this.isDirectory) {

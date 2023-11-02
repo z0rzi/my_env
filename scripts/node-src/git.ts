@@ -59,8 +59,8 @@ class GitStatus {
         }
     }
 
-    private _readyResolve = null;
-    ready = new Promise(resolve => (this._readyResolve = resolve));
+    private _readyResolve: (() => void) | null = null;
+    ready = new Promise<void>(resolve => (this._readyResolve = resolve));
     isNotARepo = false;
     async refresh(): Promise<void> {
         try {

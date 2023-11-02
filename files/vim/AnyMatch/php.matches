@@ -1,6 +1,0 @@
-\<if\>\ze(.*)\s*: \<endif\>
-\<for\>\ze(.*)\s*: \<endfor\>
-\<while\>\ze(.*)\s*: \<endwhile\>
-
-<? ?>
-/\* \*/

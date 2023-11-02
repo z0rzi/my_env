@@ -8,15 +8,16 @@
     "diagnostic.messageDelay": 1000,
     "diagnostic.format": "[%severity] %message",
 
+    "coc.preferences.currentFunctionSymbolAutoUpdate": true,
+
     "angular.trace.server": "off",
     "angular.log": "off",
 
-    "tsserver.enableJavascript": true,
     "tsserver.enable": true,
-    "tsserver.formatOnType": false,
     "tsserver.maxTsServerMemory": 1000,
-    "tsserver.ignoreLocalTsserver": false,
-    "tsserver.useBatchedBufferSync": true,
+
+    "html.format.preserveNewLines": false,
+    "html.format.wrapLineLength": 500,
 
     "typescript.suggest.enabled": true,
     "typescript.suggest.autoImports": true,
@@ -26,7 +27,6 @@
     "typescript.format.placeOpenBraceOnNewLineForControlBlocks": false,
     "typescript.format.placeOpenBraceOnNewLineForFunctions": false,
     "typescript.format.insertSpaceBeforeAndAfterBinaryOperators": true,
-    "typescript.format.enabled": true,
     "typescript.suggest.completeFunctionCalls": true,
     "javascript.suggest.autoImports": true,
     "javascript.format.insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces": true,
@@ -34,17 +34,14 @@
     "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": true,
     "javascript.format.placeOpenBraceOnNewLineForControlBlocks": false,
     "javascript.format.placeOpenBraceOnNewLineForFunctions": false,
-    "javascript.format.enabled": true,
     "javascript.suggest.completeFunctionCalls": true,
 
+    "sumneko-lua.enableNvimLuaDev": true,
+
+    "suggest.noselect": true,
     "suggest.snippetIndicator": " ↦ ",
-    "suggest.echodocSupport": true,
-    "suggest.floatEnable": true,
-    "suggest.disableMenuShortcut": true,
     "suggest.autoTrigger": "always",
-    "suggest.enablePreview": true,
     "suggest.localityBonus": true,
-    "suggest.fixInsertedWord": true,
     "suggest.triggerAfterInsertEnter": true,
 
     "languageserver": {
@@ -60,5 +57,6 @@
             "command": "vls",
             "filetypes": ["vue"]
         }
-    }
+    },
+    "snippets.ultisnips.pythonPrompt": false
 }

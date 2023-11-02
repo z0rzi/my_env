@@ -39,7 +39,7 @@ async function parseTrace(trace: string) {
             const lineMatch = lineAfterFile.match(/^:\d+(?::\d+)?/);
 
             if (lineMatch) {
-                const lineNum = +lineMatch[0].match(/\d+/)[0];
+                const lineNum = +lineMatch[0].match(/\d+/)![0];
 
                 let filePath = '';
                 if (fileName.startsWith('/')) {

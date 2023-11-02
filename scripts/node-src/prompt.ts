@@ -2,7 +2,7 @@ import { Cli } from './cli.js';
 
 type PromptCallback = (typedText: string) => boolean | Promise<boolean>;
 export class Prompt {
-    cli: Cli = null;
+    cli: Cli;
 
     _value = '';
     get value(): string {
@@ -26,17 +26,25 @@ export class Prompt {
     line = 0;
     col = 0;
 
-    onConfirm: PromptCallback = null;
-    onChange: PromptCallback = null;
-    onCancel: PromptCallback = null;
-    onKeyHit: (
-        key: string,
-        ctrl?: boolean,
-        shift?: boolean,
-        alt?: boolean
-    ) => (boolean | Promise<boolean>) = null;
-
-    _oldKbListener = null;
+    onConfirm: null | PromptCallback = null;
+    onChange: null | PromptCallback = null;
+    onCancel: null | PromptCallback = null;
+    onKeyHit:
+        | null
+        | ((
+              key: string,
+              ctrl?: boolean,
+              shift?: boolean,
+              alt?: boolean
+          ) => boolean | Promise<boolean>) = null;
+    _oldKbListener:
+        | null
+        | ((
+              key: string,
+              ctrl?: boolean,
+              shift?: boolean,
+              alt?: boolean
+          ) => boolean | Promise<boolean>) = null;
 
     constructor(cli: Cli, line: number, col: number) {
         this.cli = cli;
@@ -44,12 +52,12 @@ export class Prompt {
         this.col = col;
         this.cli.goTo(line, col);
         this.cli.clearToEndOfLine();
-        this._oldKbListener = this.cli.hitListener;
+        this._oldKbListener = this.cli.hitListener!;
         this.cli.onKeyHit(this.promptInputListener.bind(this));
     }
 
     destroy(): void {
-        this.cli.onKeyHit(this._oldKbListener);
+        if (this._oldKbListener) this.cli.onKeyHit(this._oldKbListener);
     }
 
     _lastValue = '';
@@ -69,12 +77,12 @@ export class Prompt {
 
     async promptInputListener(
         keyName: string,
-        ctrl: boolean,
-        shift: boolean,
-        alt: boolean
-    ): Promise<void> {
+        ctrl?: boolean,
+        shift?: boolean,
+        alt?: boolean
+    ): Promise<boolean> {
         if (this.onKeyHit && !(await this.onKeyHit(keyName, ctrl, shift, alt)))
-            return;
+            return true;
 
         if (keyName === 'space') keyName = ' ';
         const oldText = this.value;
@@ -150,5 +158,7 @@ export class Prompt {
             (await this.onChange(this.value))
         )
             this.destroy();
+
+        return true;
     }
 }

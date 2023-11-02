@@ -156,7 +156,7 @@ setTimeout(() => {
 }, 100);
 `;
 
-let serv: http.Server = null;
+let serv: null|http.Server = null;
 let html = '';
 let mistakes = {} as Record<string, Mistake>;
 let shouldReload = false;
@@ -220,7 +220,8 @@ async function onFileSave() {
     html = html.replace(/@\d+::.*?::.*?@/g, error => {
         const { groups } = error.match(
             /^@(?<id>\d+)::(?<mistake>.*?)::(?<fix>.*?)@$/
-        );
+        )!;
+        if (!groups) return error;
         return `<span class="mistake" id="${groups.id}">${groups['mistake']}<span class="correction">${groups['fix']}</span></span>`;
     });
     const splittedHtml = html.split('\n');
@@ -238,13 +239,14 @@ async function onFileSave() {
 
     if (serv) serv.close();
     serv = http
-        .createServer(function (req, res) {
-            if (req.url === '/should-reload') {
+        .createServer(function (req: http.IncomingMessage, res: http.ServerResponse) {
+            const url = req.url!;
+            if (url === '/should-reload') {
                 res.setHeader('content-type', 'application/json');
                 res.end(JSON.stringify(shouldReload));
                 shouldReload = false;
-            } else if (req.url.startsWith('/correct')) {
-                const id = +req.url.match(/\d+/)[0];
+            } else if (url.startsWith('/correct')) {
+                const id = +url.match(/\d+/)![0];
                 const mistake = mistakes[id];
                 const line = splittedMd[currentMdLine];
                 const before = line.slice(0, mistake.from);
@@ -253,8 +255,8 @@ async function onFileSave() {
                     before + mistake.replacement + after;
                 fs.writeFileSync(markdownFile, splittedMd.join('\n'));
                 res.end('ok');
-            } else if (/.png$/.test(req.url)) {
-                let assetPath = req.url;
+            } else if (/.png$/.test(url)) {
+                let assetPath = url;
                 if (!fs.existsSync(assetPath)) {
                     assetPath = path.join(
                         path.dirname(markdownFile),
@@ -265,7 +267,7 @@ async function onFileSave() {
                     return;
                 }
                 // absolute path
-                let file: fs.ReadStream = null;
+                let file: null | fs.ReadStream = null;
                 file = fs.createReadStream(assetPath);
                 res.setHeader('content-type', 'image/png');
                 file.pipe(res);

@@ -89,7 +89,7 @@ export async function openFile(path: string): Promise<void> {
             windowsHide: false,
         });
 
-        child.on('exit', function (e, code) {
+        child.on('exit', function (_e, _code) {
             resolve();
         });
     });
@@ -124,7 +124,6 @@ export async function sourceCmd(
             process.stdout.write(outMapper(c.toString()));
         } else {
             process.stdout.write(c);
-
         }
     }
 
@@ -138,6 +137,10 @@ export async function sourceCmd(
             process.stdin.pause();
             process.stdin.removeListener('data', indata);
             proc.stdout.removeListener('data', outdata);
+
+            if (code == null) {
+                return reject('Process exited with null code');
+            }
 
             resolve(code);
         });
@@ -162,10 +165,12 @@ export function mapArgs(
         multiMatch: true,
     }
 ): void {
-    let noMatchCb = null as (
-        match: string,
-        captureGroups: { [key: string]: string }
-    ) => unknown;
+    let noMatchCb = null as
+        | null
+        | ((
+              match: string,
+              captureGroups: { [key: string]: string }
+          ) => unknown);
     if (NO_MATCH_FOUND in map) noMatchCb = map[NO_MATCH_FOUND];
 
     const proms = new Promise<void>(resolve => resolve());
@@ -177,8 +182,8 @@ export function mapArgs(
             const rx = new RegExp(strRx);
             if (rx.test(arg)) {
                 matchFound = true;
-                const matchres = arg.match(rx);
-                proms.then(() => map[strRx](arg, { ...matchres.groups }));
+                const matches = arg.match(rx);
+                proms.then(() => map[strRx](arg, { ...matches!.groups }));
                 if (!opts.multiMatch) return;
             }
         }

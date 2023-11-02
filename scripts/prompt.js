@@ -8,6 +8,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 export class Prompt {
+    get value() {
+        return this._value;
+    }
+    set value(val) {
+        this._value = val;
+        this.redraw();
+    }
+    get caretPos() {
+        return this.cli.x - this.col;
+    }
+    set caretPos(pos) {
+        if (pos < 0)
+            pos = 0;
+        if (pos > this.value.length)
+            pos = this.value.length;
+        pos = pos + this.col;
+        this.cli.goToCol(pos);
+    }
     constructor(cli, line, col) {
         this.cli = null;
         this._value = '';
@@ -26,24 +44,6 @@ export class Prompt {
         this.cli.clearToEndOfLine();
         this._oldKbListener = this.cli.hitListener;
         this.cli.onKeyHit(this.promptInputListener.bind(this));
-    }
-    get value() {
-        return this._value;
-    }
-    set value(val) {
-        this._value = val;
-        this.redraw();
-    }
-    get caretPos() {
-        return this.cli.x - this.col;
-    }
-    set caretPos(pos) {
-        if (pos < 0)
-            pos = 0;
-        if (pos > this.value.length)
-            pos = this.value.length;
-        pos = pos + this.col;
-        this.cli.goToCol(pos);
     }
     destroy() {
         this.cli.onKeyHit(this._oldKbListener);

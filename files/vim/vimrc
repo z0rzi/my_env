@@ -1,7 +1,7 @@
 " 
 " GENERAL NATIVE VIM SETTINGS
 " 
-    " filetype plugin indent off
+    filetype plugin indent off
     syn on
     filetype on
     set nu
@@ -69,9 +69,11 @@
 
     " change the leader key to <space>
         let g:mapleader = "\<Space>"
+
     " Don't conceal markdown
         let g:vim_markdown_conceal_code_blocks=0
         let g:vim_markdown_conceal=0
+
 
 " 
 " LOOKS AND FEEL
@@ -1689,9 +1691,6 @@
             " indent range
             Plugin 'vim-indent-object'
 
-            " AI LLM
-            Plugin 'gsuuon/llm.nvim'
-
             " Fast surround shortcuts
             Plugin 'tpope/vim-surround'
 
@@ -1708,9 +1707,6 @@
 
             " Multi cursors
             Plugin 'mg979/vim-visual-multi'
-
-            " AI
-            Plugin 'madox2/vim-ai'
 
         " 
         " Pretty editor
@@ -1730,8 +1726,6 @@
         " 
         " Language specific
         " 
-            Plugin 'yaegassy/coc-jsdoc', {'do': 'yarn install --frozen-lockfile'}
-
             Plugin 'norcalli/nvim-colorizer.lua'
 
             Plugin 'prettier/vim-prettier', { 'do': 'yarn install --frozen-lockfile --production' }
@@ -1835,7 +1829,7 @@
         " move lines
             nnoremap <C-j> <CMD>m+1<CR>
             nnoremap <C-k> <CMD>m-2<CR>
-            nnoremap <C-up>   <CMD>if MultiCursorOn()<BAR>exe "norm k"<BAR>else<BAR>m-2<BAR>endif<CR>
+            nnoremap <C-up> <CMD>if MultiCursorOn()<BAR>exe "norm k"<BAR>else<BAR>m-2<BAR>endif<CR>
             nnoremap <C-down> <CMD>if MultiCursorOn()<BAR>exe "norm j"<BAR>else<BAR>m+1<BAR>endif<CR>
             " nnoremap <C-down> <CMD>m+1<CR>
             " nnoremap <C-up> <CMD>m-2<CR>
@@ -1843,7 +1837,6 @@
             xnoremap <C-down> :<C-u>exe (line("'>")+1) . " m " . (line("'<") - 1)<CR>gv
             xnoremap <C-right> dpgvlolo
             xnoremap <C-left> dhPgvhoho
-
 
         " Duplicate lines
             nnoremap <silent> Z <CMD>set opfunc=DuplicateLines<CR>g@

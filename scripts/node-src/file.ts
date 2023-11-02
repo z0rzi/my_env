@@ -11,13 +11,13 @@ import { cmd, NO_ARGS_PROVIDED } from './shell.js';
 
 export class File {
     children: File[] = [];
-    parent: File = null;
+    parent: null | File = null;
     path = '';
     isDirectory = false;
     name = '';
     icon = '';
-    iconColor: CliColor;
-    textStyle: StyleOptions;
+    iconColor: null | CliColor = null;
+    textStyle: null | StyleOptions = null;
 
     _gitFilters: RegExp[] = [/\/\.git\//];
 
@@ -76,8 +76,8 @@ export class File {
             const res = getStyleFor(this.path);
 
             this.icon = res.icon;
-            this.iconColor = res.iconColor;
-            this.textStyle = res.textStyle;
+            this.iconColor = res.iconColor!;
+            this.textStyle = res.textStyle!;
         }
     }
 
@@ -154,7 +154,7 @@ export class File {
         return res;
     }
 
-    _cachedGitState = null as GitFileState;
+    _cachedGitState: null | GitFileState = null;
     async getGitState(): Promise<GitFileState> {
         if (!this._cachedGitState) {
             let state = await git.getFileState(this.path);
@@ -227,6 +227,7 @@ export class File {
         this.children.sort((a, b) => {
             if (a.isDirectory !== b.isDirectory)
                 return Number(b.isDirectory) - Number(a.isDirectory);
+            return 0;
         });
     }
 
@@ -285,7 +286,7 @@ export class File {
     /**
      * Gives the sibling before this file. `null` if it doesn't exist
      */
-    get previousSibling(): File {
+    get previousSibling(): null | File {
         if (!this.parent) return null;
 
         const idx = this.parent.children.indexOf(this);
@@ -297,7 +298,7 @@ export class File {
     /**
      * Gives the sibling after this file. `null` if it doesn't exist
      */
-    get nextSibling(): File {
+    get nextSibling(): null | File {
         if (!this.parent) return null;
 
         const idx = this.parent.children.indexOf(this);
@@ -327,14 +328,14 @@ export class File {
                 }
             }
         }
-        this.parent.removeChild(this.name);
+        this.parent!.removeChild(this.name);
     }
 
-    createChild(name: string, directory = false): File {
+    createChild(name: string, directory = false): null | File {
         if (/\//g.test(name)) return null;
 
         // not a directory
-        if (!this.isDirectory) return this.parent.createChild(name);
+        if (!this.isDirectory) return this.parent!.createChild(name);
 
         // kid already exists
         if (this.children.find(kid => kid.name === name)) return null;
@@ -347,8 +348,8 @@ export class File {
 
     rename(newName: string): void {
         if (/\//g.test(newName)) return;
-        fs.renameSync(this.path, `${this.parent.path}${newName}`);
-        this.path = `${this.parent.path}${newName}`;
+        fs.renameSync(this.path, `${this.parent!.path}${newName}`);
+        this.path = `${this.parent!.path}${newName}`;
         this.name = newName;
         this.refreshIcon();
     }

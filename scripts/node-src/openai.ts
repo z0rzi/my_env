@@ -7,7 +7,7 @@ import path from 'path';
 const configuration = new Configuration({
     apiKey: fs
         .readFileSync(
-            path.join(process.env['HOME'], '.config', 'openapi-token.conf'),
+            path.join(process.env['HOME']!, '.config', 'openapi-token.conf'),
             { encoding: 'utf8' }
         )
         .trim(),
@@ -61,7 +61,7 @@ export async function askAI(
             max_tokens: maxTokens,
         })
         .then(response => {
-            const textRes = response.data.choices[0].text.trim();
+            const textRes = response.data.choices[0].text!.trim();
             return textRes;
         })
         .catch(err => {

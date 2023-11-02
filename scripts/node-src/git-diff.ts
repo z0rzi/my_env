@@ -4,7 +4,7 @@ import { fuzzyFind } from './fuzzyFinder.js';
 import * as git from './git.js';
 import { cmd, mapArgs, NO_MATCH_FOUND } from './shell.js';
 
-async function checkDiff(commit1 = 'HEAD', commit2 = '') {
+async function checkDiff(commit1 = 'HEAD', commit2 = ''): Promise<string> {
     const gitRoot = git.getRootPath();
     const c1 = commit1 || gitRoot;
     const c2 = commit2 || gitRoot;

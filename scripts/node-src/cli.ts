@@ -51,6 +51,13 @@ export type StyleOptions = {
     underline?: boolean;
 };
 
+export type HitListener = (
+    k: string,
+    ctrl?: boolean,
+    shift?: boolean,
+    alt?: boolean
+) => boolean | Promise<boolean>;
+
 class Cli {
     x = 0;
     y = 0;
@@ -93,7 +100,7 @@ class Cli {
         this.clearScreen();
         this.refreshTermMetas().then(() => {
             this.updateHeight(lines);
-            this._readyResolve();
+            if (this._readyResolve) this._readyResolve();
             if (cols > 0)
                 this._termMetas.width = Math.min(cols, this._termMetas.width);
             if (xOffset > 0) this._termMetas.offset.cols = xOffset;
@@ -114,9 +121,9 @@ class Cli {
         });
     }
 
-    _readyResolve = null;
+    _readyResolve: null | (() => void) = null;
     isReady = false;
-    waitForReady = new Promise(resolve => {
+    waitForReady = new Promise<void>(resolve => {
         this._readyResolve = resolve;
     }) as Promise<void>;
 
@@ -160,13 +167,13 @@ class Cli {
         }
     }
 
-    _positions = {};
+    _positions: Record<string, { x: number; y: number }> = {};
     /**
      * Saves the current position of the cursor, to be loaded later
      *
      * @param tag A key to be associated with this position
      */
-    savePos(tag = null): void {
+    savePos(tag: string | null = null): void {
         tag = tag || '__tmp__';
         this._positions[tag] = {
             x: this.x,
@@ -179,8 +186,9 @@ class Cli {
      *
      * @param tag The key provided to the save function.
      */
-    loadPos(tag = null): void {
-        tag = tag || '__tmp__';
+    loadPos(tag: string | null = null): void {
+        if (tag == null) tag = '__tmp__';
+
         if (!(tag in this._positions)) {
             throw new Error('Trying to load non saved position!');
         }
@@ -295,7 +303,7 @@ class Cli {
      * writes a message to the screen
      */
     write(text: string, styleOpts: StyleOptions = {}): void {
-        if (styleOpts && 'color' in styleOpts) this.color(styleOpts.color);
+        if (styleOpts && 'color' in styleOpts) this.color(styleOpts.color!);
         if (styleOpts && 'bold' in styleOpts && styleOpts.bold) this.bold();
         if (styleOpts && 'italic' in styleOpts && styleOpts.italic)
             this.italic();
@@ -362,34 +370,20 @@ class Cli {
         this.hitListener(key.key, key.ctrl, key.shift, key.alt);
     }).bind(this);
 
-    hitListener = null;
-    onKeyHit(
-        cb: (
-            keyname: string,
-            ctrl?: boolean,
-            shift?: boolean,
-            alt?: boolean
-        ) => unknown
-    ): void {
+    hitListener: null | HitListener = null;
+    onKeyHit(cb: HitListener): void {
         this.kb.onKeyPress(this.onKeyPress);
         this.hitListener = cb;
     }
 
-    _borrowList = {};
-    borrowHitKey(
-        key: string,
-        cb: (
-            keyname: string,
-            ctrl?: boolean,
-            shift?: boolean,
-            alt?: boolean
-        ) => unknown
-    ): void {
-        this._borrowList[key] = this.hitListener;
+    _borrowList: Record<string, HitListener> = {};
+    borrowHitKey(key: string, cb: HitListener): void {
+        if (this.hitListener) this._borrowList[key] = this.hitListener;
         this.onKeyHit(cb);
     }
     giveBackHitKey(key: string): void {
-        this.onKeyHit(this._borrowList[key]);
+        const listener = this._borrowList[key];
+        if (listener) this.onKeyHit(listener);
     }
 
     offHitKey(): void {

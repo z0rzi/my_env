@@ -122,8 +122,6 @@ const categories = [
             console.log(
                 'The commited code seems to contain logs or comments...'
             );
-            // await sourceCmd('bat', ['--color=always', '-pp', '/tmp/_.ts'], str => str.replace(/\x1b/g, '\\x1b'));
-            // await sourceCmd('bat', ['--color=always', '-pp', '/tmp/_.ts'], addHyperlinksToText);
             console.log(dangerMessage);
 
             const confirm = await prompts({

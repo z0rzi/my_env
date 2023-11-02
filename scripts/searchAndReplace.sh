@@ -5,7 +5,7 @@ if [ $# -ne 3 ] || ( [ ! -f "$3" ] && [ ! -d "$3" ] ); then
     exit
 fi
 
-files=`grep -rl "$1" "$3"`
+files=`rg -l "$1" "$3"`
 rand=$RANDOM
 
 for file in $files; do

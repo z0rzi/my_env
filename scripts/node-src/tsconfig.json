@@ -1,22 +1,24 @@
 {
   "compilerOptions": {
-    "target": "es2015",
-    "moduleResolution": "node",
+    "lib": ["ESNext"],
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "composite": true,
+    "strict": true,
+    "downlevelIteration": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
     "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
     "allowJs": true,
-    "alwaysStrict": true,
-    "outDir": "../",
-    "typeRoots": [
-      "node_modules/@types",
-      "node-src/*.d.ts"
-    ],
-    "types": ["node"]
+    "typeRoots": ["./node_modules", "./node_modules/@types", "./@types"],
+    "types": [
+      "bun-types"
+    ]
   },
-  "include": [
-    "./*.js",
-    "./*.ts"
-  ],
-  "exclude": [
-    "./node_modules"
-  ]
+  "include": ["./", "./@types"]
 }

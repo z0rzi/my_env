@@ -19,6 +19,11 @@ const specialCharacs = {
 /** Tags which might not be closed */
 const unclosingTags = ['input', 'img', 'li'];
 export class HtmlNode {
+    get _total_length() {
+        return (this._opening_tag_length +
+            this._content_length +
+            this._closing_tag_length);
+    }
     constructor(rawHtml, firstTime = true) {
         this.children = [];
         this.selfClosing = false;
@@ -80,11 +85,6 @@ export class HtmlNode {
         this.innerHTML = content;
         if (firstTime)
             this.removeWhiteTextNodes();
-    }
-    get _total_length() {
-        return (this._opening_tag_length +
-            this._content_length +
-            this._closing_tag_length);
     }
     isTextNode() {
         return !!this.text;

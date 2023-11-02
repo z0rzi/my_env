@@ -50,6 +50,24 @@ export var CliColor;
     CliColor[CliColor["GRAY"] = 7] = "GRAY";
 })(CliColor || (CliColor = {}));
 class Cli {
+    get maxWidth() {
+        return this._termMetas.width - this._termMetas.offset.cols;
+    }
+    refreshTermMetas() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this._termMetas.height = yield cmd('tput lines').then(Number);
+            this._termMetas.width = yield cmd('tput cols').then(Number);
+            this._termMetas.offset.lines = yield getCursorPosition().then(({ y: yOffset }) => {
+                if (this._termMetas.height - yOffset < 10) {
+                    console.log('\n'.repeat(13));
+                    return 10;
+                }
+                else {
+                    return yOffset;
+                }
+            });
+        });
+    }
     constructor(lines = -1, cols = -1, yOffset = -1, xOffset = -1) {
         this.x = 0;
         this.y = 0;
@@ -97,24 +115,6 @@ class Cli {
             }
             this.clearScreen();
             this.isReady = true;
-        });
-    }
-    get maxWidth() {
-        return this._termMetas.width - this._termMetas.offset.cols;
-    }
-    refreshTermMetas() {
-        return __awaiter(this, void 0, void 0, function* () {
-            this._termMetas.height = yield cmd('tput lines').then(Number);
-            this._termMetas.width = yield cmd('tput cols').then(Number);
-            this._termMetas.offset.lines = yield getCursorPosition().then(({ y: yOffset }) => {
-                if (this._termMetas.height - yOffset < 10) {
-                    console.log('\n'.repeat(13));
-                    return 10;
-                }
-                else {
-                    return yOffset;
-                }
-            });
         });
     }
     color(color) {

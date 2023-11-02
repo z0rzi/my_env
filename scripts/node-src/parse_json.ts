@@ -37,6 +37,8 @@ function parseFormat(format: string, obj: any) {
         while (stack.length) {
             try {
                 const prop = stack.shift();
+                if (!prop) return '';
+
                 if (prop === '#') {
                     if (Array.isArray(ref)) {
                         return ref.length;

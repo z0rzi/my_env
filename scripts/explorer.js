@@ -19,16 +19,6 @@ import { Prompt } from './prompt.js';
 import { NO_ARGS_PROVIDED, openFile } from './shell.js';
 const INDENT = '┆   ';
 class ExplorerFile extends File {
-    constructor(path) {
-        super(path);
-        this.children = [];
-        this.parent = null;
-        this.opened = false;
-        this._showHidden = false;
-        this._gitOnly = false;
-        if (this.opened)
-            this.open();
-    }
     get showHidden() {
         if (!this.parent)
             return this._showHidden;
@@ -53,6 +43,16 @@ class ExplorerFile extends File {
     }
     toggleHidden() {
         this.showHidden = !this.showHidden;
+    }
+    constructor(path) {
+        super(path);
+        this.children = [];
+        this.parent = null;
+        this.opened = false;
+        this._showHidden = false;
+        this._gitOnly = false;
+        if (this.opened)
+            this.open();
     }
     open(recursive = 0, openStartTime = 0) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -270,6 +270,13 @@ class ExplorerFile extends File {
     }
 }
 class Explorer {
+    get currentFile() {
+        return this._currentFile;
+    }
+    set currentFile(newFile) {
+        this.previousFile = this._currentFile;
+        this._currentFile = newFile;
+    }
     constructor(path, onFileOpen) {
         this.height = -1;
         this.cli = null;
@@ -290,13 +297,6 @@ class Explorer {
             this.height = this.cli.maxHeight;
             this.refreshDisplay();
         });
-    }
-    get currentFile() {
-        return this._currentFile;
-    }
-    set currentFile(newFile) {
-        this.previousFile = this._currentFile;
-        this._currentFile = newFile;
     }
     correctOffset() {
         return __awaiter(this, void 0, void 0, function* () {

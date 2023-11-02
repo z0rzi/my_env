@@ -1,5 +1,5 @@
 import { QuickScore } from 'quick-score';
-import { Cli, CliColor } from './cli.js';
+import { Cli, CliColor, HitListener } from './cli.js';
 import { Prompt } from './prompt.js';
 
 class FuzzyFinder<T = unknown> {
@@ -8,19 +8,14 @@ class FuzzyFinder<T = unknown> {
 
     isDead = false;
 
-    _qs: QuickScore = null;
+    _qs: null | QuickScore = null;
 
-    cli: Cli = null;
-    prompt: Prompt = null;
+    cli: Cli;
+    prompt: null | Prompt = null;
     search = '';
     selectionPos = 0;
 
-    public onKeyHit: (
-        key: string,
-        ctrl?: boolean,
-        shift?: boolean,
-        alt?: boolean
-    ) => boolean | Promise<boolean> = null;
+    public onKeyHit: null | HitListener = null;
 
     scoreLimit = 0.5;
 
@@ -55,16 +50,16 @@ class FuzzyFinder<T = unknown> {
     }
 
     filteredChoices: Choice<T>[] = [];
-    selectCb = null;
+    selectCb: null | ((c?: Choice<any>) => void) = null;
 
-    onSearchChange = null;
-    onCursorMove = null;
+    onSearchChange: null | ((text: string) => void) = null;
+    onCursorMove: null | (() => void) = null;
 
     constructor(
         choices: Choice<T>[],
-        selectCallback: (choice: Choice<T>) => unknown,
+        selectCallback: (choice?: Choice<T>) => void,
         scoreLimit = 0.5,
-        cli = null
+        cli?: Cli
     ) {
         this.scoreLimit = scoreLimit;
         choices.forEach((choice, idx) => {
@@ -115,14 +110,14 @@ class FuzzyFinder<T = unknown> {
             };
             this.prompt.onConfirm = () => {
                 if (this.filteredChoices[this.selectionPos]) {
-                    this.selectCb(this.filteredChoices[this.selectionPos]);
+                    this.selectCb!(this.filteredChoices[this.selectionPos]);
                     this.end();
                     return true;
                 }
                 return false;
             };
             this.prompt.onCancel = () => {
-                this.selectCb();
+                this.selectCb!();
                 this.cli.offHitKey();
                 this.end();
                 return true;
@@ -140,10 +135,10 @@ class FuzzyFinder<T = unknown> {
     }
 
     filterResults(): Choice<T>[] {
-        if (this.isDead) return;
+        if (this.isDead) return [];
         if (!this.search) return this.choices.slice(0, this.height - 1);
 
-        const res = this._qs.search<Choice<T>>(this.search);
+        const res = this._qs!.search<Choice<T>>(this.search);
 
         const out = res
             .filter(
@@ -264,8 +259,10 @@ class FuzzyFinder<T = unknown> {
     }
 }
 
-function formatNum(num: number | string, length = 4) {
-    return String(num).length >= length ? num : formatNum('0' + num, length);
+function formatNum(num: number | string, length = 4): string {
+    return String(num).length >= length
+        ? String(num)
+        : formatNum('0' + num, length);
 }
 
 export type Choice<T = unknown> = {
@@ -278,7 +275,7 @@ export type Choice<T = unknown> = {
 async function fuzzyFind<T = unknown>(
     choices: Choice<T>[] | string[],
     scoreLimit = 0.5,
-    cli = null
+    cli?: Cli
 ): Promise<Choice> {
     if (!Array.isArray(choices)) throw new Error('Choices must be an array!');
     if (!choices.length) throw new Error('No empty array!');
@@ -293,7 +290,7 @@ async function fuzzyFind<T = unknown>(
             choices as Choice<T>[],
             choice => {
                 if (!choice) reject();
-                return resolve(choice);
+                return resolve(choice!);
             },
             scoreLimit,
             cli

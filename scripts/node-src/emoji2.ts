@@ -7,7 +7,7 @@ import { writeSync } from 'clipboardy';
 
 import fs from 'fs';
 import fetch from 'node-fetch';
-import { FuzzyFinder } from './fuzzyFinder.js';
+import prompts from 'prompts';
 
 type ApiEmoji = {
     Code: string;
@@ -72,8 +72,8 @@ async function findEmojis(search: string): Promise<Emoji[]> {
             if (!res) return [];
             return res.map(apiEmo => ({
                 icon: codeToEmoji(apiEmo.Code),
-                name: apiEmo.Name,
-                tags: apiEmo.Name,
+                name: apiEmo.Name.toLowerCase(),
+                tags: apiEmo.Name.toLowerCase(),
             }));
         });
 }
@@ -85,68 +85,78 @@ function loadPreviousEmos(): Emoji[] {
 
 root();
 async function root() {
-    let search = '';
-    const prevEmojis = loadPreviousEmos();
-    const emojiFinder = new FuzzyFinder(
-        prevEmojis.map(e => ({
-            label: e.icon,
-            tags: e.name + ' ' + e.tags,
-            payload: e,
-        })),
-        choice => {
-            if (!choice) process.exit(1);
-            writeSync(choice.payload.icon);
-            let emojiAlreadyThere = false;
-            for (let i = 0; i < prevEmojis.length; i++) {
-                if (prevEmojis[i].icon === choice.label) {
-                    prevEmojis[i].tags += ' ' + search;
-                    if (!prevEmojis[i].tags.includes(search))
-                        prevEmojis[i].tags += ' ' + search;
-                    const emoji = prevEmojis.splice(i, 1)[0];
-                    prevEmojis.unshift(emoji);
-                    emojiAlreadyThere = true;
-                }
-            }
-            if (!emojiAlreadyThere) {
-                if (!choice.payload.tags.includes(search))
-                    choice.payload.tags += ' ' + search;
-                prevEmojis.unshift(choice.payload);
-            }
-            fs.writeFileSync(
-                EMOJI_FILE_PATH,
-                JSON.stringify(prevEmojis, null, 2)
-            );
-            process.exit(0);
-        }
-    );
+    const allEmojis = loadPreviousEmos();
 
-    let text = '';
-    const fetchResults = () => {
-        findEmojis(text).then(emojis => {
-            const emojisChoices = emojis.map(e => ({
-                label: e.icon,
-                tags: text + ' ' + e.name + ' ' + e.tags,
-                payload: e,
-            }));
-            emojisChoices.push(
-                ...prevEmojis.map(e => ({
-                    label: e.icon,
-                    tags: ' ' + e.name + ' ' + e.tags,
+    prompts({
+        type: 'autocomplete',
+        limit: 20,
+        name: 'icon',
+        message: '',
+        // @ts-ignore
+        suggest: async function (
+            input: string,
+            choices: { title: string; value: string; payload: Emoji }[]
+        ) {
+            if (Array.isArray(this)) return choices;
+
+            input = input.toLowerCase();
+            if (input.endsWith('\\')) {
+                this.input = this.input.slice(0, -1);
+                input = this.input;
+                const newEmojis = await findEmojis(this.input);
+
+                newEmojis.forEach(newEmo => {
+                    const iconExists = allEmojis.find(
+                        e2 => e2.icon === newEmo.icon
+                    );
+                    if (iconExists) {
+                        // Icon already exists
+                        if (
+                            !iconExists.tags.includes(input) &&
+                            !iconExists.name.includes(input)
+                        )
+                            iconExists.tags += ' ' + input;
+                    } else {
+                        // Icon does not exist yet, we add it
+                        if (!newEmo.tags.includes(input))
+                            newEmo.tags += ' ' + input;
+
+                        allEmojis.push(newEmo);
+                    }
+                });
+
+                choices = allEmojis.map(e => ({
+                    title: e.icon,
+                    value: e.icon,
                     payload: e,
-                }))
-            );
-            emojiFinder.choices = emojisChoices;
-        });
-    };
+                }));
 
-    emojiFinder.onKeyHit = k => {
-        if (k === '\\') {
-            if (text.length > 0) fetchResults();
-            return false;
-        }
-        return true;
-    };
-    emojiFinder.onSearchChange = (search: string) => {
-        text = search;
-    };
+                this.choices = choices;
+            }
+
+            return choices.filter(c => {
+                const emoji = allEmojis.find(e => e.icon === c.value);
+                return (
+                    emoji &&
+                    (emoji.tags.toLowerCase().includes(input) ||
+                        emoji.name.toLowerCase().includes(input))
+                );
+            });
+        },
+        choices: allEmojis.map(e => ({
+            title: e.icon,
+            value: e.icon,
+            payoad: e,
+        })),
+    }).then(choice => {
+        if (!choice) process.exit(1);
+        writeSync(choice.icon);
+
+        const emoji = allEmojis.find(e => e.icon === choice.icon);
+
+        const newEmojis = allEmojis.filter(e => e.icon !== choice.icon);
+        newEmojis.unshift(emoji!);
+
+        fs.writeFileSync(EMOJI_FILE_PATH, JSON.stringify(newEmojis, null, 2));
+    });
 }

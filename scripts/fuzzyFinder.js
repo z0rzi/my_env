@@ -11,6 +11,30 @@ import { QuickScore } from 'quick-score';
 import { Cli, CliColor } from './cli.js';
 import { Prompt } from './prompt.js';
 class FuzzyFinder {
+    get choices() {
+        return this._choices;
+    }
+    set choices(choices0) {
+        this._choices = choices0;
+        this._qs = new QuickScore(choices0, ['label', 'tags']);
+        if (this.cli) {
+            this.height = Math.max(this.height, Math.min(this.cli._termMetas.height, choices0.length + 1));
+        }
+        else {
+            this.height = 15;
+        }
+        if (this.cli) {
+            this.cli.savePos();
+            this.cli.clearScreen();
+            this.cli.loadPos();
+            this.cli.updateHeight(this.height);
+        }
+        if (this.prompt) {
+            this.prompt.line = this.height - 1;
+            this.prompt.redraw();
+        }
+        this.refreshAllResults();
+    }
     constructor(choices, selectCallback, scoreLimit = 0.5, cli = null) {
         this.height = 10;
         this.selectorWidth = 3;
@@ -85,30 +109,6 @@ class FuzzyFinder {
             this.moveSelection();
             this.cli.goTo(this.height - 1, 0);
         });
-    }
-    get choices() {
-        return this._choices;
-    }
-    set choices(choices0) {
-        this._choices = choices0;
-        this._qs = new QuickScore(choices0, ['label', 'tags']);
-        if (this.cli) {
-            this.height = Math.max(this.height, Math.min(this.cli._termMetas.height, choices0.length + 1));
-        }
-        else {
-            this.height = 15;
-        }
-        if (this.cli) {
-            this.cli.savePos();
-            this.cli.clearScreen();
-            this.cli.loadPos();
-            this.cli.updateHeight(this.height);
-        }
-        if (this.prompt) {
-            this.prompt.line = this.height - 1;
-            this.prompt.redraw();
-        }
-        this.refreshAllResults();
     }
     end() {
         this.isDead = true;

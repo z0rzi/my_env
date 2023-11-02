@@ -15,7 +15,4 @@ def main(args: List[str]) -> str:
     line = position['line'][0]
     col = position['col'][0]
 
-    wid = subprocess.run(["/home/zorzi/.local/bin/custom/vim-signal.js", path, line, col], stdout=subprocess.PIPE)
-    wid = wid.stdout.decode('utf-8').strip()
-
-    process = subprocess.run(["kitty", '@', 'focus-window', f'--match=id:{wid}'], stderr=subprocess.PIPE)
+    subprocess.run(["/home/zorzi/.local/bin/custom/vim-signal.js", path, line, col], stdout=subprocess.PIPE)

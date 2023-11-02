@@ -240,8 +240,12 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
     # LOCK
         function lock_is_on {
             if [ ! -f "/tmp/.xautolock" ]; then
-                xautolock -enable
-                printf '1' > /tmp/.xautolock
+                flag=`xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/presentation-mode`
+                if [ "$flag" = "true" ]; then
+                    printf '1' > /tmp/.xautolock
+                else
+                    printf '' > /tmp/.xautolock
+                fi
             fi
             cat /tmp/.xautolock
         }
@@ -257,10 +261,10 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
         }
         function lock_click {
             if [ "`lock_is_on`" ]; then
-                xautolock -disable
+                xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/presentation-mode -s true
                 printf "" > /tmp/.xautolock
             else
-                xautolock -enable
+                xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/presentation-mode -s false
                 printf "1" > /tmp/.xautolock
             fi
         }

@@ -9,10 +9,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { cmd } from './shell.js';
+let layout = null;
 export function getLayout() {
     return __awaiter(this, void 0, void 0, function* () {
+        if (layout)
+            return layout;
         return cmd('kitty @ ls').then(res => {
-            return JSON.parse(res);
+            layout = JSON.parse(res);
+            return layout;
+        }).catch(err => {
+            console.log('getLayout:47\t>', err);
+            return [];
         });
     });
 }
@@ -29,6 +36,28 @@ export function getFocussedTab() {
                 if (!tab.is_focused)
                     continue;
                 return tab;
+            }
+        }
+        return null;
+    });
+}
+export function getSelf() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const layout = yield getLayout();
+        const self = {
+            instance: null,
+            tab: null,
+            window: null,
+        };
+        for (const instance of layout) {
+            self.instance = instance;
+            for (const tab of instance.tabs) {
+                self.tab = tab;
+                for (const win of tab.windows) {
+                    self.window = win;
+                    if (win.is_self)
+                        return self;
+                }
             }
         }
         return null;

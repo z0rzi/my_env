@@ -73,10 +73,10 @@ Comment the complicated parts of the above code in french using the following JS
             const splittedContent = content.split(/\n/g);
             function getLineIndent(lineNum: number) {
                 try {
-                    return splittedContent[lineNum - 1].match(/^\s*/g)[0];
+                    return splittedContent[lineNum - 1].match(/^\s*/g)![0];
                 } catch (err) { }
                 try {
-                    return splittedContent[lineNum].match(/^\s*/g)[0];
+                    return splittedContent[lineNum].match(/^\s*/g)![0];
                 } catch (err) {}
                 return '';
             }

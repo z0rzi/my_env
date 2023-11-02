@@ -65,18 +65,18 @@ async function scrapeGoodReads(link: string) {
         let description = '';
         try {
             description =
-                document.getNodeById('description').children[1].innerText;
+                document.getNodeById('description')!.children[1].innerText;
         } catch (err) {
-            description = document.getNodeById('description').innerText;
+            description = document.getNodeById('description')!.innerText;
         }
 
-        const details = document.getNodeById('details').innerText;
+        const details = document.getNodeById('details')!.innerText;
 
         const publishTextMatches = details.match(/\(first published .*?\)/g);
         let publishText = '';
         if (publishTextMatches) publishText = publishTextMatches[0];
 
-        const imgUrl = document.getNodeById('coverImage').props['src'];
+        const imgUrl = document.getNodeById('coverImage')!.props['src'];
 
         return { publishText, description, imgUrl };
     } catch (err) {
@@ -88,6 +88,10 @@ async function scrapeGoodReads(link: string) {
 export async function getBookInfos(bookName: string): Promise<BookInfos> {
     const metas = await getBookMeta(bookName);
     const extraInfos = await scrapeGoodReads(metas.descriptionUrl);
+
+    if (!extraInfos) {
+        throw new Error('Failed to scrape the book page');
+    }
 
     return {
         title: metas.title,

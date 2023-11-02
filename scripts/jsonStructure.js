@@ -25,8 +25,7 @@ function getType(obj) {
             JSON.parse(obj);
             return 'json';
         }
-        catch (err) {
-        }
+        catch (err) { }
     }
     return typeof obj;
 }
@@ -45,7 +44,11 @@ function toTypescript(obj, idt = 0) {
             if (firstType !== 'object')
                 return `${toTypescript(obj[0])}[] /* x${obj.length} */`;
             // it's an object
-            const keys = Object.keys(obj[0]).map(key => ({ key, sure: true, type: toTypescript(obj[0][key], idt + 1) }));
+            const keys = Object.keys(obj[0]).map(key => ({
+                key,
+                sure: true,
+                type: toTypescript(obj[0][key], idt + 1),
+            }));
             obj.forEach(child => {
                 keys.filter(k => k.sure).forEach(k => {
                     if (!(k.key in child))
@@ -53,11 +56,24 @@ function toTypescript(obj, idt = 0) {
                 });
                 Object.keys(child).forEach(childKey => {
                     if (keys.findIndex(k => k.key === childKey) < 0) {
-                        keys.push({ key: childKey, sure: false, type: toTypescript(child[childKey], idt + 1) });
+                        keys.push({
+                            key: childKey,
+                            sure: false,
+                            type: toTypescript(child[childKey], idt + 1),
+                        });
                     }
                 });
             });
-            const str = keys.map(({ key, sure, type }) => (key + (sure ? ': ' : '?: ') + type)).join(',' + newline(idt + 1));
+            const str = keys
+                .map(({ key, sure, type }) => {
+                if (key.includes(' ') || key.includes('-'))
+                    key = `'${key}'`;
+                console.log('toTypescript:75\t>', key);
+                return (key +
+                    (sure ? ': ' : '?: ') +
+                    type);
+            })
+                .join(',' + newline(idt + 1));
             return `{${newline(idt + 1) + str + newline(idt)}}[] /* x${obj.length} */`;
         }
         else {
@@ -75,13 +91,17 @@ function toTypescript(obj, idt = 0) {
         const entries = Object.entries(obj);
         for (const [key, val] of entries.slice(0, MAX_ARR_SIZE))
             out.push(`${key}: ${toTypescript(val, idt + 1)}`);
-        return '{'
-            + newline(idt + 1)
-            + out.join(',' + newline(idt + 1))
-            + (entries.length > MAX_ARR_SIZE
-                ? newline(idt + 1) + '/* + ' + (entries.length - MAX_ARR_SIZE) + ' more */'
-                : '')
-            + newline(idt) + '}';
+        return ('{' +
+            newline(idt + 1) +
+            out.join(',' + newline(idt + 1)) +
+            (entries.length > MAX_ARR_SIZE
+                ? newline(idt + 1) +
+                    '/* + ' +
+                    (entries.length - MAX_ARR_SIZE) +
+                    ' more */'
+                : '') +
+            newline(idt) +
+            '}');
     }
     if (objType === 'json') {
         if (tsCompatible)
@@ -104,12 +124,12 @@ try {
     data = readFileSync(file, { encoding: 'utf-8' });
 }
 catch (err) {
-    error('Couldn\'t read the file...');
+    error("Couldn't read the file...");
 }
 try {
     data = JSON.parse(data);
 }
 catch (err) {
-    error('Couldn\'t parse the JSON...');
+    error("Couldn't parse the JSON...");
 }
 console.log('type A = ' + toTypescript(data));

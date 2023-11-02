@@ -36,7 +36,7 @@ export class HtmlNode {
     tag = '';
     props = {} as Record<string, string>;
     id = '';
-    classes = [];
+    classes: string[] = [];
 
     _opening_tag_length = 0;
     _closing_tag_length = 0;
@@ -69,7 +69,7 @@ export class HtmlNode {
         }
 
         if (rawHtml.charAt(0) !== '<') {
-            this.text = rawHtml.match(/^[^<]*/g)[0];
+            this.text = rawHtml.match(/^[^<]*/g)![0];
             this._content_length = this.text.length;
             return;
         }
@@ -80,11 +80,13 @@ export class HtmlNode {
 
         let tag: string, props: string, selfClosing: string, content: string;
 
+        const matchGroup = matches!.groups!;
+
         try {
-            tag = matches.groups.tag;
-            props = matches.groups.props;
-            selfClosing = matches.groups.selfClosing;
-            content = matches.groups.content;
+            tag = matchGroup.tag;
+            props = matchGroup.props;
+            selfClosing = matchGroup.selfClosing;
+            content = matchGroup.content;
         } catch (err) {
             console.log(err);
             console.error(
@@ -96,10 +98,10 @@ export class HtmlNode {
                 /^<(?<tag>\w+\b)(?<props>[^>]*?)(?<selfClosing>\/?)\s*>(?<content>.*)$/
             );
 
-            tag = matches.groups.tag;
-            props = matches.groups.props;
-            selfClosing = matches.groups.selfClosing;
-            content = matches.groups.content;
+            tag = matchGroup.tag;
+            props = matchGroup.props;
+            selfClosing = matchGroup.selfClosing;
+            content = matchGroup.content;
         }
 
         this._opening_tag_length = rawHtml.length - content.length;
@@ -143,7 +145,7 @@ export class HtmlNode {
                 /^(?<key>\S+)=(?<value>".*"|'.*'|\d*)$/
             );
             try {
-                let { key, value } = matches.groups;
+                let { key, value } = matches!.groups!;
                 value = value.replace(/^['"]|['"]$/g, '');
                 this.props[key] = value;
                 if (key === 'id') this.id = value;
@@ -157,7 +159,7 @@ export class HtmlNode {
     get outerHTML(): string {
         if (this.isTextNode()) return this.text;
 
-        const arrayProps = [];
+        const arrayProps = [] as string[];
         Object.entries(this.props).forEach(([key, val]) => {
             arrayProps.push(`${key}="${val}"`);
         });
@@ -187,7 +189,7 @@ export class HtmlNode {
             // looking for closing tag
             const matches = rawContent.match(/^<\/(?<tag>\w+)>/);
             if (!!matches) {
-                const { tag } = matches.groups;
+                const { tag } = matches.groups!;
                 if (tag !== this.tag) {
                     // We met a closing tag, but it's not the one we expected
                     if (unclosingTags.includes(this.tag)) {
@@ -322,7 +324,7 @@ export class HtmlNode {
         return null;
     }
 
-    getNodesByClass(classs: string): HtmlNode[] {
+    getNodesByClass(classs: string): null | HtmlNode[] {
         if (this.isTextNode()) return null;
         const kids = [];
 
@@ -336,7 +338,7 @@ export class HtmlNode {
         return kids;
     }
 
-    getNodesByProps(props: { [key: string]: string }): HtmlNode[] {
+    getNodesByProps(props: { [key: string]: string }): null | HtmlNode[] {
         if (this.isTextNode()) return null;
         const kids = [];
 
@@ -405,8 +407,8 @@ export class HtmlNode {
     } {
         let tag = '',
             id = '';
-        const classes = [],
-            props = {};
+        const classes: string[] = [],
+            props: Record<string, string> = {};
 
         raw.replace(/#[^.#\[\]]+/g, match => {
             id = match.slice(1);

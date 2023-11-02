@@ -259,8 +259,8 @@ class DependencyHandler {
             .map(mod => {
                 mod = mod.trim();
                 if (mod.includes(' as ')) {
-                    if (mode === 'import') mod = mod.split(' ').shift();
-                    else mod = mod.split(' ').pop();
+                    if (mode === 'import') mod = mod.split(' ').shift()!;
+                    else mod = mod.split(' ').pop()!;
                 }
                 return mod;
             })
@@ -298,7 +298,7 @@ class DependencyHandler {
                     modulePath = this.resolveModuleName(moduleName, filePath);
                 } catch (err) {
                     console.log();
-                    console.log(err.message);
+                    if (err instanceof Error) console.log(err?.message);
                 }
 
                 if (!modulePath) {
@@ -320,7 +320,7 @@ class DependencyHandler {
                 try {
                     const rawExportNames = expor.match(/\{.*?\}/g);
                     const exportNames = this.parseCurvBracesModuleList(
-                        rawExportNames[0],
+                        rawExportNames![0],
                         'export'
                     );
                     exportedModules.push(...exportNames);
@@ -342,7 +342,7 @@ class DependencyHandler {
         if (/^import \w+ from/.test(importLine)) {
             return ['$default$'];
         } else if (/^import \{/.test(importLine)) {
-            const namedImports = [];
+            const namedImports: string[] = [];
             importLine.replace(/\{[^}]*\}/, rawNamedModuleNames => {
                 namedImports.push(
                     ...this.parseCurvBracesModuleList(
@@ -361,7 +361,7 @@ class DependencyHandler {
             // Nothing to do, if there was an error, it was handled before in the module
             // resolution.
         } else {
-            const namedImports = [];
+            const namedImports: string[] = [];
             importLine.replace(/\{[^}]*\}/, rawNamedModuleNames => {
                 namedImports.push(
                     ...this.parseCurvBracesModuleList(
@@ -372,8 +372,9 @@ class DependencyHandler {
                 return '';
             });
 
-            return [...namedImports, '$default$']
+            return [...namedImports, '$default$'];
         }
+        return [];
     }
 
     async checkFileImports(filePath: string): Promise<string[]> {
@@ -382,7 +383,7 @@ class DependencyHandler {
 
         const problemImports = [] as string[];
 
-        if (!imports) return;
+        if (!imports) return [];
         for (let impor of imports) {
             impor = impor.replace(/\btype /, '');
 
@@ -405,7 +406,7 @@ class DependencyHandler {
                 // There was an error when resolving the module name.
                 problemImports.push(...importedModules);
                 console.log('\nError while resolving the module');
-                console.log(err.message);
+                if (err instanceof Error) console.log(err.message);
                 continue;
             }
 

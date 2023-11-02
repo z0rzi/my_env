@@ -13,7 +13,7 @@ const EMOJI_FILE_PATH = `${HOME}/.local/share/emojis2.json`;
 import { writeSync } from 'clipboardy';
 import fs from 'fs';
 import fetch from 'node-fetch';
-import { FuzzyFinder } from './fuzzyFinder.js';
+import prompts from 'prompts';
 function codeToEmoji(code) {
     if (!code)
         return '';
@@ -59,8 +59,8 @@ function findEmojis(search) {
                 return [];
             return res.map(apiEmo => ({
                 icon: codeToEmoji(apiEmo.Code),
-                name: apiEmo.Name,
-                tags: apiEmo.Name,
+                name: apiEmo.Name.toLowerCase(),
+                tags: apiEmo.Name.toLowerCase(),
             }));
         });
     });
@@ -72,61 +72,61 @@ function loadPreviousEmos() {
 root();
 function root() {
     return __awaiter(this, void 0, void 0, function* () {
-        let search = '';
-        const prevEmojis = loadPreviousEmos();
-        const emojiFinder = new FuzzyFinder(prevEmojis.map(e => ({
-            label: e.icon,
-            tags: e.name + ' ' + e.tags,
-            payload: e,
-        })), choice => {
+        const allEmojis = loadPreviousEmos();
+        prompts({
+            type: 'autocomplete',
+            limit: 20,
+            name: 'icon',
+            message: '',
+            suggest: function (input, choices) {
+                return __awaiter(this, void 0, void 0, function* () {
+                    input = input.toLowerCase();
+                    if (input.endsWith('\\')) {
+                        this.input = this.input.slice(0, -1);
+                        input = this.input;
+                        const newEmojis = yield findEmojis(this.input);
+                        newEmojis.forEach(newEmo => {
+                            const iconExists = allEmojis.find(e2 => e2.icon === newEmo.icon);
+                            if (iconExists) {
+                                // Icon already exists
+                                if (!iconExists.tags.includes(input) &&
+                                    !iconExists.name.includes(input))
+                                    iconExists.tags += ' ' + input;
+                            }
+                            else {
+                                // Icon does not exist yet, we add it
+                                if (!newEmo.tags.includes(input))
+                                    newEmo.tags += ' ' + input;
+                                allEmojis.push(newEmo);
+                            }
+                        });
+                        choices = allEmojis.map(e => ({
+                            title: e.icon,
+                            value: e.icon,
+                            payload: e,
+                        }));
+                        this.choices = choices;
+                    }
+                    return choices.filter(c => {
+                        const emoji = allEmojis.find(e => e.icon === c.value);
+                        return (emoji.tags.toLowerCase().includes(input) ||
+                            emoji.name.toLowerCase().includes(input));
+                    });
+                });
+            },
+            choices: allEmojis.map(e => ({
+                title: e.icon,
+                value: e.icon,
+                payoad: e,
+            })),
+        }).then(choice => {
             if (!choice)
                 process.exit(1);
-            writeSync(choice.payload.icon);
-            let emojiAlreadyThere = false;
-            for (let i = 0; i < prevEmojis.length; i++) {
-                if (prevEmojis[i].icon === choice.label) {
-                    prevEmojis[i].tags += ' ' + search;
-                    if (!prevEmojis[i].tags.includes(search))
-                        prevEmojis[i].tags += ' ' + search;
-                    const emoji = prevEmojis.splice(i, 1)[0];
-                    prevEmojis.unshift(emoji);
-                    emojiAlreadyThere = true;
-                }
-            }
-            if (!emojiAlreadyThere) {
-                if (!choice.payload.tags.includes(search))
-                    choice.payload.tags += ' ' + search;
-                prevEmojis.unshift(choice.payload);
-            }
-            fs.writeFileSync(EMOJI_FILE_PATH, JSON.stringify(prevEmojis, null, 2));
-            process.exit(0);
+            writeSync(choice.icon);
+            const emoji = allEmojis.find(e => e.icon === choice.icon);
+            const newEmojis = allEmojis.filter(e => e.icon !== choice.icon);
+            newEmojis.unshift(emoji);
+            fs.writeFileSync(EMOJI_FILE_PATH, JSON.stringify(newEmojis, null, 2));
         });
-        let text = '';
-        const fetchResults = () => {
-            findEmojis(text).then(emojis => {
-                const emojisChoices = emojis.map(e => ({
-                    label: e.icon,
-                    tags: text + ' ' + e.name + ' ' + e.tags,
-                    payload: e,
-                }));
-                emojisChoices.push(...prevEmojis.map(e => ({
-                    label: e.icon,
-                    tags: ' ' + e.name + ' ' + e.tags,
-                    payload: e,
-                })));
-                emojiFinder.choices = emojisChoices;
-            });
-        };
-        emojiFinder.onKeyHit = k => {
-            if (k === '\\') {
-                if (text.length > 0)
-                    fetchResults();
-                return false;
-            }
-            return true;
-        };
-        emojiFinder.onSearchChange = (search) => {
-            text = search;
-        };
     });
 }

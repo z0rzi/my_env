@@ -24,25 +24,3 @@ while inotifywait $dir 2> /dev/null; do
     bash -c "$cmd" &
     sleep 1
 done
-
-# trap "kill -9 \$child_pid" EXIT
-
-# lastTime=`date +"%Y-%m-%dT%H:%M:%S"`
-# lastID=$RANDOM
-# while :; do
-#     sleep 1
-#     if [ "`find $dir -newermt $lastTime`" ]; then
-#         id_to_kill=$lastID
-#         lastID=$RANDOM
-#         lastTime=`date +"%Y-%m-%dT%H:%M:%S"`
-#         printf "\n\n\t💾 \e[1;34mSaved, launching command...\033[0m 💾\n\n"
-#         for cpid in $child_pid; do
-#             kill -9 "$cpid" 2>&1 > /dev/null
-#         done
-
-#         bash -c "$cmd" &
-
-#         pid=$BASHPID
-#         child_pid=`pgrep -P $pid`
-#     fi
-# done

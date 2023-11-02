@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const CONF_FILE = '/home/zorzi/.config/monitors.json';
-import { cmd } from './shell.js';
+import { cmd, sourceCmd } from './shell.js';
 import { readFileSync, readFile, writeFile } from 'fs';
 import { createHash as hash } from 'crypto';
 let laptop = null;

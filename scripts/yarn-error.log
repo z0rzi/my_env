@@ -1,20 +1,20 @@
 Arguments: 
-  /usr/bin/node /usr/local/bin/yarn add clipboardy
+  /usr/bin/node /usr/local/bin/yarn
 
 PATH: 
   /home/zorzi/.fzf/bin:/home/zorzi/.local/bin:/home/zorzi/.local/bin/custom:/mnt/DATA/home/zorzi/.fzf/bin:/home/zorzi/.local/bin:/home/zorzi/.local/bin/custom:/usr/local/bin:/home/zorzi/.local/bin:/home/zorzi/.local/bin/custom:/usr/bin:/home/zorzi/.local/bin:/home/zorzi/.local/bin/custom:/bin:/home/zorzi/.local/bin:/home/zorzi/.local/bin/custom:/usr/local/games:/home/zorzi/.local/bin:/home/zorzi/.local/bin/custom:/usr/games:/home/zorzi/.local/bin:/home/zorzi/.local/bin/custom
 
 Yarn version: 
-  1.22.17
+  1.22.19
 
 Node version: 
-  12.22.5
+  18.13.0
 
 Platform: 
   linux x64
 
 Trace: 
-  Error: EACCES: permission denied, unlink '/home/zorzi/.my_env/scripts/node_modules/.yarn-integrity'
+  Error: EEXIST: file already exists, mkdir '/home/zorzi/.my_env/scripts/node_modules'
 
 npm manifest: 
   {

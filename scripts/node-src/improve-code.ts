@@ -7,7 +7,7 @@ import path from 'path';
 
 const configuration = new Configuration({
     apiKey: fs.readFileSync(
-        path.join(process.env['HOME'], '.config', 'openapi-token.conf'),
+        path.join(process.env['HOME']!, '.config', 'openapi-token.conf'),
         { encoding: 'utf8' }
     ).trim(),
 });
@@ -35,8 +35,8 @@ if (/improve-code.js/.test(process.argv[1])) {
             max_tokens: 1000,
         })
         .then(response => {
-            console.log(response.data.choices[0].text.trim());
-            clipboardy.writeSync(response.data.choices[0].text.trim());
+            console.log(response.data.choices[0].text!.trim());
+            clipboardy.writeSync(response.data.choices[0].text!.trim());
         })
         .catch(err => {
             console.error(err);

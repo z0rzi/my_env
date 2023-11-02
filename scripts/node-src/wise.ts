@@ -5,14 +5,20 @@ import path from 'path';
 import fs from 'fs';
 import { waitForInternet } from './network.js';
 
-const home = process.env['HOME'];
+const home = process.env['HOME']!;
+
 let API_TOKEN: string;
+
 try {
     API_TOKEN = fs
         .readFileSync(path.join(home, '.config', 'wise-token.conf'))
         .toString()
         .trim();
-} catch (err) {}
+} catch (err) {
+    console.log(err);
+    process.exit(0);
+}
+
 if (!API_TOKEN) {
     console.log('Could not find Wise API token');
     process.exit(1);

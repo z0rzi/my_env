@@ -21,7 +21,10 @@ const packagejson = readJSON(path.join(rootpath, 'package.json'));
 const deps = packagejson['dependencies'];
 const devDeps = packagejson['devDependencies'];
 
-const out = {};
+const out = {} as {
+    dependencies: Record<string, string>;
+    devDependencies: Record<string, string>;
+};
 
 if (deps) {
     out['dependencies'] = {};

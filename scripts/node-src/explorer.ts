@@ -14,11 +14,11 @@ const INDENT = '┆   ';
 
 class ExplorerFile extends File {
     children: ExplorerFile[] = [];
-    parent: ExplorerFile = null;
+    parent: null | ExplorerFile = null;
     opened = false;
     _showHidden = false;
     _gitOnly = false;
-    isDirectory: boolean;
+    isDirectory: boolean = false;
 
     get showHidden(): boolean {
         if (!this.parent) return this._showHidden;
@@ -139,10 +139,10 @@ class ExplorerFile extends File {
 
     refreshChildren(): ExplorerFile {
         if (!this.isDirectory || !this.opened) {
-            this.parent.refreshChildren();
+            this.parent!.refreshChildren();
             return (
-                this.parent.children.find(kid => kid.name === this.name) ||
-                this.parent
+                this.parent!.children.find(kid => kid.name === this.name) ||
+                this.parent!
             );
         }
 
@@ -189,7 +189,7 @@ class ExplorerFile extends File {
             let iconStyle = this.textStyle;
             if (this.iconColor != null) iconStyle = { color: this.iconColor };
 
-            cli.write(`${this.icon} `, iconStyle);
+            cli.write(`${this.icon} `, iconStyle!);
 
             const textStyle = { ...this.textStyle };
             if (options.emphasis) textStyle.underline = true;
@@ -199,7 +199,7 @@ class ExplorerFile extends File {
                 const extension = this.name.replace(/^.*\./, '');
 
                 cli.write(`${root}.`, textStyle ?? {});
-                cli.write(`${extension}`, iconStyle);
+                cli.write(`${extension}`, iconStyle!);
             } else {
                 cli.write(`${this.name}`, textStyle ?? {});
             }
@@ -259,11 +259,11 @@ class ExplorerFile extends File {
 
         let f = this as ExplorerFile;
         while (true) {
-            const kids = await f.parent.getVisibleChildren();
+            const kids = await f.parent!.getVisibleChildren();
             const idx = kids.indexOf(f);
             if (kids.length > idx + 1) return kids[idx + 1];
 
-            f = f.parent;
+            f = f.parent!;
             if (!f.parent) break;
         }
         return this;
@@ -285,7 +285,7 @@ class ExplorerFile extends File {
 class Explorer {
     height = -1;
 
-    cli: Cli = null;
+    cli: Cli;
     selectionPos = 0;
 
     lastOffset = 0;
@@ -295,24 +295,24 @@ class Explorer {
     showHidden = false;
 
     rootFile: ExplorerFile;
-    previousFile: ExplorerFile;
-    _currentFile: ExplorerFile;
+    previousFile: null | ExplorerFile = null;
+    _currentFile: null | ExplorerFile = null;
     get currentFile(): ExplorerFile {
-        return this._currentFile;
+        return this._currentFile!;
     }
     set currentFile(newFile: ExplorerFile) {
         this.previousFile = this._currentFile;
         this._currentFile = newFile;
     }
 
-    fileOpenListener: (file: ExplorerFile) => unknown = null;
+    fileOpenListener: null | ((file: ExplorerFile) => unknown) = null;
 
     constructor(path: string, onFileOpen?: (file: ExplorerFile) => unknown) {
         this.rootFile = new ExplorerFile(path);
         this.rootFile.open();
         this.currentFile = this.rootFile;
 
-        this.fileOpenListener = onFileOpen;
+        if (onFileOpen) this.fileOpenListener = onFileOpen;
 
         this.cli = new Cli(this.height);
         this.cli.onKeyHit(this.onInput.bind(this));
@@ -361,7 +361,7 @@ class Explorer {
 
             while (!!file && !nextFile) {
                 nextFile = file.nextSibling as ExplorerFile;
-                file = file.parent;
+                file = file.parent!;
             }
 
             file = nextFile;
@@ -421,7 +421,7 @@ class Explorer {
     // Actions
     //
     async open(recursive = false): Promise<void> {
-        if (!this.currentFile.isDirectory)
+        if (!this.currentFile.isDirectory && this.fileOpenListener)
             this.fileOpenListener(this.currentFile);
         else {
             await this.currentFile.open(recursive ? 5 : 0);
@@ -440,7 +440,7 @@ class Explorer {
                 isDir
             ) as ExplorerFile;
         } else
-            newfile = this.currentFile.parent.createChild(
+            newfile = this.currentFile.parent!.createChild(
                 '_explorer_internal',
                 isDir
             ) as ExplorerFile;
@@ -483,7 +483,7 @@ class Explorer {
     async goUp(toFirst: boolean): Promise<void> {
         if (toFirst) {
             this.currentFile = (
-                await this.currentFile.parent.getVisibleChildren()
+                await this.currentFile.parent!.getVisibleChildren()
             )[0];
         } else {
             this.currentFile = await this.currentFile.getPrevious();
@@ -500,7 +500,7 @@ class Explorer {
     }
     async goDown(toLast: boolean): Promise<void> {
         if (toLast) {
-            const siblings = await this.currentFile.parent.getVisibleChildren();
+            const siblings = await this.currentFile.parent!.getVisibleChildren();
             this.currentFile = siblings[siblings.length - 1];
         } else this.currentFile = await this.currentFile.getNext();
 
@@ -554,9 +554,9 @@ class Explorer {
 
     async onInput(
         keyName: string,
-        ctrl: boolean,
-        shift: boolean
-    ): Promise<void> {
+        ctrl?: boolean,
+        shift?: boolean
+    ): Promise<boolean> {
         if (keyName === 'space') keyName = ' ';
         if (keyName.length === 1) {
             switch (keyName) {
@@ -575,7 +575,7 @@ class Explorer {
                     this.gitOnlyMode = !this.gitOnlyMode;
                     this.rootFile.gitOnly = this.gitOnlyMode;
                     this.currentFile =
-                        await this.currentFile.getClosestVisible();
+                        await this.currentFile!.getClosestVisible();
                     await this.refreshScreen();
                     break;
                 case 's':
@@ -620,11 +620,11 @@ class Explorer {
                     break;
 
                 case 'up':
-                    await this.goUp(shift || ctrl);
+                    await this.goUp(shift || ctrl || false);
                     break;
 
                 case 'down':
-                    await this.goDown(ctrl || shift);
+                    await this.goDown(ctrl || shift || false);
                     break;
 
                 case 'delete':
@@ -651,6 +651,8 @@ class Explorer {
         }
 
         this.cli.goToLine((await this.currentFile.getPosition()) - this.offset);
+
+        return true;
     }
 }
 

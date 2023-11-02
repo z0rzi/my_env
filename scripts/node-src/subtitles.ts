@@ -56,7 +56,7 @@ async function scrapeMoviePage(movieId: number) {
                 try {
                     /** Will look like 'season-2' */
                     const seasonName = line.querySelector('span')[0].innerText;
-                    seasonNum = +seasonName.match(/\d+/g)[0];
+                    seasonNum = +seasonName.match(/\d+/g)![0];
                 } catch (err) {
                     // console.log(
                     //     'Error while trying to find the season number...'
@@ -71,7 +71,7 @@ async function scrapeMoviePage(movieId: number) {
                 )[0];
                 const episodeNum = +episode.innerText;
                 let papa = episode.parent;
-                const domLink = papa.querySelector('[itemprop=url]')[0];
+                const domLink = papa!.querySelector('[itemprop=url]')[0];
                 if (!domLink) {
                     // No download available for this episode...
                     continue;
@@ -145,6 +145,7 @@ async function downloadSub(link: string): Promise<string> {
 
         return newPath;
     }
+    return '';
 }
 
 function createDir(): string {
@@ -164,7 +165,7 @@ const search = process.argv
     .slice(2)
     .join(' ')
     .replace(/s\d+e\d+/i, numbers => {
-        [season, episode] = numbers.match(/\d+/g).map(Number);
+        [season, episode] = numbers.match(/\d+/g)!.map(Number);
         return '';
     });
 
@@ -192,13 +193,13 @@ findMovies(search).then(async res => {
 
     if (!isMovie) {
         const links = await scrapeMoviePage(res[0].id);
-        const link = links[season][episode];
+        const link = links![season][episode];
 
         console.log('\nEpisodes links found!');
-        for (let se = 1; se < links.length; se++) {
+        for (let se = 1; se < links!.length; se++) {
             console.log('  season ' + se);
-            for (let ep = 1; ep < links[se].length; ep++) {
-                console.log('    episode ' + ep + ' : \t' + links[se][ep]);
+            for (let ep = 1; ep < links![se].length; ep++) {
+                console.log('    episode ' + ep + ' : \t' + links![se][ep]);
             }
         }
 
@@ -214,19 +215,19 @@ findMovies(search).then(async res => {
         const dlLinks = await scrapeSubsList(link);
 
         console.log('\nDownlaod links found!');
-        for (let i = 0; i < dlLinks.length; i++) {
-            console.log('  ' + dlLinks[i]);
+        for (let i = 0; i < dlLinks!.length; i++) {
+            console.log('  ' + dlLinks![i]);
         }
 
         console.log('\nDownloading the first subtitle...');
 
-        const path = await downloadSub(dlLinks[0]);
+        const path = await downloadSub(dlLinks![0]);
 
         console.log(`Subtitles saved at '${path}'`);
     } else {
         const dlLinks = await scrapeSubsList(res[0].pic);
 
-        const path = await downloadSub(dlLinks[0]);
+        const path = await downloadSub(dlLinks![0]);
 
         console.log(`Subtitles saved at '${path}'`);
     }

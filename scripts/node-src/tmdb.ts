@@ -80,7 +80,7 @@ async function getAllMovieInfos(id: number): Promise<RawMovieInfos> {
 export async function getMovieInfos(movieName: string) {
     let year = '';
     try {
-        year = movieName.match(/ y:\d+/g)[0].slice(3);
+        year = movieName.match(/ y:\d+/g)![0].slice(3);
         movieName = movieName.replace(/ y:\d+/g, '');
     } catch (err) {}
 

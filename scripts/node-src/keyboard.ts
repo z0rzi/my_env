@@ -16,7 +16,7 @@ const MODIFIDERS: {
             };
             const match = keyCode.match(/^(?:\d+-){4}5(?<k>[0-6])-\d+$/);
             if (!match || !('groups' in match)) mods;
-            const k = Number(match.groups.k) + 1;
+            const k = Number(match!.groups!.k) + 1;
             return {
                 shift: !!((k >> 0) % 2),
                 alt: !!((k >> 1) % 2),
@@ -31,7 +31,10 @@ const MODIFIDERS: {
     },
 ];
 
-const KEYCODES = {
+const KEYCODES: Record<
+    string,
+    string | { ctrl?: boolean; shift?: boolean; key: string }
+> = {
     '9': 'tab',
     '13': 'return',
     '127': 'backspace',
@@ -96,9 +99,9 @@ function buffToCode(buff: Buffer): string {
 }
 
 export class Keyboard {
-    static _instance = null;
+    static _instance: null | Keyboard = null;
     rolling = false;
-    callback: (k: Key) => unknown;
+    callback: null | ((k: Key) => unknown) = null;
 
     static getInstance(): Keyboard {
         if (!this._instance) this._instance = new Keyboard();
@@ -140,10 +143,13 @@ export class Keyboard {
             // Exact matches with keymaps
             if (String(keyCode) in KEYCODES) {
                 let out = { key: '' } as { key: string } & Partial<Modifiers>;
-                if (typeof KEYCODES[String(keyCode)] === 'string') {
-                    out = { key: KEYCODES[String(keyCode)] };
+                const key = KEYCODES[String(keyCode)] as
+                    | string
+                    | { ctrl?: boolean; shift?: boolean; key: string };
+                if (typeof key === 'string') {
+                    out = { key };
                 } else {
-                    out = KEYCODES[String(keyCode)];
+                    out = key;
                 }
 
                 return Object.assign(mods, out);

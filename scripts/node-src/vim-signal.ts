@@ -36,7 +36,19 @@ export async function sendSignal(filePath: string, line?: number, col?: number):
     const ids = await findGoodVimInstance(vimPids);
 
     if (ids) {
-        cmd('kill -10 ' + ids[1]);
+        // Sends the signal to vim
+        // cmd('kill -USR1 ' + ids[1]);
+
+        // Focuses the vim window
+        cmd('kitty @ focus-window --match=id:' + ids[0]);
+
+        // Now, vim will react to the focus and read the file
+
+        setTimeout(() => {
+            // removing the file once it's been read by vim
+            fs.unlinkSync('/tmp/vim_sig.txt');
+        }, 500);
+
         return ids[0];
     } else {
         console.log('No vim instances found in the current kitty tab...');

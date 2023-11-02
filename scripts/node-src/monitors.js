@@ -1,4 +1,5 @@
 #!/bin/node
+
 const CONF_FILE = '/home/zorzi/.config/monitors.json';
 
 import { cmd, sourceCmd } from './shell.js';
