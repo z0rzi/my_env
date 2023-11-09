@@ -194,6 +194,7 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
             printf $COLOR_TIME
         }
         function time_click {
+            echo $1 > /tmp/click
             if [ "$1" = "$CLICK_RIGHT" ]; then
                 export LC_TIME='en_US.UTF-8'
                 notify-send "`date +'%d / %m / %Y'`"  "`date +'%A %d of %B, %Y'`" -t 5000
@@ -341,6 +342,7 @@ AIRPLANE_TOOL="/home/zorzi/.my_env/scripts/airplane.sh"
                 line=${line:1}
             fi
             read name button <<< "`$JSON_PARSER $line '%(|name) %(|button)'`"
+            echo $name $button > /tmp/click
             ${name}_click $button
         done
     done

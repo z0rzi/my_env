@@ -15,4 +15,4 @@ def main(args: List[str]) -> str:
     line = position['line'][0]
     col = position['col'][0]
 
-    subprocess.run(["/home/zorzi/.local/bin/custom/vim-signal.js", path, line, col], stdout=subprocess.PIPE)
+    subprocess.run(["/home/zorzi/.local/bin/custom/vim-signal.ts", path, line, col], stdout=subprocess.PIPE)

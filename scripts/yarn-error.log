@@ -1,5 +1,5 @@
 Arguments: 
-  /usr/bin/node /usr/local/bin/yarn
+  /usr/bin/bun /usr/local/bin/yarn
 
 PATH: 
   /home/zorzi/.fzf/bin:/home/zorzi/.local/bin:/home/zorzi/.local/bin/custom:/mnt/DATA/home/zorzi/.fzf/bin:/home/zorzi/.local/bin:/home/zorzi/.local/bin/custom:/usr/local/bin:/home/zorzi/.local/bin:/home/zorzi/.local/bin/custom:/usr/bin:/home/zorzi/.local/bin:/home/zorzi/.local/bin/custom:/bin:/home/zorzi/.local/bin:/home/zorzi/.local/bin/custom:/usr/local/games:/home/zorzi/.local/bin:/home/zorzi/.local/bin/custom:/usr/games:/home/zorzi/.local/bin:/home/zorzi/.local/bin/custom

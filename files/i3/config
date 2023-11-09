@@ -92,6 +92,7 @@
         bindsym $mod+F4 exec /home/zorzi/.my_env/scripts/brightness.sh down
 
     # Sound
+        bindsym Insert exec /home/zorzi/.my_env/scripts/sound.sh up
         bindsym XF86AudioRaiseVolume exec /home/zorzi/.my_env/scripts/sound.sh up
         bindsym XF86AudioLowerVolume exec /home/zorzi/.my_env/scripts/sound.sh down
         bindsym XF86AudioMute exec /home/zorzi/.my_env/scripts/sound.sh mute
@@ -115,7 +116,7 @@
         bindsym $alt+$sup+Right resize grow width 5 px or 5 ppt
 
     # Emojis
-        bindsym $alt+Shift+e exec kitty --title floating -o remember_window_size=no -o initial_window_height=800 -o initial_window_width=500 -o font_size=20 -e /home/zorzi/.my_env/scripts/emoji2.js
+        bindsym $alt+Shift+e exec kitty --title floating -o remember_window_size=no -o initial_window_height=800 -o initial_window_width=500 -o font_size=20 -e /home/zorzi/.my_env/scripts/emoji2.ts
 
     # Mouse
         bindsym $mod+button2 --whole-window --release kill

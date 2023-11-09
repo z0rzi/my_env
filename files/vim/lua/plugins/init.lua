@@ -12,7 +12,7 @@ return {
 
     'HerringtonDarkholme/yats.vim',
     'maxmellon/vim-jsx-pretty',
-    
+    { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
     'tpope/vim-surround',
     {'lewis6991/gitsigns.nvim', config=function() require('gitsigns').setup() end},
 }

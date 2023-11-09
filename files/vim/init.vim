@@ -120,7 +120,7 @@
     nnoremap VV ggVG
     nnoremap vv v$h
     nnoremap <CR> %
-    onoremap <CR> v%
+    onoremap <CR> %
     inoremap <F2> <ESC>
     inoremap <C-x><C-l> <C-x><C-l>
     inoremap <silent> <C-r>/ <C-r>=substitute(@/, '\\.', '', 'g')<CR>
@@ -152,6 +152,8 @@
     nnoremap <C-right> e
     nnoremap <C-left> b
 
+    nnoremap <A-down> :<C-U>call smoothie#downwards()<CR>
+    nnoremap <A-up> :<C-U>call smoothie#upwards()<CR>
     nnoremap <C-down> <CMD>m+1<CR>
     nnoremap <C-up> <CMD>m-2<CR>
     xnoremap <C-up> :<C-u>exe (line("'<")-1) . " m " . line("'>")<CR>gv
@@ -372,11 +374,10 @@
 
     " Telescope
         nnoremap <C-p> <CMD>Telescope find_files find_command=listfiles.sh<CR>
-        nnoremap <CS-p> <CMD>Telescope find_files find_command=hy,-get-links<CR>
+        nnoremap <A-p> <CMD>Ag _<CR>noremap <CS-p> <CMD>Ag _<CR>
         nnoremap <CA-p> :Telescope find_files find_command=listfiles.sh,<C-r>=expand('%:h')<CR><CR>
         nnoremap <C-f> <CMD>Telescope live_grep<CR>
         nnoremap <C-s> :Telescope grep_string search=<C-r>=expand('<cword>')<CR> word_match=-w<CR>
-        
 
     " GIT
         nmap <leader>gn <CMD>Gitsigns next_hunk<CR>
