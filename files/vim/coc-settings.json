@@ -1,4 +1,8 @@
 {
+    "outline.keepWindow": true,
+    "outline.sortBy": "position",
+    "outline.splitCommand": "topleft 30vs",
+
     "diagnostic.enable": true,
     "diagnostic.displayByAle": false,
     "diagnostic.errorSign": "",
@@ -9,9 +13,6 @@
     "diagnostic.format": "[%severity] %message",
 
     "coc.preferences.currentFunctionSymbolAutoUpdate": true,
-
-    "angular.trace.server": "off",
-    "angular.log": "off",
 
     "tsserver.enable": true,
     "tsserver.maxTsServerMemory": 1000,
@@ -36,6 +37,12 @@
     "javascript.format.placeOpenBraceOnNewLineForFunctions": false,
     "javascript.suggest.completeFunctionCalls": true,
 
+    "eslint.workingDirectories": [
+        "./",
+        "./src",
+        "./test"
+    ],
+
     "sumneko-lua.enableNvimLuaDev": true,
 
     "suggest.noselect": true,
@@ -49,14 +56,16 @@
             "command": "nimlsp",
             "filetypes": ["nim"]
         },
-        "rust": {
-            "command": "rust-analyzer",
-            "filetypes": ["rust"]
-        },
         "vue": {
             "command": "vls",
             "filetypes": ["vue"]
-        }
+        },
+        "angular": {
+            "command": "ngserver",
+            "args": ["--stdio", "--tsProbeLocations", "/usr/local/lib/node_modules/typescript/lib", "--ngProbeLocations", "/usr/local/lib/node_modules/@angular/language-server/lib"],
+            "filetypes": [ "ts", "typescript", "html", "typescriptreact", "typescript.tsx" ],
+            "trace.server.verbosity": "verbose"
+        },
     },
     "snippets.ultisnips.pythonPrompt": false
 }

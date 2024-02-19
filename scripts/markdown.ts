@@ -5,7 +5,6 @@ import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
 import http from 'http';
 import path from 'path';
-import { findMistakes, Mistake } from './correct.js';
 
 const md = new MarkdownIt({
     html: true,
@@ -65,29 +64,6 @@ code {
     border-radius: 3px;
     padding: 2px 4px;
 }
-.mistake {
-    display: inline;
-    position: relative;
-    border-bottom: 2px solid #d11818;
-    cursor: pointer;
-}
-.mistake:hover .correction {
-    opacity: 1;
-    height: 100%;
-    z-index: 10000;
-}
-.correction {
-    height: 0;
-    left: 0;
-    top: 100%;
-    opacity: 0;
-    white-space: nowrap;
-    position: absolute;
-    background: #fff;
-    padding: 5px 10px;
-    box-shadow: 2px 2px 5px #0002;
-    transition: .2s;
-}
 pre>code {
     background-color: #0000000d;
     display: block;
@@ -136,22 +112,10 @@ function scrollToFocus() {
         behavior: 'smooth'
     })
 }
-function setupMistakeClick() {
-    const mistakesDom = document.querySelectorAll('.mistake');
-    mistakesDom.forEach(elem => {
-        const correction = elem.children[0].innerText;
-        elem.onclick = () => {
-            const xhr = new XMLHttpRequest()
-            xhr.open("GET", "/correct/" + elem.id)
-            xhr.send()
-        };
-    });
-}
 setInterval(() => {
     testReload();
 }, 500);
 setTimeout(() => {
-    setupMistakeClick();
     scrollToFocus();
 }, 100);
 `;
@@ -197,19 +161,6 @@ async function onFileSave() {
         const lineSave = splittedMd[currentMdLine];
 
         let line = splittedMd[currentMdLine];
-        const errors = await findMistakes(line);
-        errors.reverse().forEach(mistake => {
-            let mistakeId = 0;
-            while (mistakeId in mistakes) mistakeId++;
-            mistakes[mistakeId] = mistake;
-
-            const before = line.slice(0, mistake.from);
-            const after = line.slice(mistake.to);
-            line =
-                before +
-                `@${mistakeId}::${mistake.originalText}::${mistake.replacement}@` +
-                after;
-        });
 
         splittedMd[currentMdLine] = line + '@cursor@';
         markdownContent = splittedMd.join('\n');
@@ -217,13 +168,7 @@ async function onFileSave() {
     }
 
     html = md.render(markdownContent);
-    html = html.replace(/@\d+::.*?::.*?@/g, error => {
-        const { groups } = error.match(
-            /^@(?<id>\d+)::(?<mistake>.*?)::(?<fix>.*?)@$/
-        )!;
-        if (!groups) return error;
-        return `<span class="mistake" id="${groups.id}">${groups['mistake']}<span class="correction">${groups['fix']}</span></span>`;
-    });
+
     const splittedHtml = html.split('\n');
     const currentLine = splittedHtml.findIndex(line =>
         line.includes('@cursor@')
@@ -245,17 +190,7 @@ async function onFileSave() {
                 res.setHeader('content-type', 'application/json');
                 res.end(JSON.stringify(shouldReload));
                 shouldReload = false;
-            } else if (url.startsWith('/correct')) {
-                const id = +url.match(/\d+/)![0];
-                const mistake = mistakes[id];
-                const line = splittedMd[currentMdLine];
-                const before = line.slice(0, mistake.from);
-                const after = line.slice(mistake.to);
-                splittedMd[currentMdLine] =
-                    before + mistake.replacement + after;
-                fs.writeFileSync(markdownFile, splittedMd.join('\n'));
-                res.end('ok');
-            } else if (/.png$/.test(url)) {
+            }else if (/.png$/.test(url)) {
                 let assetPath = url;
                 if (!fs.existsSync(assetPath)) {
                     assetPath = path.join(

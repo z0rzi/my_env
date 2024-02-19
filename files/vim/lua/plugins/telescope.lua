@@ -110,7 +110,6 @@ local function getCustomSorter()
         local finalScore = 0
 
         local last_slash_position = line:find("/[^/]*$")
-        print(line, last_slash_position)
 
         for i = 1, #patterns do
           local pattern = patterns[i]
@@ -192,7 +191,7 @@ return {
           filesize_limit = 0.1, -- MB
         },
         scroll_strategy = 'limit',
-        layout_strategy = "flex",
+        layout_strategy = "vertical",
         path_display = { truncate = 3 },
         layout_config = {
           flex = {
@@ -205,6 +204,12 @@ return {
         mappings = {
           i = {
             ["<esc>"] = actions.close,
+            ["<C-j>"] = actions.move_selection_next,
+            ["<C-k>"] = actions.move_selection_previous,
+            ["<C-t>"] = actions.select_tab,
+            ["<C-u>"] = actions.preview_scrolling_up,
+            ["<C-d>"] = actions.preview_scrolling_down,
+            ["<C-c>"] = actions.close,
             ['<C-down>'] = require('telescope.actions').preview_scrolling_down,
             ['<C-up>'] = require('telescope.actions').preview_scrolling_up,
             ['<S-down>'] = require('telescope.actions').preview_scrolling_down,

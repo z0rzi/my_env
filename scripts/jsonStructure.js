@@ -72,8 +72,6 @@ function toTypescript(obj, idt = 0) {
                     if (key.includes(' ') || key.includes('-')) 
                         key = `'${key}'`;
 
-                    console.log('toTypescript:75\t>', key);
-
                     return (
                         key +
                         (sure ? ': ' : '?: ') +

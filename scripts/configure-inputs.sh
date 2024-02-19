@@ -13,7 +13,7 @@ function configure_mouse {
 
 function configure_keyboard {
     id=$1
-    xkbcomp -w0 -I$HOME/.xkb ~/.xkb/keymap/basic $DISPLAY
+    [ -f "$HOME/.Xmodmap" ] && xmodmap $HOME/.Xmodmap
 }
 
 function configure_cam {

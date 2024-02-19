@@ -105,6 +105,7 @@ async function setSoundProfileFor(monitor) {
             if (!profile) profile = card.profiles[0];
         } else {
             // HDMI
+            console.log('setSoundProfileFor:108\t>', "SETTING SOUND ON HDMI");
             profile = card.profiles.find(profile =>
                 profile.name.toLowerCase().includes('hdmi')
             );

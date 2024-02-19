@@ -48,6 +48,9 @@
     # File explorer
         bindsym $sup+e exec kitty fish -c "ranger"
 
+    # File explorer
+        bindsym $sup+i exec picolor
+
     # Note taking
         bindsym $mod+n exec flatpak run md.obsidian.Obsidian
 
@@ -70,9 +73,7 @@
         bindsym --release $mod+Shift+t exec eog /home/zorzi/Work/tasks/
 
     # kill focused window
-        bindsym $mod+k kill
         bindsym $mod+Escape kill
-        bindsym $alt+k kill
 
     # Clipboard
         # bindsym Ctrl+Shift+x exec gpaste-client ui
@@ -90,6 +91,9 @@
     # Brightness
         bindsym $mod+F5 exec /home/zorzi/.my_env/scripts/brightness.sh up
         bindsym $mod+F4 exec /home/zorzi/.my_env/scripts/brightness.sh down
+        bindsym XF86MonBrightnessUp exec /home/zorzi/.my_env/scripts/brightness.sh up
+        bindsym XF86MonBrightnessDown exec /home/zorzi/.my_env/scripts/brightness.sh down
+
 
     # Sound
         bindsym Insert exec /home/zorzi/.my_env/scripts/sound.sh up
@@ -102,6 +106,10 @@
         bindsym $mod+Down focus down
         bindsym $mod+Up focus up
         bindsym $mod+Right focus right
+        bindsym $mod+h focus left
+        bindsym $mod+j focus down
+        bindsym $mod+k focus up
+        bindsym $mod+l focus right
 
     # move focused window
         bindsym $mod+Shift+Left move left
@@ -188,7 +196,7 @@
     workspace $wsl3 output HDMI-1 HDMI-1-1
     workspace $wsl4 output HDMI-1 HDMI-1-1
     workspace $wsl5 output HDMI-1 HDMI-1-1
-    
+
 
     set $wsr1 爵
     set $wsr2 
@@ -201,7 +209,7 @@
     workspace $wsr3 output eDP-1 eDP-1-1
     workspace $wsr4 output eDP-1 eDP-1-1
     workspace $wsr5 output eDP-1 eDP-1-1
-    
+
     # switch to workspace
     bindsym $mod+z  workspace $wsl1
     bindsym $mod+a  workspace $wsl2
@@ -213,7 +221,7 @@
     bindsym $mod+w  workspace $wsr3
     bindsym $mod+2  workspace $wsr4
     bindsym $mod+F2 workspace $wsr5
-    
+
     # Move to workspace with focused container
     bindsym $mod+Shift+z  move container to workspace $wsl1; workspace $wsl1
     bindsym $mod+Shift+a  move container to workspace $wsl2; workspace $wsl2
@@ -231,6 +239,13 @@
     # bindsym $alt+$mod+Shift+Up   move container to workspace next; workspace next
     # bindsym $alt+$mod+Shift+Down move container to workspace prev; workspace prev
 
+# 
+# Assigning apps to workspaces
+#
+    assign [class="discord"] $wsr3
+    assign [class="Morgen"] $wsr2
+    assign [class="Brave-browser"] $wsr1
+
 #
 # STARTUP
 #
@@ -238,10 +253,11 @@
     # exec --no-startup-id xrandr --auto
     exec --no-startup-id /usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1
     exec --no-startup-id bash -c "dunst"
-    exec_always --no-startup-id bash -c "while :; do feh --bg-fill --no-fehbg --randomize $HOME/Documents/Wallpapers/*.jpg; sleep 3600; done"
+    exec_always --no-startup-id bash -c "sleep 3; while :; do feh --bg-fill --no-fehbg --randomize $HOME/Documents/Wallpapers/*; sleep 600; done"
     exec --no-startup-id bash -c "sleep 2; ~/.my_env/scripts/monitors.js"
     # exec --no-startup-id bash -c "sleep 10; picom -b"
-    # exec --no-startup-id bash -c "sleep 10; discord"
+
+    exec --no-startup-id bash -c "sleep 10; discord"
     exec --no-startup-id bash -c "sleep 10; morgen"
     exec --no-startup-id blueman-tray
     exec --no-startup-id flameshot
@@ -257,20 +273,17 @@
     exec_always --no-startup-id bash -c "$HOME/.local/bin/custom/configure-inputs.sh"
     # exec_always --no-startup-id bash -c "$HOME/.local/bin/custom/wise.js save-cents"
     exec_always --no-startup-id ff-theme-util
-    
-    exec --no-startup-id bash -c "xkbcomp -w0 -I$HOME/.xkb ~/.xkb/keymap/basic $DISPLAY"
+
+    # exec --no-startup-id bash -c "xkbcomp -w0 -I$HOME/.xkb ~/.xkb/keymap/basic $DISPLAY"
     exec_always --no-startup-id bash -c '[ -f "$HOME/.Xmodmap" ] && xmodmap $HOME/.Xmodmap'
     exec --no-startup-id bash -c "ibus-daemon -d"
     exec --no-startup-id bash -c "copyq &"
     exec --no-startup-id libinput-gestures-setup start
 
+
 #
 # UNUSED
 #
-    # Screen brightness controls
-    # bindsym XF86MonBrightnessUp exec "xbacklight -inc 10; notify-send 'brightness up'"
-    # bindsym XF86MonBrightnessDown exec "xbacklight -dec 10; notify-send 'brightness down'"
-    
     # Start Applications
     # bindsym $mod+Ctrl+b exec terminal -e 'bmenu'
     # bindsym $mod+F2 exec palemoon

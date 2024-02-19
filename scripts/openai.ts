@@ -54,7 +54,7 @@ export async function askAI(
 
     return openai
         .createCompletion({
-            model: 'text-davinci-003',
+            model: 'gpt-3.5-turbo-instruct',
             prompt: question,
             temperature,
             top_p: topP,
@@ -69,14 +69,14 @@ export async function askAI(
             return '';
         });
 }
-if (/openai.js/.test(process.argv[1])) {
+if (/openai.[tj]s/.test(process.argv[1])) {
     let content = process.argv.slice(2).join(' ');
 
     if (!content) {
         content = 'Give me a good joke.';
     }
 
-    askAI(content, 'creative').then(response => {
+    await askAI(content, 'creative').then(response => {
         console.log(response);
     });
 }

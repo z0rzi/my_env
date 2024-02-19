@@ -12,5 +12,5 @@ monitor=$1
 ids=`xsetwacom --list devices | grep -o "id: [0-9]\+" | cut -d' ' -f2`
 
 for id in ${ids[@]}; do
-    xsetwacom --set $id MapToOutput HEAD-$monitor
+    xsetwacom --set $id MapToOutput HDMI-1
 done

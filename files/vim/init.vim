@@ -4,12 +4,14 @@
     syn on
     filetype on
     set nu
+    set relativenumber
     set nosol
     set wrap
     set linebreak
     set breakindent
     set ruler
     set hidden
+    set timeoutlen=500
     set showtabline=2  " always show tabline
     set nobackup
     set nowritebackup
@@ -54,6 +56,9 @@
     " Don't conceal markdown
         let g:vim_markdown_conceal_code_blocks=0
         let g:vim_markdown_conceal=0
+
+    command W w
+    command Wa wa
 
 
 " 
@@ -108,14 +113,31 @@
 "
 " KeyBindings
 "
+    " nnoremap A 0<CMD>call search('\(.[,;]\)\?$', 'c')<CR>a
+    nnoremap <LEFT> <NOP>
+    nnoremap <RIGHT> <NOP>
+    inoremap <RIGHT> <NOP>
+    inoremap <LEFT> <NOP>
+
+    " & = Repeat the last substitution on the whole document
+    nnoremap & <CMD>%&<CR>
+    " inoremap <LEFT> <C-G>U<LEFT>
+    " inoremap <RIGHT> <C-G>U<RIGHT>
+    " inoremap <DOWN> <C-G>U<DOWN>
+    " inoremap <UP> <C-G>U<UP>
     nmap <A-x> <ESC>
     nmap <A-z> <ESC>
     nnoremap >> i<C-t><ESC>
+    inoremap <C-o>l <RIGHT>
     inoremap << <<
     inoremap <<SPACE> <<SPACE>
+    nnoremap q <CMD>call search('[^[:upper:]]\zs\u\\|\w\zs[_-]\\|\<', '')<CR>
+    onoremap q <CMD>call search('[^[:upper:]]\zs\u\\|\w\zs[_-]\\|\<', '')<CR>
     nnoremap Y y$
-    nnoremap z<RIGHT> $
-    nnoremap z<LEFT> ^
+    " nnoremap z<RIGHT> $
+    " nnoremap z<LEFT> ^
+    nnoremap zl $
+    nnoremap zh ^
     nnoremap YY <CMD>let v = winsaveview()<CR>ggyG<CMD>call winrestview(v)<CR>
     nnoremap VV ggVG
     nnoremap vv v$h
@@ -124,10 +146,6 @@
     inoremap <F2> <ESC>
     inoremap <C-x><C-l> <C-x><C-l>
     inoremap <silent> <C-r>/ <C-r>=substitute(@/, '\\.', '', 'g')<CR>
-    inoremap <LEFT> <C-G>U<LEFT>
-    inoremap <RIGHT> <C-G>U<RIGHT>
-    inoremap <DOWN> <C-G>U<DOWN>
-    inoremap <UP> <C-G>U<UP>
 
     nnoremap <LEADER>/ /\<\><LEFT><LEFT>
     nnoremap <LEADER>a ea
@@ -138,6 +156,7 @@
     xnoremap <CS-UP> k
 
     xnoremap <CR> <CMD>if mode() == 'V' <BAR> call search('\%#.*\zs\([{[(][;:.,\\]*\<BAR>\/\*\+\)$') <BAR> endif<CR>%
+    xnoremap ; <CMD>if mode() == 'V' <BAR> call search('\%#.*\zs\([{[(][;:.,\\]*\<BAR>\/\*\+\)$') <BAR> endif<CR>%
 
     xnoremap p <CMD>let save=@0<CR>p<CMD>let [@0, @", @+] = [save, save, save]<CR>
     xnoremap $ $h
@@ -154,8 +173,12 @@
 
     nnoremap <A-down> :<C-U>call smoothie#downwards()<CR>
     nnoremap <A-up> :<C-U>call smoothie#upwards()<CR>
+    nnoremap <A-j> :<C-U>call smoothie#downwards()<CR>
+    nnoremap <A-k> :<C-U>call smoothie#upwards()<CR>
     nnoremap <C-down> <CMD>m+1<CR>
+    nnoremap <C-j> <CMD>m+1<CR>
     nnoremap <C-up> <CMD>m-2<CR>
+    nnoremap <C-k> <CMD>m-2<CR>
     xnoremap <C-up> :<C-u>exe (line("'<")-1) . " m " . line("'>")<CR>gv
     xnoremap <C-down> :<C-u>exe (line("'>")+1) . " m " . (line("'<") - 1)<CR>gv
     xnoremap <C-right> dpgvlolo
@@ -182,7 +205,7 @@
                 call setpos('.', [0, line("']")+1, 1000, 0])
             endif
         endfunction
-        nnoremap <silent> Z <CMD>set opfunc=DuplicateLines<CR>g@
+        " nnoremap <silent> Z <CMD>set opfunc=DuplicateLines<CR>g@
         xnoremap <silent> Z  <CMD>call DuplicateLines(visualmode(), 1)<CR>
         nnoremap <silent> ZZ <CMD>co +0<CR>
         nnoremap <silent> zx <CMD>co +0<CR>
@@ -190,6 +213,7 @@
     " Easy search n replace
         nnoremap <C-c> <CMD>if CursorOnMatch(@/) <BAR> exe "norm!lN" <BAR> else <BAR> let @/="\\<".expand("<cword>")."\\>" <BAR> endif<CR>cgn
         nnoremap <C-d> <CMD>if CursorOnMatch(@/) <BAR> exe "norm!lN" <BAR> else <BAR> let @/="\\<".expand("<cword>")."\\>" <BAR> endif<CR>dgn
+        nnoremap <C-x> <CMD>if CursorOnMatch(@/) <BAR> exe "norm!lN" <BAR> else <BAR> let @/="\\<".expand("<cword>")."\\>" <BAR> endif<CR>:%s///g<LEFT><LEFT>
 
     " Cool selection stuff
         xnoremap <C-c> "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/) <BAR> set hlsearch <CR>cgn
@@ -215,14 +239,20 @@
             call search(@/, flags)
             call histadd('/', @/)
         endfunction
-        xnoremap <S-LEFT> <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
-        xnoremap <S-RIGHT> <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
-        nnoremap <silent> <S-LEFT> <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
-        nnoremap <silent> <S-RIGHT> <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
+        " xnoremap <S-LEFT> <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
+        " xnoremap <S-RIGHT> <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
+        " xnoremap <S-n> <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
+        xnoremap m <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
+        " nnoremap <silent> <S-LEFT> <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
+        " nnoremap <silent> <S-RIGHT> <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
+        " nnoremap <silent> <S-n> <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
+        nnoremap <silent> m <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
         xnoremap # <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
         xnoremap * <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
-        nmap <CS-Right> <CMD>call RestrictSearch(1)<CR>
-        nmap <CS-Left> <CMD>call RestrictSearch(-1)<CR>
+        " nmap <CS-Right> <CMD>call RestrictSearch(1)<CR>
+        " nmap <CS-Left> <CMD>call RestrictSearch(-1)<CR>
+        nmap <CS-l> <CMD>call RestrictSearch(1)<CR>
+        nmap <CS-h> <CMD>call RestrictSearch(-1)<CR>
 
 
 " 
@@ -249,9 +279,6 @@
             \ ]
 
         function! TsLog()
-            if exists('b:coc_current_function') && b:coc_current_function != ''
-                return b:coc_current_function . ':' . string(line('.')) . '\t>'
-            endif
             " Returning the file name without the extension
             return expand('%:t:r') . ':' . string(line('.')) . '\t>'
         endfunction
@@ -276,14 +303,14 @@
             \     'l': "let",
             \     'c': "const",
             \     'func': "function",
-            \     '^log': "console.log('\<C-r>=TsLog()\<CR>', );\<LEFT>\<LEFT>!",
+            \     '^\/\/\/': "/***/\<LEFT>\<LEFT>!",
+            \     '^log': "console.log('\<C-r>=TsLog()\<CR> %o', );\<C-o>T !",
             \     'import \(cors\|express\|fs\|path\)': "import $1 from '$1';!",
             \     'import \(\w*\) ': "import $1 from '$1';!",
             \     '^\(if\|for\)$': "$1 ()\<LEFT>!",
             \     '^iff': "if () {\<CR>}<UP><ESC>f(a!",
             \     '^fori': "for (let i=0; i < .length ; i++)\<ESC>F.i!",
             \     '\%(for\s*([^)]*\)\@<=in': "of",
-            \     'if\s*(!\([^)]* in\)': "if (!($1)<\LEFT>",
             \     'if\s*(\([^)]*\)not in': "if (!($1)<\LEFT>in",
             \     'if\s*(!\([^)]*instanceof\)': "if (!($1)<\LEFT>",
             \     'if\s*(\([^)]*\)not instanceof': "if (!($1)<\LEFT>instanceof",
@@ -296,7 +323,7 @@
             \     'aw': "await",
             \     '^ii': "if(  )\<LEFT>\<LEFT>!",
             \     'ff': "\<ESC>:if match(getline(line('.')), ')$') != -1 \<BAR> call setline('.', getline('.') . ';') \<BAR> endif\<CR>a() => {\<CR>}\<C-o>O!",
-            \     '^tryc$': "try {\<ESC>:call SmartJumpToEnd()\<CR>a} catch (err) {\<CR>}\<C-o>O\<SPACE>\<BS>\<C-o>z"
+            \     '^tryc$': "try {\<CR>} catch (err) {}\<C-o>O\<SPACE>\<BS>\<C-o>z"
             \   },
             \   'javascriptreact': {
             \     '@inherit': 'javascript',
@@ -328,7 +355,11 @@
             \ }
 
     " indentLine
-        let g:indentLine_char = '┆'
+        " let g:indentLine_char = '┆'
+        let g:indentLine_color_gui = '#383838'
+        let g:indentLine_char = '𝋤'
+        let g:indentLine_leadingSpaceEnabled = 1
+        let g:indentLine_leadingSpaceChar = '𝋤'
 
     " Vim LightLine
         let g:lightline = {
@@ -370,6 +401,7 @@
         nnoremap <Tab> <CMD>call lightline#bufferline#next()<CR>
         nnoremap <S-Tab> <CMD>call lightline#bufferline#prev()<CR>
         nnoremap <LEADER>q <CMD>call lightline#bufferline#remove()<CR>
+        nnoremap <LEADER>Q <CMD>bd!<CR>
         nnoremap <silent> <leader><leader> :call lightline#bufferline#add_buff_to_tabs(bufnr()) <BAR> call lightline#bufferline#buffers()<CR>
 
     " Telescope
@@ -397,8 +429,138 @@
         xnoremap <C-/> :CommentToggle<CR>gv
 
     " Copilot
-        inoremap <C-\> <CMD>call setpos("'[", getpos('.'))<CR><C-r>=copilot#Accept("")<CR><CMD>FixBraces<CR>
+        function! FindUnclosedBraces(text)
+            " Finds unclosed braces in `text` and returns the closing braces
+            " to add at the end of the text.
+            let open_braces = "([{"
+            let close_braces = ")]}"
+            let stack = []
+        
+            for char in split(a:text, '\zs')
+                let char = escape(char, '\.')
+                if match(open_braces, char) >= 0
+                    call add(stack, char)
+                elseif match(close_braces, char) >= 0
+                    " We found a closing brace
+        
+                    if empty(stack)
+                        " We found a closing brace but the stack is empty...
+                        " We ignore it.
+                        continue
+                    endif
+        
+                    let last = remove(stack, -1) " The last found brace. Should be an
+                                                 " opening brace.
+        
+                    let lastIdx = match(open_braces, last)
+        
+                    if lastIdx < 0
+                        " The last found brace is not an opening brace...
+                        " We abort
+                        return ''
+                    endif
+        
+                    let expected = close_braces[lastIdx]
+                    if char != expected
+                        " The closing brace doesn't match the last opening
+                        " brace...
+                        return ''
+                    endif
+                endif
+            endfor
+        
+            echom stack
+        
+            let out = ''
+            for brace in reverse(stack)
+                let idx = match(open_braces, brace)
+                if idx < 0 | continue | endif
+                let closing_brace = close_braces[idx]
+                let out = out . closing_brace
+            endfor
+            return out
+        endfunction
+        function! CopilotTrigger(one_word)
+            if copilot#Enabled()
+                " call copilot#Accept("")
+                let displayedsuggestion = copilot#GetDisplayedSuggestion()
+                let completion = displayedsuggestion.text
+                echom completion
+                if len(completion) == 0
+                    return ''
+                endif
+        
+                if a:one_word == 1
+                    let completion = substitute(completion, '\>.*', '', 'g')
+                endif
+                let lines = split(completion, '\n')
+                " if completion doesn't start with a newline, we append the
+                " first line to the current line and remove it from the list
+                if completion !~# '^\s*\n'
+                    let to_append = lines[0]
+                    let curcol = col('.')
+                    call setline('.', getline('.')[0:curcol - 2] . to_append . getline('.')[curcol - 1 + displayedsuggestion.deleteSize:])
+                    " call setline('.', getline('.')[0:curcol - 2] . to_append)
+                    let lines = lines[1:]
+                endif
+                let lnum = line('.')
+                call append(lnum, lines)
+                let lnum += len(lines)
+                call setpos('.', [0, lnum, 1000, 0])
+        
+                let closing_braces = FindUnclosedBraces(completion)
+                call setline(lnum, getline(lnum) . closing_braces)
+        
+                return ''
+            endif
+        
+            Copilot enable
+            call copilot#Suggest()
+            return ""
+        endfunction
+        function CopilotOnInsertEnter()
+            if !exists('g:copilot_always_on') || g:copilot_always_on == 1
+                if !copilot#Enabled()
+                    Copilot enable
+                endif
+            else
+                if copilot#Enabled()
+                    Copilot disable
+                endif
+            endif
+        endfunction
+        function CopilotToggle()
+            let g:copilot_always_on = !g:copilot_always_on
+            if g:copilot_always_on == 1
+                echom 'Copilot enabled'
+            else
+                echom 'Copilot disabled'
+            endif
+        endfunction
+        autocmd InsertEnter * call CopilotOnInsertEnter()
+        " inoremap <C-\> <CMD>call setpos("'[", getpos('.'))<CR><C-r>=copilot#Accept("")<CR><CMD>FixBraces<CR>
+        " inoremap <C-\> <C-r>=copilot#Accept("")<CR>
+        inoremap <C-l> <C-r>=CopilotTrigger(0)<CR>
+        inoremap <C-k> <C-r>=CopilotTrigger(1)<CR>
+        inoremap <CS-\> <C-r>=copilot#Accept("")<CR>
+        nnoremap <F4> <CMD>call CopilotToggle()<CR>
+        let g:copilot_always_on = 1
+
+        " function! UntilComma()
+        "     let char_before_cursor = getline('.')[col('.') - 2]
+        "     call search(',', 'c')
+        "
+        "     " If char before cursor is not a letter
+        "     if char_before_cursor !~# '\a'
+        "         " We also remove the comma
+        "         call search('\S', '')
+        "     endif
+        " endfunction
+        " onoremap <silent> , :<C-u>call UntilComma()<CR>
    
+    " Hardtime
+        let g:hardtime_default_on = 1
+
     " Coc
         " Tab to go through completion list
             function! CheckBackspace() abort
@@ -423,27 +585,35 @@
             call feedkeys('K', 'in')
           endif
         endfunction
-        nnoremap <silent> <F1> :call ShowDocumentation()<CR>
+        " nnoremap <silent> <F1> :call ShowDocumentation()<CR>
+        nnoremap <silent> <F1> <CMD>call CocActionAsync('definitionHover')<CR>
         inoremap <silent> <F1> <CMD>call CocActionAsync('showSignatureHelp')<CR>
 
-        nmap <leader>xp <Plug>(coc-diagnostic-prev)
-        nmap <leader>xn <Plug>(coc-diagnostic-next)
+        nnoremap <leader>xj <CMD>CocNext<CR>
+        nnoremap <leader>xk <CMD>CocPrev<CR>
+
+        nmap <leader>xp <Plug>(coc-diagnostic-prev-error)
+        nmap <leader>xn <Plug>(coc-diagnostic-next-error)
         nmap <leader>x<UP> <Plug>(coc-diagnostic-prev)
         nmap <leader>x<DOWN> <Plug>(coc-diagnostic-next)
         nmap <silent> <leader>x<RIGHT> :execute 'CocNext' <BAR> execute 'redraw!'<CR>
         nmap <silent> <leader>x<LEFT> :execute 'CocPrev' <BAR> execute 'redraw!'<CR>
-        nmap <leader>xF <Plug>(coc-fix-current)
-        nmap <leader>xf <CMD>let _a = expand('<cword>')<BAR>Telescope live_grep<CR>export .*\b<C-r>=_a<CR>\b
-        nmap <silent> <F12> <CMD>Telescope coc references<CR>
+        nmap <leader>xz <CMD>call CocAction('doQuickfix')<CR>
+        nmap <leader>xf <CMD>CocCommand eslint.executeAutofix<CR>
+        " nmap <silent> <F12> <CMD>Telescope coc references<CR>
+        nmap <silent> <F12> <Plug>(coc-references)
         nmap <silent> <C-]> <CMD>Telescope coc definitions<CR>
-        nmap <leader>xl <Plug>(coc-codelens-action)
+        nmap <silent> <C-g> <CMD>CocList symbols<CR>
         nmap <leader>xd <Plug>(coc-type-definition)
         nmap <leader>xe <Plug>(coc-codeaction-refactor)
+        nmap <leader>xl <Plug>(coc-codelens-action)
         nmap <leader>xc <Plug>(coc-codelens-action)
         nmap <leader>x<space> <CMD>CocCommand<CR>
         nmap <leader>xr <Plug>(coc-rename)
         nmap <leader>xq <CMD>call CocActionAsync('runCommand', 'editor.action.organizeImport')<CR>
-        nmap <leader>xx <CMD>CocList diagnostics<CR>
+        " nmap <leader>xx <CMD>CocList diagnostics<CR>
+        xmap <leader>xx  <Plug>(coc-codeaction-selected)
+        nmap <leader>xx  <Plug>(coc-codeaction)
 
         nmap <leader>= :call CocAction('format')<CR>
         xmap <leader>= <Plug>(coc-format-selected)
@@ -576,6 +746,65 @@
         return foldtextstart . repeat(foldchar, winwidth(0) - foldtextlength) . foldtextend
     endfunction
 
+    " nnoremap <LEADER>O <CMD>call CountInsert(1, v:count, 'O')<CR>
+    " nnoremap <LEADER>o <CMD>call CountInsert(0, v:count, 'o')<CR>
+    " nnoremap <LEADER>I <CMD>call CountInsert(1, v:count, 'I')<CR>
+    " nnoremap <LEADER>i <CMD>call CountInsert(0, v:count, 'I')<CR>
+    " nnoremap <LEADER>A <CMD>call CountInsert(1, v:count, 'A')<CR>
+    " nnoremap <LEADER>a <CMD>call CountInsert(0, v:count, 'A')<CR>
+    " nnoremap <LEADER>C <CMD>call CountInsert(1, v:count, 'cc')<CR>
+    " nnoremap <LEADER>c <CMD>call CountInsert(0, v:count, 'cc')<CR>
+    " nnoremap <LEADER>D <CMD>call CountInsert(1, v:count, 'dd')<CR>
+    " nnoremap <LEADER>d <CMD>call CountInsert(0, v:count, 'dd')<CR>
+    " nnoremap <LEADER>z <CMD>call CountInsert(0, v:count, 'yy`mp', 'z', 'mm')<CR>
+    " nnoremap <LEADER>Z <CMD>call CountInsert(1, v:count, 'yy`mp', ':set opfunc=DuplicateLines\<lt>CR>g@', 'mm')<CR>
+    " inoremap <C-z><C-j> <CMD>call CountInsert(0, v:count, '^y$`mp', '', '^Dmm')<CR>
+    " inoremap <C-z><C-k> <CMD>call CountInsert(1, v:count, '^y$`mp', '', '^Dmm')<CR>
+    "
+    " function! CountInsert(upwards, count, char, ...) abort
+    "     let fallback = get(a:, 1, '')
+    "     let before = get(a:, 2, '')
+    "     let count = a:count
+    "
+    "     let init_mode = mode()
+    "
+    "     if init_mode == 'i'
+    "         call feedkeys("\<ESC>")
+    "         let line = getline('.')
+    "         let nums_on_line = matchstr(line, '\d\+')
+    "         " removing the num from the line
+    "         let line = substitute(line, '\d\+', '', '')
+    "         call setline('.', line)
+    "         if nums_on_line
+    "             let count = nums_on_line
+    "         endif
+    "     endif
+    "
+    "     if len(before) > 0
+    "         exe "norm!" . before
+    "     endif
+    "
+    "     if count == 0
+    "         if fallback != ''
+    "             exe 'call feedkeys("'.fallback.'", "n")'
+    "             return
+    "         else
+    "             let count = 1
+    "         endif
+    "     endif
+    "
+    "     if a:upwards == 1
+    "         call setpos('.', [0, line('.') - count, 0, 0])
+    "     else
+    "         call setpos('.', [0, line('.') + count, 0, 0])
+    "     endif
+    "     exe "call feedkeys('".a:char."', 'n')"
+    "
+    "     if init_mode == 'i'
+    "         call feedkeys('a')
+    "     endif
+    " endfunction
+
     " Open Ranger
         function! OpenRanger()
             let dir = expand('%:p:h')
@@ -601,41 +830,221 @@
         nnoremap <F2> <CMD>call OpenRanger()<CR>
 
     " go to end of indent
-        function! IndentJump(direction)
+        function! FindIndentLimit(direction)
             let curline = line('.')
-            " let indent = matchstr(getline(curline), '^\s*')
-            let indent = indent(curline)
-            if a:direction >= 0
-                " let nextLineNum = search('^.*\S.*$', 'n')
-                let nextLineNum = nextnonblank(line('.')+1)
-            else
-                " let nextLineNum = search('^.*\S.*\n\_.*\%#', 'nb')
-                let nextLineNum = prevnonblank(line('.')-1)
-            endif
-            " let nextIndent = matchstr(getline(nextLineNum), '^\s*')
-            let nextIndent = indent(nextLineNum)
+            let curindent = max([
+                        \ indent(nextnonblank(curline)),
+                        \ indent(prevnonblank(curline))
+                        \ ])
 
-            if nextIndent < indent || indent == 0
+            let indent = curindent
+            while indent >= curindent
                 if a:direction >= 0
-                    let flag = ''
+                    let curline = nextnonblank(curline+1)
                 else
-                    let flag = 'b'
+                    let curline = prevnonblank(curline-1)
                 endif
-                call search('^.*\S.*\zs$', flag)
+                let indent = indent(curline)
+                if curline == 0 | return 0 | endif
+            endwhile
+            if a:direction >= 0
+                let curline = prevnonblank(curline-1)
             else
-                if a:direction >= 0
-                    " call search('^\('.indent.'\).*\n\(\1.*\n\|\s*\n\)*\1.*\zs')
-                    call search('[\n[:blank:]]*\n\%\( \)\{,'.(indent-1).'}\S')
-                else
-                    " call search('^\('.indent.'\)\S.*\zs\ze\n\(\1.*\n\|\s*\n\)*.*\%#')
-                    call search('^\%\( \)\{,'.(indent-1).'}\S.*\n[\n[:blank:]]*.*\zs', 'b')
-                endif
+                let curline = nextnonblank(curline+1)
             endif
+
+            return curline
+        endfunction
+        function! IndentJump(direction)
+            let curpos = getcurpos()
+            let newline = FindIndentLimit(a:direction)
+            if newline == curpos[1]
+                " We're not moving
+                let curpos[1] += a:direction
+            else
+                let curpos[1] = newline
+                let curpos[2] = 1000
+            endif
+            call setpos('.', curpos)
+        endfunction
+        function! RemoveSides()
+            " Removes the line directly before and after the current indent,
+            " and reduces the current indentation
+            let before = FindIndentLimit(-1)
+            let before = prevnonblank(before - 1)
+            let after = FindIndentLimit(1)
+            let after = nextnonblank(after + 1)
+
+            " reducing the indentation
+            call setpos("'<", [0, before, 0, 0])
+            call setpos("'>", [0, after, 0, 0])
+            exe "norm! gv<"
+
+            " removing the lines
+            call deletebufline('%', after)
+            call deletebufline('%', before)
+        endfunction
+        function SelectIndent(inclusive)
+            let before = FindIndentLimit(-1)
+            let after = FindIndentLimit(1)
+
+            if a:inclusive == 1
+                let before = prevnonblank(before - 1)
+                let after = nextnonblank(after + 1)
+            endif
+
+            call setpos("'<", [0, before, 0, 0])
+            call setpos("'>", [0, after, 10000, 0])
+            exe "norm! gv"
         endfunction
         noremap <S-UP> <CMD>call IndentJump(-1)<CR>
         noremap <S-DOWN> <CMD>call IndentJump(1)<CR>
         nnoremap z<UP> <CMD>call IndentJump(-1)<CR>
         nnoremap z<DOWN> <CMD>call IndentJump(1)<CR>
+        nnoremap zk <CMD>call IndentJump(-1)<CR>
+        nnoremap zj <CMD>call IndentJump(1)<CR>
+        vnoremap zk <CMD>call IndentJump(-1)<CR>
+        vnoremap zj <CMD>call IndentJump(1)<CR>
+        onoremap zk V<CMD>call IndentJump(-1)<CR>
+        onoremap zj V<CMD>call IndentJump(1)<CR>
+        nnoremap dsi <CMD>call RemoveSides()<CR>
+        onoremap ii <CMD>call SelectIndent(0)<CR>
+        onoremap ai <CMD>call SelectIndent(1)<CR>
+
+        nnoremap <LEADER>k <CMD>call IndentJump(-1)<CR>
+        nnoremap <LEADER>j <CMD>call IndentJump(1)<CR>
+        vnoremap <LEADER>k <CMD>call IndentJump(-1)<CR>
+        vnoremap <LEADER>j <CMD>call IndentJump(1)<CR>
+        onoremap <LEADER>k V<CMD>call IndentJump(-1)<CR>
+        onoremap <LEADER>j V<CMD>call IndentJump(1)<CR>
+
+    " Go to end of Paragraph
+        function! FindParagraphLimit(direction)
+            let curline = line('.')
+            if a:direction >= 0
+                let curline = nextnonblank(curline)
+            else
+                let curline = prevnonblank(curline)
+            endif
+            while getline(curline) !~# '^\s*$'
+                if a:direction >= 0
+                    let curline = curline+1
+                else
+                    let curline = curline-1
+                endif
+                if curline == 0 | return 0 | endif
+            endwhile
+            if a:direction >= 0
+                let curline = curline-1
+            else
+                let curline = curline+1
+            endif
+            return curline
+        endfunction
+        function ParagraphJump(direction, count)
+            let count = a:count
+            if count == 0 | let count = 1 | endif
+            let curpos = getcurpos()
+
+            let curline = line('.')
+            if a:direction >= 0 && getline(curline + 1) =~# '^\s*$'
+                " Next line is empty
+                norm! j
+            endif
+
+            if a:direction <= 0 && getline(curline - 1) =~# '^\s*$'
+                " Previous line is empty
+                norm! k
+            endif
+
+            while count > 0
+                let newline = FindParagraphLimit(a:direction)
+                if count > 1
+                    if a:direction >= 0
+                        let newline = nextnonblank(newline + 1)
+                    else
+                        let newline = prevnonblank(newline - 1)
+                    endif
+                endif
+                let curpos[1] = newline
+                let curpos[2] = 1000
+                call setpos('.', curpos)
+                let count -= 1
+            endwhile
+        endfunction
+        nnoremap [[ <CMD>call ParagraphJump(-1, v:count)<CR>
+        nnoremap ]] <CMD>call ParagraphJump(1, v:count)<CR>
+        onoremap [[ V<CMD>call ParagraphJump(-1, v:count)<CR>
+        onoremap ]] V<CMD>call ParagraphJump(1, v:count)<CR>
+
+    " Bloc jumps
+        function! NonBlankCurline()
+            " Returns the current line if it's not blank, otherwise returns the
+            " next or previous non-blank line (the one with the smallest indent)
+
+            let curline = line('.')
+            let curindent = indent(curline)
+            if curindent == 0
+                let nextindent = indent(nextnonblank(curline))
+                let previndent = indent(prevnonblank(curline))
+                if nextindent < previndent
+                    return nextnonblank(curline)
+                else
+                    return prevnonblank(curline)
+                endif
+            endif
+            return curline
+        endfunction
+        function! GetParagraphLimit(curline, offset)
+            let curindent = indent(a:curline)
+            let line = a:curline
+            let last_indent = curindent
+            while 1
+                let line = line + a:offset
+
+                let ind = indent(line)
+
+                if ind == 0
+                    " empty line
+                    if last_indent == curindent
+                        let line = line - a:offset
+                        break
+                    endif
+                    continue
+                endif
+                if ind < curindent
+                    let line = line - a:offset
+                    break
+                endif
+
+                let last_indent = indent(line)
+
+                if line == 0 | break | endif
+            endwhile
+
+            return line
+        endfunction
+
+        function! SelectParagraph(inclusive)
+            let curline = NonBlankCurline()
+            let curindent = indent(curline)
+
+            " Going to the start of the paragraph
+            let start = GetParagraphLimit(curline, -1)
+            let end = GetParagraphLimit(curline, 1)
+
+            if a:inclusive == 1
+                let start = start - 1
+            endif
+
+            call setpos("'<", [0, start, 0, 0])
+            call setpos("'>", [0, end, 10000, 0])
+
+            norm! gv
+        endfunction
+
+        onoremap ip <CMD>call SelectParagraph(0)<CR>
+        onoremap ap <CMD>call SelectParagraph(1)<CR>
 
     " Init folds
         function! FoldIfMakeSense(offset)
@@ -803,6 +1212,7 @@
             let errFile = trim(errFile)
             echom errFile
             call ParseErrorLine(errFile)
+            call system('/usr/bin/rm /tmp/vim_sig.txt')
         endfunction
         autocmd Signal SIGUSR1 call HandleSig()
         autocmd FocusGained * call HandleSig()
@@ -855,7 +1265,7 @@
             exe 'e ' . path . '/' . html_file
             call winrestview(saveview)
         endfunction
-        autocmd! FileType html nnoremap <buffer> <C-]> <CMD>call AngularHtmlGotoImplementation()<CR>
+        " autocmd! FileType html nnoremap <buffer> <C-]> <CMD>call AngularHtmlGotoImplementation()<CR>
 
         function! AngularSwitchFile()
             let path = expand('%:h')
