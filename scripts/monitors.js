@@ -65,7 +65,7 @@ async function getXrandrDisconnectedMonitorsNames() {
 /**
  * Retreives the available sound cards
  *
- * @return {{index: number, profiles: {name: string, priority: number}[]}[]}
+ * @return Promise<{{index: number, profiles: {name: string, priority: number}[]}[]}>
  */
 async function getSoundCards() {
     return cmd('pacmd list-cards').then(cards => {
@@ -95,7 +95,9 @@ async function getSoundCards() {
  * Runs the sound commands
  */
 async function setSoundProfileFor(monitor) {
+    console.log(await getSoundCards());
     for (const card of await getSoundCards()) {
+        console.log(card);
         let profile = '';
         if (monitor.isLaptop() || !monitor.config.sound) {
             // no HDMI
@@ -105,7 +107,6 @@ async function setSoundProfileFor(monitor) {
             if (!profile) profile = card.profiles[0];
         } else {
             // HDMI
-            console.log('setSoundProfileFor:108\t>', "SETTING SOUND ON HDMI");
             profile = card.profiles.find(profile =>
                 profile.name.toLowerCase().includes('hdmi')
             );

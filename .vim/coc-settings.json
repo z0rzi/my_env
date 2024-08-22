@@ -1,3 +1,6 @@
 {
-  "Lua.workspace.checkThirdParty": "Disable"
+  "Lua.workspace.checkThirdParty": "Disable",
+  "Lua.workspace.library": [
+    "${3rd}/luv/library"
+  ]
 }

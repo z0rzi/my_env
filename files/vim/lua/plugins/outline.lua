@@ -2,10 +2,12 @@ return {
   "z0rzi/outline.nvim",
   config = function()
     -- Example mapping to toggle outline
-    vim.keymap.set("n", "<leader>o", "<cmd>lua if require('outline').is_open() then require('outline').focus_outline() else require('outline').open() end<CR>",
+    vim.keymap.set("n", "<leader>o",
+      "<cmd>lua if require('outline').is_open() then require('outline').focus_outline() else require('outline').open() end<CR>",
       { desc = "Open Outline" })
 
-      vim.api.nvim_command("autocmd FileType Outline nnoremap <buffer> <LEADER>o <CMD>OutlineClose<CR>")
+    vim.api.nvim_command("autocmd FileType Outline nnoremap <buffer> <LEADER>o <CMD>OutlineClose<CR>")
+    vim.api.nvim_command("autocmd FileType Outline nnoremap <buffer> <CR> :q<CR>")
 
     require("outline").setup {
       preview_window = {

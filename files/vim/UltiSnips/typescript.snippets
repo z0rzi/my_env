@@ -37,7 +37,7 @@ import { Component, OnInit } from '@angular/core';
 
 @Component({
 	selector: 'app${1/([A-Z])/-\l$1/g}',
-	templateUrl: './${1/^([A-Z]*[a-z]*)$|([A-Z]*[a-z]+)([A-Z])/(?1:\l$1:\l$2-\l$3)/g}.component.html',
+	templateUrl: './${1/([A-Z])/-\l$1/g}.component.html'
 })
 export class ${1:Something}Component implements OnInit {
 	ngOnInit() {

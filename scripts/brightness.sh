@@ -15,10 +15,9 @@ if [ $1 == "down" ]; then
     [ $current_percent -le 10 ] && step=2
     [ $current_percent -le 5 ] && step=1
     [ $current_percent -eq 1 ] && exit 0
-else
-    # We round the current percentage to the nearest multiple of $step
-    current_percent=$(( (current_percent + step/2) / step * step ))
 fi
+# We round the current percentage to the nearest multiple of $step
+current_percent=$(( (current_percent + step/2) / step * step ))
 
 if [ $1 == "up" ]; then
     new_percent=$((current_percent + $step))

@@ -196,6 +196,7 @@ if [ "$1" == "restore" ]; then
             exit 1;
         fi
         cp -r "$TRASH_FILES/$id/"* "$path"
+        cp -r "$TRASH_FILES/$id/".* "$path"
         rm -rf "$TRASH_FILES/$id"
     done <<< "$line"
     IFS="$_IFS"

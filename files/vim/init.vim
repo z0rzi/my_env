@@ -10,13 +10,15 @@
     set linebreak
     set breakindent
     set ruler
+    set magic
     set hidden
     set timeoutlen=500
     set showtabline=2  " always show tabline
+    set cmdheight=2
     set nobackup
     set nowritebackup
-    set updatetime=1000
-    set shortmess+=c
+    set updatetime=100
+    set shortmess=at
     set diffopt=context:15
     set diffopt+=iblank
     set diffopt+=iwhite
@@ -59,6 +61,37 @@
 
     command W w
     command Wa wa
+
+    " When in diffmode, replace x with xa and q with qa
+    " command! X if &diff | execute 'xa' | else | execute 'x' | endif
+    " cnoreabbrev <expr> x getcmdtype() == ':' && getcmdline() == 'x' ? 'X' : 'x'
+    " command! Q if &diff | execute 'xa' | else | execute 'q' | endif
+    " cnoreabbrev <expr> q getcmdtype() == ':' && getcmdline() == 'q' ? 'Q' : 'q'
+
+    function! SetupDiffMaps()
+        echom "Setting up diff maps..."
+        nnoremap <silent> J ]c
+        nnoremap <silent> K [c
+        nnoremap <silent> L <C-w>w
+        nnoremap <silent> H <C-w>W
+
+        nnoremap <silent> 1 <CMD>:diffget 1<CR>
+        nnoremap <silent> 2 <CMD>:diffget 2<CR>
+        nnoremap <silent> 3 <CMD>:diffget 3<CR>
+        nnoremap <silent> 4 <CMD>:diffget 4<CR>
+        nnoremap <silent> 5 <CMD>:diffget 5<CR>
+
+        cnoreabbrev q qa
+        cnoreabbrev w wa
+        cnoreabbrev x xa
+
+        hi DiffAdd      gui=none    guifg=NONE          guibg=#1a301d
+        hi DiffChange   gui=none    guifg=NONE          guibg=#152432
+        hi DiffDelete   gui=bold    guifg=#301a1a       guibg=#301a1a
+        hi DiffText     gui=none    guifg=NONE          guibg=#274C54
+    endfunction
+
+    autocmd CursorHold * ++once if &diff | call SetupDiffMaps() | endif
 
 
 " 
@@ -113,11 +146,10 @@
 "
 " KeyBindings
 "
-    " nnoremap A 0<CMD>call search('\(.[,;]\)\?$', 'c')<CR>a
-    nnoremap <LEFT> <NOP>
-    nnoremap <RIGHT> <NOP>
-    inoremap <RIGHT> <NOP>
-    inoremap <LEFT> <NOP>
+    " nnoremap <LEFT> <NOP>
+    " nnoremap <RIGHT> <NOP>
+    " inoremap <RIGHT> <NOP>
+    " inoremap <LEFT> <NOP>
 
     " & = Repeat the last substitution on the whole document
     nnoremap & <CMD>%&<CR>
@@ -213,7 +245,7 @@
     " Easy search n replace
         nnoremap <C-c> <CMD>if CursorOnMatch(@/) <BAR> exe "norm!lN" <BAR> else <BAR> let @/="\\<".expand("<cword>")."\\>" <BAR> endif<CR>cgn
         nnoremap <C-d> <CMD>if CursorOnMatch(@/) <BAR> exe "norm!lN" <BAR> else <BAR> let @/="\\<".expand("<cword>")."\\>" <BAR> endif<CR>dgn
-        nnoremap <C-x> <CMD>if CursorOnMatch(@/) <BAR> exe "norm!lN" <BAR> else <BAR> let @/="\\<".expand("<cword>")."\\>" <BAR> endif<CR>:%s///g<LEFT><LEFT>
+        " nnoremap <C-x> <CMD>if CursorOnMatch(@/) <BAR> exe "norm!lN" <BAR> else <BAR> let @/="\\<".expand("<cword>")."\\>" <BAR> endif<CR>"iygn:%s//<C-r>i/g<LEFT><LEFT>
 
     " Cool selection stuff
         xnoremap <C-c> "ay:let @/ = SelectionToRx(@a) <BAR> call histadd('/', @/) <BAR> set hlsearch <CR>cgn
@@ -230,29 +262,16 @@
             endif
             let @/ = @/
             let flags = ''
-            " if !exists('s:minimap_search') | let s:minimap_search = '' | endif
-            " if s:minimap_search != @/
-            "     let s:minimap_search = @/
-            "     call minimap#vim#HighlightSearch()
-            " endif
             if a:backward | let flags .= 'b' | endif
             call search(@/, flags)
             call histadd('/', @/)
         endfunction
-        " xnoremap <S-LEFT> <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
-        " xnoremap <S-RIGHT> <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
-        " xnoremap <S-n> <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
         xnoremap m <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
-        " nnoremap <silent> <S-LEFT> <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
-        " nnoremap <silent> <S-RIGHT> <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
-        " nnoremap <silent> <S-n> <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
         nnoremap <silent> m <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
         xnoremap # <CMD>call ToNextOccurence(1) <BAR> set hlsearch<CR>
         xnoremap * <CMD>call ToNextOccurence(0) <BAR> set hlsearch<CR>
-        " nmap <CS-Right> <CMD>call RestrictSearch(1)<CR>
-        " nmap <CS-Left> <CMD>call RestrictSearch(-1)<CR>
-        nmap <CS-l> <CMD>call RestrictSearch(1)<CR>
-        nmap <CS-h> <CMD>call RestrictSearch(-1)<CR>
+        nmap <CS-j> <CMD>call RestrictSearch(1)<CR>
+        nmap <CS-k> <CMD>call RestrictSearch(-1)<CR>
 
 
 " 
@@ -283,10 +302,60 @@
             return expand('%:t:r') . ':' . string(line('.')) . '\t>'
         endfunction
 
+        function! JsIndentNextLines()
+            " If the current line ends with '}', we remove it.
+            let curline = getline('.')
+            if curline[-1:] == '}'
+                call setline('.', curline[:-2])
+            endif
+
+            " Going to next line
+            call cursor(line('.') + 1, 1)
+
+            while getline('.') =~# '^\s*$'
+                " If the next line is empty, we remove it
+                normal! dd
+            endwhile
+
+            let limit = GetParagraphLimit(line('.'), 1)
+
+            exec "normal!>" . limit . "G"
+
+            call cursor(limit, 1)
+
+            normal! o}
+
+            return ""
+        endfunction
+
+        function! JsIndentMoreLines()
+            " Removing the current line, which should be just the closing curvy brace
+            normal! dd
+
+            " Going to the next non-empty line
+            call cursor(nextnonblank(line('.')), 1)
+
+            let limit = GetParagraphLimit(line('.'), 1)
+
+            exec "normal!>" . limit . "G"
+
+            call cursor(limit, 1)
+
+            normal! o}
+
+            return ""
+        endfunction
+
         " ^ at start of lhs to only work if match at start of line
         " $ at end of lhs to only work if match at end of line
         " \(...\) in lhs, and $1 in rhs to repeat capture or $& to repeat full match
         let g:smartHits_abbrevs = {
+            \   'rust': {
+            \     '^l': "let",
+            \     '^lm': "let mut",
+            \     'm': "mut",
+            \     '^log': "println!(\"\");\<LEFT>\<LEFT>\<LEFT>!",
+            \   },
             \   'vim': {
             \     '^l': "let",
             \     '^log': "echom",
@@ -304,24 +373,20 @@
             \     'c': "const",
             \     'func': "function",
             \     '^\/\/\/': "/***/\<LEFT>\<LEFT>!",
-            \     '^log': "console.log('\<C-r>=TsLog()\<CR> %o', );\<C-o>T !",
-            \     'import \(cors\|express\|fs\|path\)': "import $1 from '$1';!",
+            \     '^log': "console.log();\<C-o>T(!",
+            \     'import \(fs\|path\)': "import $1 from '$1';!",
             \     'import \(\w*\) ': "import $1 from '$1';!",
-            \     '^\(if\|for\)$': "$1 ()\<LEFT>!",
+            \     '^\(if\|for\|while\|switch\)$': "$1 ()\<LEFT>!",
             \     '^iff': "if () {\<CR>}<UP><ESC>f(a!",
             \     '^fori': "for (let i=0; i < .length ; i++)\<ESC>F.i!",
-            \     '\%(for\s*([^)]*\)\@<=in': "of",
             \     'if\s*(\([^)]*\)not in': "if (!($1)<\LEFT>in",
             \     'if\s*(!\([^)]*instanceof\)': "if (!($1)<\LEFT>",
             \     'if\s*(\([^)]*\)not instanceof': "if (!($1)<\LEFT>instanceof",
-            \     '\%(\[[^\]]*\)\@<=\s*=': "\<ESC>F[f]a = !",
-            \     '^\(if\|for\|while\|switch\)\s\+\([^([:blank:]][^(]\+\)': "$1 ($2)\<LEFT>",
             \     'prom': "new Promise((resolve, reject) => {})\<LEFT>\<LEFT>!",
             \     '^ret': "return",
             \     ')\s*ret': ") return",
             \     'req$': "require('')\<LEFT>\<LEFT>!",
             \     'aw': "await",
-            \     '^ii': "if(  )\<LEFT>\<LEFT>!",
             \     'ff': "\<ESC>:if match(getline(line('.')), ')$') != -1 \<BAR> call setline('.', getline('.') . ';') \<BAR> endif\<CR>a() => {\<CR>}\<C-o>O!",
             \     '^tryc$': "try {\<CR>} catch (err) {}\<C-o>O\<SPACE>\<BS>\<C-o>z"
             \   },
@@ -406,10 +471,37 @@
 
     " Telescope
         nnoremap <C-p> <CMD>Telescope find_files find_command=listfiles.sh<CR>
+        nnoremap \;[ :Telescope find_files find_command=listfiles.sh,<C-r>=expand('%:h')<CR><CR>
         nnoremap <A-p> <CMD>Ag _<CR>noremap <CS-p> <CMD>Ag _<CR>
-        nnoremap <CA-p> :Telescope find_files find_command=listfiles.sh,<C-r>=expand('%:h')<CR><CR>
         nnoremap <C-f> <CMD>Telescope live_grep<CR>
-        nnoremap <C-s> :Telescope grep_string search=<C-r>=expand('<cword>')<CR> word_match=-w<CR>
+        " nnoremap <C-s> :Telescope grep_string search=<C-r>=expand('<cword>')<CR> word_match=-w<CR>
+        function! CtrlSFFocus()
+            let win = g:ctrlsf#win#FindMainWindow()
+            if win < 0
+                " Window is not oppened, we toggle
+                call ctrlsf#Toggle()
+                let @/ = ctrlsf#pat#Regex()
+            else
+                let curwin = win_getid()
+                if win_id2win(curwin) == win
+                    " We are in the window, we close it
+                    call ctrlsf#Toggle()
+                else
+                    " We are not in the window, we focus it
+                    call win_gotoid(win_getid(win))
+                    let @/ = ctrlsf#pat#Regex()
+                endif
+            endif
+        endfunction
+        function! CtrlSf(...)
+            " Wrapper to set the search pattern as the current search.
+            let args = a:000
+            execute 'CtrlSF ' . join(copy(args), ' ')
+            let @/ = ctrlsf#pat#Regex()
+        endfunction
+        command! -nargs=+ CtrlSf call CtrlSf(<q-args>)
+        nnoremap <C-s> :CtrlSf <C-r>=expand('<cword>')<CR>
+        nnoremap <LEADER>a :call CtrlSFFocus()<CR>
 
     " GIT
         nmap <leader>gn <CMD>Gitsigns next_hunk<CR>
@@ -546,17 +638,17 @@
         nnoremap <F4> <CMD>call CopilotToggle()<CR>
         let g:copilot_always_on = 1
 
-        " function! UntilComma()
-        "     let char_before_cursor = getline('.')[col('.') - 2]
-        "     call search(',', 'c')
-        "
-        "     " If char before cursor is not a letter
-        "     if char_before_cursor !~# '\a'
-        "         " We also remove the comma
-        "         call search('\S', '')
-        "     endif
-        " endfunction
-        " onoremap <silent> , :<C-u>call UntilComma()<CR>
+        function! UntilComma()
+            let char_before_cursor = getline('.')[col('.') - 2]
+            call search(',', 'c')
+        
+            " If char before cursor is not a letter
+            if char_before_cursor !~# '\a'
+                " We also remove the comma
+                call search('\S', '')
+            endif
+        endfunction
+        onoremap <silent> , :<C-u>call UntilComma()<CR>
    
     " Hardtime
         let g:hardtime_default_on = 1
@@ -577,6 +669,7 @@
             inoremap <silent><expr> <c-SPACE> coc#pum#visible() ? coc#pum#confirm() : coc#refresh
 
         hi FgCocErrorFloatBgCocFloating ctermfg=1 ctermbg=239 guifg=#ff947c guibg=NONE
+        hi CocUnusedHighlight gui=undercurl,italic guifg=#803030
 
         function! ShowDocumentation()
           if CocAction('hasProvider', 'hover')
@@ -746,68 +839,10 @@
         return foldtextstart . repeat(foldchar, winwidth(0) - foldtextlength) . foldtextend
     endfunction
 
-    " nnoremap <LEADER>O <CMD>call CountInsert(1, v:count, 'O')<CR>
-    " nnoremap <LEADER>o <CMD>call CountInsert(0, v:count, 'o')<CR>
-    " nnoremap <LEADER>I <CMD>call CountInsert(1, v:count, 'I')<CR>
-    " nnoremap <LEADER>i <CMD>call CountInsert(0, v:count, 'I')<CR>
-    " nnoremap <LEADER>A <CMD>call CountInsert(1, v:count, 'A')<CR>
-    " nnoremap <LEADER>a <CMD>call CountInsert(0, v:count, 'A')<CR>
-    " nnoremap <LEADER>C <CMD>call CountInsert(1, v:count, 'cc')<CR>
-    " nnoremap <LEADER>c <CMD>call CountInsert(0, v:count, 'cc')<CR>
-    " nnoremap <LEADER>D <CMD>call CountInsert(1, v:count, 'dd')<CR>
-    " nnoremap <LEADER>d <CMD>call CountInsert(0, v:count, 'dd')<CR>
-    " nnoremap <LEADER>z <CMD>call CountInsert(0, v:count, 'yy`mp', 'z', 'mm')<CR>
-    " nnoremap <LEADER>Z <CMD>call CountInsert(1, v:count, 'yy`mp', ':set opfunc=DuplicateLines\<lt>CR>g@', 'mm')<CR>
-    " inoremap <C-z><C-j> <CMD>call CountInsert(0, v:count, '^y$`mp', '', '^Dmm')<CR>
-    " inoremap <C-z><C-k> <CMD>call CountInsert(1, v:count, '^y$`mp', '', '^Dmm')<CR>
-    "
-    " function! CountInsert(upwards, count, char, ...) abort
-    "     let fallback = get(a:, 1, '')
-    "     let before = get(a:, 2, '')
-    "     let count = a:count
-    "
-    "     let init_mode = mode()
-    "
-    "     if init_mode == 'i'
-    "         call feedkeys("\<ESC>")
-    "         let line = getline('.')
-    "         let nums_on_line = matchstr(line, '\d\+')
-    "         " removing the num from the line
-    "         let line = substitute(line, '\d\+', '', '')
-    "         call setline('.', line)
-    "         if nums_on_line
-    "             let count = nums_on_line
-    "         endif
-    "     endif
-    "
-    "     if len(before) > 0
-    "         exe "norm!" . before
-    "     endif
-    "
-    "     if count == 0
-    "         if fallback != ''
-    "             exe 'call feedkeys("'.fallback.'", "n")'
-    "             return
-    "         else
-    "             let count = 1
-    "         endif
-    "     endif
-    "
-    "     if a:upwards == 1
-    "         call setpos('.', [0, line('.') - count, 0, 0])
-    "     else
-    "         call setpos('.', [0, line('.') + count, 0, 0])
-    "     endif
-    "     exe "call feedkeys('".a:char."', 'n')"
-    "
-    "     if init_mode == 'i'
-    "         call feedkeys('a')
-    "     endif
-    " endfunction
-
     " Open Ranger
         function! OpenRanger()
-            let dir = expand('%:p:h')
+            let filepath = expand('%:p')
+            " let dir = expand('%:p:h')
             let copy_save = @+
             let enter_cmd = "eval fm.move(right=1) if fm.thisfile.is_directory else fm.execute_console(\\'chain shell -f bash -c \"realpath \\\%f | xclip -sel clip\"; quit\\')"
             let cmd =
@@ -817,7 +852,7 @@
                         \ " --cmd 'map <CR> ".enter_cmd."'" .
                         \ " --cmd 'map <RIGHT> ".enter_cmd."'" .
                         \ " --cmd 'map q eval fm.execute_console(\\'chain shell -f bash -c \"echo -n | xclip -sel clip\"; quit\\')'" .
-                        \ " " . dir
+                        \ " --selectfile=" . filepath
 
             sil! exe cmd
             sleep 50m
@@ -921,24 +956,57 @@
     " Go to end of Paragraph
         function! FindParagraphLimit(direction)
             let curline = line('.')
+
+            " We make sure we're not on an empty line
             if a:direction >= 0
                 let curline = nextnonblank(curline)
             else
                 let curline = prevnonblank(curline)
             endif
-            while getline(curline) !~# '^\s*$'
+
+
+            let start_indent = indent(curline)
+
+            let last_indent = start_indent
+            while 1
                 if a:direction >= 0
-                    let curline = curline+1
+                    let curline = curline + 1
                 else
-                    let curline = curline-1
+                    let curline = curline - 1
                 endif
-                if curline == 0 | return 0 | endif
+
+                if curline == 0 | return 1 | endif
+                if curline == line('$') | return line('$') | endif
+
+                let line_is_empty = getline(curline) =~# '^\s*$'
+
+
+                if line_is_empty && last_indent == start_indent
+                    " There's an empty line and the last indent is the same as
+                    " the start indent.
+                    "
+                    " We jump to the start of the next paragraph
+                    let curline = nextnonblank(curline)
+                    break
+                endif
+
+                let line_indent = indent(curline)
+
+                if !line_is_empty && line_indent < start_indent
+                    " The line has a smaller indent than the start indent
+                    " We go back one line
+            
+                    if a:direction >= 0
+                        let curline = curline-1
+                    else
+                        let curline = curline+1
+                    endif
+                    break
+                endif
+
+                let last_indent = line_indent
             endwhile
-            if a:direction >= 0
-                let curline = curline-1
-            else
-                let curline = curline+1
-            endif
+
             return curline
         endfunction
         function ParagraphJump(direction, count)
@@ -947,11 +1015,6 @@
             let curpos = getcurpos()
 
             let curline = line('.')
-            if a:direction >= 0 && getline(curline + 1) =~# '^\s*$'
-                " Next line is empty
-                norm! j
-            endif
-
             if a:direction <= 0 && getline(curline - 1) =~# '^\s*$'
                 " Previous line is empty
                 norm! k
@@ -960,9 +1023,7 @@
             while count > 0
                 let newline = FindParagraphLimit(a:direction)
                 if count > 1
-                    if a:direction >= 0
-                        let newline = nextnonblank(newline + 1)
-                    else
+                    if a:direction < 0
                         let newline = prevnonblank(newline - 1)
                     endif
                 endif
@@ -974,8 +1035,16 @@
         endfunction
         nnoremap [[ <CMD>call ParagraphJump(-1, v:count)<CR>
         nnoremap ]] <CMD>call ParagraphJump(1, v:count)<CR>
+        vnoremap [[ <CMD>call ParagraphJump(-1, v:count)<CR>
+        vnoremap ]] <CMD>call ParagraphJump(1, v:count)<CR>
         onoremap [[ V<CMD>call ParagraphJump(-1, v:count)<CR>
         onoremap ]] V<CMD>call ParagraphJump(1, v:count)<CR>
+        nnoremap H <CMD>call ParagraphJump(-1, v:count)<CR>
+        nnoremap L <CMD>call ParagraphJump(1, v:count)<CR>
+        vnoremap H <CMD>call ParagraphJump(-1, v:count)<CR>
+        vnoremap L <CMD>call ParagraphJump(1, v:count)<CR>
+        onoremap H V<CMD>call ParagraphJump(-1, v:count)<CR>
+        onoremap L V<CMD>call ParagraphJump(1, v:count)<CR>
 
     " Bloc jumps
         function! NonBlankCurline()
@@ -1141,18 +1210,26 @@
                 " Counting number of matches
                 let matchnr = 0
                 while search(@/, 'W') | let matchnr += 1 | endwhile
+
                 call setpos('.', [0, 1, 1, 0])
                 call search(@/, 'W')
                 exe "norm!\<BS>"
                 let @/ = substitute(@/, '\\%[<>]\d\+l', '', 'g')
                 let searchSave = @/
 
-                while search(@/, 'c') && matchnr > 0
+                call search(@/, 'c')
+                while matchnr > 0
+                    let pos_before_macro = getpos('.')
+
                     exe "exe \"norm! " . substitute(substitute(a:macro, '<>', '\<ESC>', 'g'), '<[a-zA-Z-]\+>\|"', '\\&', 'gi') . '"'
 
                     let @/ = searchSave
                     call setpos("'<", selSave[0])
                     call setpos("'>", selSave[1])
+
+                    call setpos('.', pos_before_macro)
+                    call search(@/, 'c')
+                    call search(@/, '')
 
                     let matchnr -= 1
                 endwhile
@@ -1291,6 +1368,53 @@
             return path . '/' . other_file
         endfunction
         autocmd! BufEnter *html,*ts,*js,*css nnoremap <buffer> <LEADER>w <CMD>exec "e " . AngularSwitchFile()<CR>
+
+
+        function! AccessibleRanges()
+            " Get one character from the user
+            let char = 't'
+            let num_buffer = ''
+
+            " let char2num = {
+            "     \ 'a': 1, 's': 2, 'd': 3,
+            "     \ 'f': 4, 'g': 5, 'h': 6,
+            "     \ 'j': 7, 'k': 8, 'l': 9,
+            "     \ ';': 0
+            "     \ }
+            let char2num = {
+                \ 'a': 1, 's': 2, 'd': 3,
+                \ 'f': 4, 'g': 5, 'q': 6,
+                \ 'w': 7, 'e': 8, 'r': 9,
+                \ 't': 0
+                \ }
+
+            let last_time = system('date +%s%N')
+
+            " As long as the character is in the home row
+            while 1
+                let char = nr2char(getchar())
+                let current_time = system('date +%s%N')
+
+                " Checking if the char is in char2num
+                if !has_key(char2num, char)
+                    break
+                endif
+
+                let num = char2num[char]
+                echon num
+                let num_buffer .= num
+            endwhile
+
+            if char == ' ' || char == 'g'
+                let char = 'G'
+            endif
+
+            exe "silent!norm! ".num_buffer. char
+        endfunction
+        nnoremap <silent> ; <CMD>call AccessibleRanges()<CR>
+        vnoremap <silent> ; <CMD>call AccessibleRanges()<CR>
+        onoremap <silent> ; V<CMD>call AccessibleRanges()<CR>
+
 
 autocmd BufEnter *.json set filetype=jsonc
 autocmd BufEnter *.json nnoremap <buffer> <LEADER>= :%!jq .<CR>

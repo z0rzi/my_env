@@ -4,6 +4,10 @@ return {
     'z0rzi/vim-zorzi-smoothie',
     'z0rzi/vim-smart-hits',
     'z0rzi/nvim-smallest-range',
+    -- {
+    --     'z0rzi/open-from-chrome.nvim',
+    --     config = function() require('open-from-chrome').setup {} end,
+    -- },
     {
         'z0rzi/ai-chat.nvim',
         config = function() require('ai-chat').setup {} end,
@@ -21,6 +25,39 @@ return {
 
     -- {'gptlang/CopilotChat.nvim', dependencies = { 'zbirenbaum/copilot.lua' }},
 
+    {
+        'dyng/ctrlsf.vim',
+        config = function()
+            vim.g.ctrlsf_auto_focus = {
+                at = 'start'
+            }
+
+            vim.g.ctrlsf_auto_close = {
+                normal = 1,
+                compact = 1
+            }
+            vim.g.ctrlsf_mapping = {
+                chgmode = "<TAB>",
+                open    = { "<CR>", "o", "<2-LeftMouse>" },
+                openb   = "O",
+                split   = "<C-O>",
+                vsplit  = "",
+                tab     = "t",
+                tabb    = "T",
+                popen   = "p",
+                popenf  = "P",
+                quit    = "q",
+                stop    = "<C-C>",
+                next    = "<C-J>",
+                prev    = "<C-K>",
+                nfile   = "<C-N>",
+                pfile   = "<C-P>",
+                pquit   = "q",
+                loclist = "",
+                fzf     = "<C-T>",
+            }
+        end
+    },
     'Yggdroot/indentLine',
     'HerringtonDarkholme/yats.vim',
     'maxmellon/vim-jsx-pretty',

@@ -141,6 +141,14 @@ export default class CopilotSession {
     });
   }
 
+  dumpConversation(): void {
+    for (const message of this.chatHistory) {
+      console.log('>>> ' + message.role);
+      console.log(message.content);
+      console.log('=========\n');
+    }
+  }
+
   /**
    * @param prompt The prompt to send to the AI
    */

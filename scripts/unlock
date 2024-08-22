@@ -1,10 +1,22 @@
 #!/bin/bash
 
-cmd=$2
-file=$1
+cmd=
+file=
+
+while [ "$1" ]; do
+    if [ "$1" = "-P" ]; then
+        shift
+        pass=$1
+    elif [ ! "$file" ]; then
+        file=$1
+    else
+        cmd=$1
+    fi
+    shift
+done
 
 if [ ! -f "$file" ]; then
-    echo "USAGE = 'unlock <file> [cmd]'";
+    echo "USAGE = 'unlock [-P password] <file> [cmd]'";
     echo
     echo -e "cmd will be ${BLUE}bat${NC} if not provided"
     exit 1;
@@ -20,8 +32,10 @@ if [[ ! "$ft" =~ "GPG symmetrically encrypted data" ]]; then
     exit 1;
 fi
 
-read -s -p '🔒 ' pass
-echo
+if [ ! "$pass" ]; then
+    read -s -p '🔒 ' pass
+    echo
+fi
 
 truename=${file%.*}
 truename=${truename##*/}

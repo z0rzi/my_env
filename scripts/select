@@ -1,4 +1,0 @@
-#!/bin/bash
-
-query=`sed 's/all/*/g' <<< "$@"`
-psql -h localhost -U postgres diagadis <<< "select $query"

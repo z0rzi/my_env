@@ -1,12 +1,22 @@
 #!/bin/bash
 
-if [ $# -ne 3 ] || ( [ ! -f "$3" ] && [ ! -d "$3" ] ); then
+if [ $# -lt 3 ]; then
     echo "USAGE = '$0 <regexp> <replacement> <file/directory>'"
     exit
 fi
 
-files=`rg -l "$1" "$3"`
+rx=$1
+shift
+replacement=$1
+shift
+
+rgFriendly=`sed 's/(/\\\\(/g' <<< $rx`
+rgFriendly=`sed 's/)/\\\\)/g' <<< $rgFriendly`
+
+files=`rg -l "$rgFriendly" $@`
 rand=$RANDOM
+
+echo $files
 
 for file in $files; do
     echo $file
@@ -14,8 +24,9 @@ for file in $files; do
     mkdir -p /tmp/back$rand/$path
     cp $file /tmp/back$rand/$path
 
-    sedStr=`sed 's/\//\\\\\//g' <<< $1`
-    sedRepl=`sed 's/\//\\\\\//g' <<< $2`
+    sedStr=`sed 's/\//\\\\\//g' <<< $rx`
+    sedRepl=`sed 's/\//\\\\\//g' <<< $replacement`
+    echo 'sed "s/'$sedStr'/'$sedRepl'/g" '$file
     sed "s/$sedStr/$sedRepl/g" $file > /tmp/_.tmp && mv /tmp/_.tmp $file
 done
 

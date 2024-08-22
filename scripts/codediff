@@ -3,7 +3,7 @@
 while [ "$1" = "--" ]; do shift; done
 
 editor="nvim"
-explorer="$HOME/.local/bin/custom/explorer.js"
+explorer="$HOME/.local/bin/custom/explorer.ts"
 
 function create_empty_file {
     echo '' > /tmp/.empty
@@ -23,7 +23,7 @@ if [ -d "$1" ] && [ -d "$2" ]; then
     export EDITOR="$HOME/.local/bin/custom/codediff"
     $explorer $remote
 elif [ -f "$1" ] && [ -f "$2" ]; then
-    # Opening folders
+    # Opening files
     local=`realpath $1`
     remote=`realpath $2`
 

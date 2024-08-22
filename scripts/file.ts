@@ -355,7 +355,7 @@ export class File {
     }
 }
 
-if (/file\.js$/.test(process.argv[1])) {
+if (/file\.ts$/.test(process.argv[1])) {
     let inPath = '';
 
     if (NO_ARGS_PROVIDED) inPath = './';

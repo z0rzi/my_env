@@ -1,0 +1,49 @@
+#!/bin/sh
+
+pwd=$PWD
+
+if [ "$1" = "help" ] || [ "$1" = "--help" ]; then
+    echo "Usage: bunn [help|run|<FILE>|<DIR>]"
+    exit
+fi
+
+template='import { $ } from "bun";\n\nconst files = $`ls .`.lines()\n\nfor await(const file of files) {\n\n}'
+
+if [ "$1" = "new" ]; then
+    rm -rf /tmp/shellbun
+elif [ "$1" = "run" ]; then
+    bun /tmp/shellbun/script.ts
+    exit
+elif [ -f "$1" ]; then
+    # if file has json ext
+    if [ "${1##*.}" = "json" ]; then
+        template='const json = await Bun.file("'$1'").json()\n\n'
+    else
+        template='const content = await Bun.file("'$1'").text()\n\nfor await(const line of content.split("\\n")) {\n\n}'
+    fi
+elif [ -d "$1" ]; then
+    template='import { $ } from "bun";\n\nconst files = $`ls '$1'`.lines()\n\nfor await(const file of files) {\n\n}'
+else
+    echo "Usage: bunn [help|run|<FILE>|<DIR>]"
+    exit
+fi
+
+mkdir -p /tmp/shellbun
+cd /tmp/shellbun
+
+if [ ! -d "node_modules" ]; then
+    bun add bun
+    bun add -d bun-types @types/bun
+    bun init -y
+fi
+
+last_file=`cat file.txt`
+
+if [ ! -f "script.ts" ] || [ "$template" ] && [ "$1" != "$last_file" ]; then
+    echo $template > script.ts
+    echo $1 > file.txt
+fi
+cd $pwd
+nvim /tmp/shellbun/script.ts
+
+bun /tmp/shellbun/script.ts

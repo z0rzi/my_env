@@ -15,7 +15,7 @@ export async function bunCmd(cmd: string) {
   const out = await new Response(proc.stdout).text();
   const err = await new Response(proc.stderr).text();
   proc.kill();
-  if (err) console.log("bunCmd:18\t>", err);
+  if (err) console.log(err);
   return out;
 }
 
@@ -89,14 +89,16 @@ export async function cmd(
 }
 
 export async function openFile(path: string): Promise<void> {
+
+  const args = '--title fullscreen -o font_size=9.5 rifle'
   return new Promise((resolve) => {
-    const child = child_process.spawn("rifle", [path], {
-      stdio: "inherit",
+    const child = child_process.spawn("kitty", [...args.split(/\s+/), path], {
+      stdio: ['ignore', 'ignore', 'ignore'], // 'inherit', 'inherit', 'inherit
       windowsHide: false,
     });
 
     child.on("exit", function (_e, _code) {
-      resolve();
+        resolve();
     });
   });
 }

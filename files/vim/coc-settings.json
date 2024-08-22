@@ -37,10 +37,23 @@
     "javascript.format.placeOpenBraceOnNewLineForFunctions": false,
     "javascript.suggest.completeFunctionCalls": true,
 
+    // "semanticTokens.enable": true,
+
     "eslint.workingDirectories": [
         "./",
         "./src",
         "./test"
+    ],
+
+    "eslint.rules.customizations": [
+        // setting indent to 4 spaces
+        {
+            "rule": "indent",
+            "severity": "error",
+            "settings": {
+                "indent": 4
+            }
+        }
     ],
 
     "sumneko-lua.enableNvimLuaDev": true,
@@ -67,5 +80,6 @@
             "trace.server.verbosity": "verbose"
         },
     },
-    "snippets.ultisnips.pythonPrompt": false
+    "snippets.ultisnips.pythonPrompt": false,
+    "coc.preferences.extensionUpdateCheck": "never"
 }

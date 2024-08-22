@@ -1,0 +1,6 @@
+#/bin/bash
+
+echo "Scanning network for connected devices..."
+subnet=$(ip route | awk '/^default/ {print $3}' | cut -d. -f1-3)".0/24"
+sudo nmap -sn $subnet | grep -E "Nmap scan report|MAC Address" | sed 's/Nmap scan report for //g' | sed 'N;s/\n/ /' | sort
+echo "Scan complete."

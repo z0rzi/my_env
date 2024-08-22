@@ -51,8 +51,11 @@
     # File explorer
         bindsym $sup+i exec picolor
 
+    # Text reader
+        bindsym $sup+t exec kitty --title floating -o remember_window_size=no -o initial_window_height=100 -o initial_window_width=400 fish -c "/home/zorzi/.my_env/scripts/tts.py"
+
     # Note taking
-        bindsym $mod+n exec flatpak run md.obsidian.Obsidian
+        bindsym $mod+n exec obsidian
 
     # Calculator
         bindsym $sup+r exec kitty --title floating -o remember_window_size=no -o initial_window_height=500 -o initial_window_width=1000 node
@@ -79,8 +82,8 @@
         # bindsym Ctrl+Shift+x exec gpaste-client ui
         bindsym Ctrl+Shift+x exec copyq toggle
 
-        # bindsym Ctrl+Shift+z exec /home/zorzi/.my_env/scripts/correct.js
-        bindsym Ctrl+Shift+z exec /home/zorzi/.my_env/scripts/improve-code.js
+        bindsym Ctrl+Shift+z exec /home/zorzi/.my_env/scripts/correct.ts
+        # bindsym Ctrl+Shift+z exec /home/zorzi/.my_env/scripts/improve-code.js
         bindsym Ctrl+Shift+c exec /home/zorzi/.my_env/scripts/genJSDoc.js
 
     # program launcher
@@ -116,12 +119,16 @@
         bindsym $mod+Shift+Down move down
         bindsym $mod+Shift+Up move up
         bindsym $mod+Shift+Right move right
+        bindsym $mod+Shift+h move left
+        bindsym $mod+Shift+j move down
+        bindsym $mod+Shift+k move up
+        bindsym $mod+Shift+l move right
 
     # Resize
-        bindsym $alt+$sup+Left resize shrink width 5 px or 5 ppt
-        bindsym $alt+$sup+Up resize grow height 5 px or 5 ppt
-        bindsym $alt+$sup+Down resize shrink height 5 px or 5 ppt
-        bindsym $alt+$sup+Right resize grow width 5 px or 5 ppt
+        bindsym $mod+Ctrl+Shift+h resize shrink width 5 px or 5 ppt
+        bindsym $mod+Ctrl+Shift+k resize grow height 5 px or 5 ppt
+        bindsym $mod+Ctrl+Shift+j resize shrink height 5 px or 5 ppt
+        bindsym $mod+Ctrl+Shift+l resize grow width 5 px or 5 ppt
 
     # Emojis
         bindsym $alt+Shift+e exec kitty --title floating -o remember_window_size=no -o initial_window_height=800 -o initial_window_width=500 -o font_size=20 -e /home/zorzi/.my_env/scripts/emoji2.ts
@@ -141,7 +148,7 @@
     for_window [class=".*"] border pixel 0
     for_window [class="CopyQ"] floating enable border pixel 1
     for_window [title="CopyQ"] floating enable border pixel 1
-    for_window [class="obsidian"] floating enable border pixel 1
+    # for_window [class="obsidian"] floating enable border pixel 1
     for_window [title="alsamixer"] floating enable border pixel 1
     for_window [class="calamares"] floating enable border normal
     for_window [class="Clipgrab"] floating enable
@@ -175,7 +182,10 @@
     for_window [class="gnome-calendar"] floating enable
     for_window [class="Gnome-calendar"] floating enable
     for_window [class="GStreamer"] floating enable
-    for_window [title="DevTools - .*"] floating enable
+    for_window [title="Bitwarden"] floating enable
+    # for_window [title="DevTools - .*"] floating enable
+    for_window [class="fullscreen"] fullscreen enable
+    for_window [title="fullscreen"] fullscreen enable
     for_window [class="floating"] floating enable
     for_window [title="floating"] floating enable
 
@@ -245,6 +255,7 @@
     assign [class="discord"] $wsr3
     assign [class="Morgen"] $wsr2
     assign [class="Brave-browser"] $wsr1
+    assign [title="DevTools - .*"] $wsl1
 
 #
 # STARTUP

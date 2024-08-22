@@ -1,0 +1,86 @@
+#!/bin/bash
+
+function error {
+    echo "USAGE: diffmerge [--base] <file> <[commit1]> <[commit2]> <[commit3]> ..."
+    echo ""
+    echo ""
+    echo "Will open a vim instance, containing different versions of a file, as follows:"
+    echo ""
+    echo "    ------------------------------------------"
+    echo "    |             |           |              |"
+    echo "    |  COMMIT 1   | COMMIT 2  |   COMMIT 3   |"
+    echo "    |             |           |              |"
+    echo "    ------------------------------------------"
+    echo "    |                                        |"
+    echo "    |            CURRENT FILE                |"
+    echo "    |                                        |"
+    echo "    ------------------------------------------"
+    echo ""
+    echo ""
+    echo "Or, if --base is provided, it will find the common ancestor of the two commits:"
+    echo ""
+    echo "    ------------------------------------------"
+    echo "    |             |           |              |"
+    echo "    |  COMMIT 1   |  COMMON   |   COMMIT 2   |"
+    echo "    |             | ANCESTOR  |              |"
+    echo "    |             |           |              |"
+    echo "    ------------------------------------------"
+    echo "    |                                        |"
+    echo "    |            CURRENT FILE                |"
+    echo "    |                                        |"
+    echo "    ------------------------------------------"
+    echo ""
+    echo ""
+    echo "If no commit is provided, the last 3 commits will be used."
+    exit 1
+}
+
+commit_hashs=()
+file=''
+find_base=false
+
+while [ "$#" -gt 0 ]; do
+    if [ "$1" = "--base" ]; then
+        find_base=true
+    elif [ -f "$1" ]; then
+        file="$1"
+    else
+        commit_hashs+=("$1")
+    fi
+    shift
+done
+
+if [ -z $file ]; then
+    error
+fi
+
+if [ ${#commit_hashs[@]} -eq 0 ]; then
+    commit_hashs=('HEAD~2' 'HEAD~1' 'HEAD')
+fi
+
+if [ $find_base = "true" ]; then
+    if [ ${#commit_hashs[@]} -lt 2 ]; then
+        error
+    fi
+    common_ancestor=$(git merge-base ${commit_hashs[0]} ${commit_hashs[1]})
+    commit_hashs=(${commit_hashs[0]} $common_ancestor ${commit_hashs[1]})
+fi
+
+rm -rf /tmp/diffmerge
+mkdir -p /tmp/diffmerge
+
+filepaths=''
+git_filepath=$(git ls-files --full-name $file)
+for commit_hash in ${commit_hashs[@]}; do
+    echo $commit_hash
+    git cat-file -e $commit_hash:$git_filepath || error
+
+    filename=$(basename $git_filepath)
+
+    git show $commit_hash:$git_filepath > /tmp/diffmerge/$commit_hash.$filename
+    filepaths="$filepaths /tmp/diffmerge/$commit_hash.$filename"
+done
+
+win_amount=${#commit_hashs[@]}
+
+nvim -O$win_amount -d $filepaths $file -c 'sp | exe "norm! \<C-w>J" | bp | difft'

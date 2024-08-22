@@ -26,7 +26,12 @@ def handle_result(args, data, target_window_id, boss, extra_cli_args, *a):
     for m, g in zip(data['match'], data['groupdicts']):
         if m:
             matches.append(m), groupdicts.append(g)
+
+
+    w = boss.window_id_map.get(target_window_id)
     for word, match_data in zip(matches, groupdicts):
         # Lookup the word in a dictionary, the open_url function
         # will open the provided url in the system browser
-        boss.launch('/home/zorzi/.local/bin/custom/vim_signal.sh', '{}'.format(word))
+        # boss.launch('/home/zorzi/.local/bin/custom/vim_signal.sh', '{}'.format(word))
+        if w is not None:
+            w.paste_text(word)
